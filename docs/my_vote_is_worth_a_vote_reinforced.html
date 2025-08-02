@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My vote is worth a vote</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1, h2, h3 {
+      color: #2c3e50;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 12px;
+      border-left: 4px solid #3498db;
+      overflow-x: auto;
+    }
+    code {
+      font-family: monospace;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1em 0;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.6em;
+    }
+    th {
+      background-color: #ecf0f1;
+    }
+    a {
+      color: #2980b9;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>My vote is worth a vote</h1>
+
+  <h2>Simulation Proposal in Reinforcement of Chorus One's Alpenglow Concerns</h2>
+
+  <p>
+    This proposal builds on and reinforces critical concerns raised in Chorus One’s report
+    <a href="https://chorus.one/reports-research/distilling-information-from-alpenglow-consensus">“Distilling Information from Alpenglow Consensus”</a>.
+    It outlines a path toward a community-led simulation framework powered by live validator data from the Solana network.
+  </p>
+
+  <h3>🎯 Chorus One's Key Concerns Addressed</h3>
+  <ul>
+    <li><strong>Limited fault tolerance (20% adversarial cap)</strong> – our simulation uses skip rate and participation data to explore safety boundaries.</li>
+    <li><strong>Fast finality centralization</strong> – by modeling vote latency and MEV accumulation, we evaluate if low-latency validators gain compounding advantages.</li>
+    <li><strong>Relay network risk</strong> – we simulate geographic latency using ASN and region data to assess Rotor fairness.</li>
+    <li><strong>No retroactive reordering</strong> – simulation includes asynchronous proposers and vote arrival timing to explore fork selection sensitivity.</li>
+    <li><strong>Lack of public tooling</strong> – this proposal serves as an open platform to fill that exact gap.</li>
+  </ul>
+
+  <h3>🔗 Data Source</h3>
+  <p>All modeling is grounded in live recency-weighted validator behavior from:</p>
+  <p><strong><a href="https://api.trillium.so/recency_weighted_average_validator_rewards">https://api.trillium.so/recency_weighted_average_validator_rewards</a></strong></p>
+
+  <h3>📊 Simulation-Ready Fields</h3>
+  <table>
+    <tr>
+      <th>Field</th>
+      <th>Description</th>
+      <th>Simulation Role</th>
+    </tr>
+    <tr>
+      <td><code>average_stake_percentage</code></td>
+      <td>Validator's voting power</td>
+      <td>Fault tolerance modeling</td>
+    </tr>
+    <tr>
+      <td><code>average_skip_rate</code></td>
+      <td>Slot failure likelihood</td>
+      <td>Finality quorum liveness</td>
+    </tr>
+    <tr>
+      <td><code>average_mev_to_validator</code></td>
+      <td>MEV earnings</td>
+      <td>Reward centralization over time</td>
+    </tr>
+    <tr>
+      <td><code>average_votes_cast</code></td>
+      <td>Voting activity</td>
+      <td>Quorum formation simulation</td>
+    </tr>
+    <tr>
+      <td><code>average_median_vote_latency</code></td>
+      <td>Latency per validator</td>
+      <td>Fork race & async leader modeling</td>
+    </tr>
+    <tr>
+      <td><code>continent / country / asn</code></td>
+      <td>Geographic/network placement</td>
+      <td>Relay reachability and latency</td>
+    </tr>
+  </table>
+
+  <h3>📌 Conclusion</h3>
+  <p>
+    This proposal does not duplicate Chorus One’s concerns — it operationalizes them into a measurable,
+    testable model using public data and reproducible methods.
+  </p>
+  <p>
+    Community members, AG contributors, and the Anza team are encouraged to treat this as a scaffold for
+    collaborative simulation ahead of Alpenglow deployment. The goal is simple: consensus, about consensus.
+  </p>
+</body>
+</html>

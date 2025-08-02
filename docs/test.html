@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trillium | Solana API Documentation</title>
+    <link rel="icon" href="https://trillium.so/images/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0;
+        }
+        header, footer {
+            background-color: #f4ac07;
+            color: white;
+            padding: 10px 0;
+            margin: 0 -20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header {
+            margin-bottom: 20px;
+        }
+        header a, footer a {
+            color: white;
+            text-decoration: none;
+        }
+        h1 {
+            color: #f4ac07;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #0066cc;
+        }
+        .logo {
+            max-width: 100px;
+            margin: 0 20px;
+            height: 100px; /* Make sure width and height are equal to create a circle */
+            border-radius: 50%; /* This makes the image circular */
+        }
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header-title {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .small {
+            font-size: 0.8em;
+        }
+        .subscription-icon {
+            height: 1.5em;
+            vertical-align: middle;
+        }
+        sup {
+            font-size: 0.6em;
+            vertical-align: super;
+        }
+        [role="main"] {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        footer {
+            justify-content: space-around;
+            padding: 10px 0;
+            margin-top: 20px;
+        }
+        footer p {
+            margin: 5px 0;
+            text-align: center;
+        }
+        .gray {
+            background-color: lightgray;
+        }
+        .left-aligned-image {
+            width: 50%;
+            float: left;
+            margin: 0;
+            padding: 0;
+            clear: both;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <a href="https://trillium.so" target="_blank">
+                <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo" class="logo">
+            </a>
+            <a href="https://trillium.so" target="_blank" class="small">trillium.so</a>
+        </div>
+        <h1 class="header-title">Trillium | Solana API Documentation</h1>
+        <div style="width: 100px;"></div>
+    </header>
+
+    <div role="main">
+        <section>
+            <h2 id="json-api-data">
+                <a href="#json-api-data" class="anchor-link">#</a>
+                JSON API Data Explained - Documentation
+            </h2>
+            <p>All data is obtained via:</p>
+            <ul>
+                <li>The <a href="https://solana.com/docs/rpc" target="_blank">Solana RPC interface</a></li>
+                <li><a href="https://docs.solanalabs.com/cli/" target="_blank">Solana command line programs</a></li>
+                <li><a href="https://www.jito.network/stakenet/" target="_blank">Jito on-chain Stakenet CLI</a></li>
+                <li><a href="https://app.vx.tools" target="_blank">Vortex | Validator Explorer for Vote Latency Data</a></li>
+                <li><a href="https://stakeview.app/" target="_blank">Shinobi Systems' stakeview.app voting performance API</a></li>
+                <li>Various Firedancer validators' GUI websocket metrics for slot durations as observed by each validator<br>
+                   (note: we are polling a geo-diverse group of metrics and using only the smallest observed value for each slot's duration.  We also ignore any skipped slots and the block immediately after a skipped slot)</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 id="subscribing-to-updates">
+                <a href="#subscribing-to-updates" class="anchor-link">#</a>
+                Subscribing to Updates
+            </h2>
+            <p>
+                Anyone can subscribe on 
+                <a href="https://t.me/Trillium_API_Updates_bot" target="_blank">
+                    Telegram <img src="https://trillium.so/images/telegram_logo.webp" alt="Telegram" class="subscription-icon">
+                </a> 
+                or 
+                <a href="https://discord.gg/UTXxbBgQNy" target="_blank">
+                    Discord <img src="https://trillium.so/images/discord_logo.jpeg" alt="Discord" class="subscription-icon">
+                </a> 
+                to get a message whenever the API data or charts are updated.
+            </p>
+        </section>        
+
+        <section>
+            <h2 id="json-keypairs">
+                <a href="#json-keypairs" class="anchor-link">#</a>
+                About the JSON Keypairs
+            </h2>
+            <p>Most of the JSON keypair names should be self-explanatory for a Solana validator. Here are some explanations:</p>
+            <ul>
+                <li><strong><span class="gray">epoch_credits</span></strong>: The number of vote credits in the current epoch. Prior to TVC this was nearly the same as votes_cast.  Now, with TVC, <span class="gray">epoch_credits</span> receives a higher score for low latency votes</li>
+                <li><strong><span class="gray">leader_slots</span></strong>: The number of slots assigned to a validator where it is responsible to produced blocks. These are assigned in groups of 4</li>
+                <li><strong><span class="gray">mev_earned</span></strong>: Total MEV where some or all may go to the validator or some or all may go to the validator's stake holders</li>
+                <li><strong><span class="gray">mev_to_validator</span></strong>: The amount of mev_earned that goes to the validator based on the validator's <span class="gray">mev_commission</span></li>
+                <li><strong><span class="gray">rewards</span></strong>: The <span class="gray">total_block_rewards_before_burn</span> is the sum of (<span class="gray">signatures</span> * 5000 lamports) + <span class="gray">priority_fees</span> and shown in SOL
+                    <br>As of 2024 half of block rewards are "burned" so we have <span class="gray">validator_signature_fees</span> = 0.5 * (<span class="gray">signatures</span> * 5000 lamports) and <span class="gray">validator_priority_fees</span> going to the validator and both are shown in SOL.  
+                    The sum of these two numbers is shown in SOL as <span class="gray">total_block_rewards_after_burn</span> or <span class="gray">rewards</span></li>
+                <li><strong><span class="gray">signatures</span></strong>: The number of shreds and blocks the validator signed as part of consensus</li>
+                <li><strong><span class="gray">skip_rate</span></strong>: The percentage of slots where a validator missed producing a block during a leader slot</li>
+                <li><strong><span class="gray">stake_percentage</span></strong>: The percentage of this validator's active stake compared to the total active stake</li>
+                <li><strong><span class="gray">vote_cost</span></strong>: The cost of participating in consensus where a validator is charged 5000 lamports for each vote cast</li>
+                <li><strong><span class="gray">votes_cast</span></strong>: The number of blocks the validator voted on for consensus</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 id="api-urls">
+                <a href="#api-urls" class="anchor-link">#</a>
+                The API URLs Explained
+            </h2>
+            <h3>Validator Rewards Data</h3>
+            <ol>
+                <li>
+                    <h4>Validator Data</h4>
+                    <pre style="margin-left: 20px;"><a href="https://api.trillium.so/validator_rewards/" target="_blank">https://api.trillium.so/validator_rewards/</a></pre>
+                    <p>Returns the latest epoch's rewards data for all validators</p>
+                    <pre style="margin-left: 20px;"><a href="https://api.trillium.so/validator_rewards" target="_blank">https://api.trillium.so/validator_rewards</a></pre>
+                    <p>If an <span class="gray">epoch_number</span> is provided, returns that epoch's data for all validators</p>
+                    <pre style="margin-left: 20px;"><a href="https://api.trillium.so/validator_rewards/633" target="_blank">https://api.trillium.so/validator_rewards/633</a></pre>
+                    <p>If an <span class="gray">identity_pubkey</span> is provided, returns the last 10 epochs of data for that validator</p>
+                    <pre style="margin-left: 20px;"><a href="https://api.trillium.so/validator_rewards/tri1cHBy47fPyhCvrCf6FnR7Mz6XdSoSBah2FsZVQeT" target="_blank">https://api.trillium.so/validator_rewards/tri1cHBy47fPyhCvrCf6FnR7Mz6XdSoSBah2FsZVQeT</a></pre>
+                    <p>If a <span class="gray">vote_account_pubkey</span> is provided, returns the last 10 epochs of data for that validator</p>
+                </li>
+                <li>
+                    <h4>Validator Rewards : Averages over Last 10 Epochs</h4>
+                    <pre style="margin-left: 20px;"><a href="https://api.trillium.so/ten_epoch_validator_rewards" target="_blank">https://api.trillium.so/ten_epoch_validator_rewards</a></pre>
+                    <p>Returns averages for most numerical data over the last 10 epochs for all validators</p>
+                    <p>The passing of a pubkey parameter works the same as above</p>
+                </li>
+                <li>
+                    <h4>Validator Rewards : Weighted Averages over Last 10 Epochs</h4>
+                    <pre style="margin-left: 20px;"><a href="https://api.trillium.so/recency_weighted_average_validator_rewards" target="_blank">https://api.trillium.so/recency_weighted_average_validator_rewards</a></pre>
+                    <p>Returns epoch weighted averages for most numerical data over the last 10 epochs for all validators</p>
+                    <p>The passing of a pubkey parameter works the same as above</p>
+                    <p>Averaging is performed using weighted values from the prior 10 epochs. However, epochs are not weighted equally. Instead, the following weighting<sup>1</sup> is used for each epoch to determine that epoch's contribution to each validator's score:</p>
+                    <pre style="margin-left: 20px;">
+Current Epoch : 0.2649
+Epoch - 1     : 0.1987
+Epoch - 2     : 0.1490
+Epoch - 3     : 0.1118
+Epoch - 4     : 0.0838
+Epoch - 5     : 0.0629
+Epoch - 6     : 0.0471
+Epoch - 7     : 0.0354
+Epoch - 8     : 0.0265
+Epoch - 9     : 0.0199
+                    </pre>
+                    <p style="margin-left: 20px;"><sup>1</sup> Note: this epoch weighting idea and weight values are from Shinobi Systems <a href="https://xshin.fi/" target="_blank">xshin.fi</a></p>
+                    <p style="margin-left: 20px;">Older epochs contribute less total scoring weight than newer epochs. The current epoch contributes a little more than a quarter of the overall score, and the current and prior three epochs contribute almost 3/4 of total score.</p>
+                </li>
+            </ol>
+
+            <h3>Epoch Data</h3>
+            <ol type="I">
+                <li>
+                    <h4>Epoch Rewards : Last 10 Epochs</h4>
+                    <pre style="margin-left: 20px;"><a href="https://api.trillium.so/epoch_data/" target="_blank">https://api.trillium.so/epoch_data/</a></pre>
+                    <p>Returns epoch rewards data for the last 10 epochs</p>
+                    <pre style="margin-left: 20px;"><a href="https://api.trillium.so/epoch_data/633" target="_blank">https://api.trillium.so/epoch_data/633</a></pre>
+                    <p>If an <span class="gray">epoch_number</span> is provided, returns only that epoch's data</p>
+                </li>
+                <li>
+                    <h4>Epoch Rewards : Averages over Last 10 Epochs</h4>
+                    <pre style="margin-left: 20px;"><a href="https://api.trillium.so/ten_epoch_aggregate_data" target="_blank">https://api.trillium.so/ten_epoch_aggregate_data</a></pre>
+                    <p>Returns averages for most numerical data over the last 10 epochs at the epoch level</p>
+                </li>
+
+                <li>
+                    <h4>Skipped Slots Analysis</h4>
+                    <pre style="margin-left: 20px;"><a href="https://api.trillium.so/skip_analysis/" target="_blank">https://api.trillium.so/skip_analysis/</a></pre>
+                    <p>Returns Skipped slot analysis for the current epoch by validator</p>
+                    <pre style="margin-left: 20px;"><a href="https://api.trillium.so/skip_analysis/699" target="_blank">https://api.trillium.so/skip_analysis/699</a></pre>
+                    <p>If an <span class="gray">epoch_number</span> is provided, returns that epoch's data for all validators</p>
+                    <pre style="margin-left: 20px;"><a href="https://api.trillium.so/skip_analysis/Awes4Tr6TX8JDzEhCZY2QVNimT6iD1zWHzf1vNyGvpLM" target="_blank">https://api.trillium.so/skip_analysis/Awes4Tr6TX8JDzEhCZY2QVNimT6iD1zWHzf1vNyGvpLM</a></pre>
+                    <p>If an <span class="gray">identity_pubkey</span> is provided, returns the last 10 epochs of data for that validator</p>
+                </li>
+            </ol>
+        </section>
+        
+        <section id="charts">
+            <h2 id="charts">
+                <a href="#charts" class="anchor-link">#</a>
+                Charts
+            </h2>
+            
+            <ol start="0">
+                <li>
+                <h4 id="trillium-leaderboard">
+                    <a href="#trillium-leaderboard" class="anchor-link">#</a>
+                    Trillium | Solana Leaderboard
+                </h4>
+                <pre style="margin-left: 20px;"><a href="https://trillium-dashboard.vercel.app/" target="_blank">https://trillium-dashboard.vercel.app/</a></pre>
+                <p>For a guide to using this leaderboard, see:</p>
+                <pre style="margin-left: 20px;"><a href="https://trillium.so/pages/LeaderboardGuide.html" target="_blank">https://trillium.so/pages/LeaderboardGuide.html</a></pre>
+                </li>
+    
+                <li>
+                <h4 id="validator-rewards-compare">
+                    <a href="#validator-rewards-compare" class="anchor-link">#</a>
+                    Validator Rewards - Compare Multi Validators
+                </h4>
+                <pre style="margin-left: 20px;"><a href="https://leaderboard.trillium.so/multi_validator_graph" target="_blank">https://leaderboard.trillium.so/multi_validator_graph</a></pre>
+                <p>Shows the past 10 epochs of validator rewards related data for a set of default validators</p>
+                <p>You can pass one or more comma separated  <span class="gray">identity_pubkey</span> values or <span class="gray">vote_account_pubkey</span> values to get data for specific validators</p>
+                <pre style="margin-left: 20px;"><a href="https://leaderboard.trillium.so/multi_validator_graph/Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3" target="_blank">https://leaderboard.trillium.so/multi_validator_graph/Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3</a></pre>
+                <pre style="margin-left: 20px;"><a href="https://leaderboard.trillium.so/multi_validator_graph/tri1cHBy47fPyhCvrCf6FnR7Mz6XdSoSBah2FsZVQeT" target="_blank">https://leaderboard.trillium.so/multi_validator_graph/tri1cHBy47fPyhCvrCf6FnR7Mz6XdSoSBah2FsZVQeT</a></pre>
+                <pre style="margin-left: 20px;"><a href="https://leaderboard.trillium.so/multi_validator_graph/PUmpKiNnSVAZ3w4KaFX6jKSjXUNHFShGkXbERo54xjb,LA1NEzryoih6CQW3gwQqJQffK2mKgnXcjSQZSRpM3wc,ETcW7iuVraMKLMJayNCCsr9bLvKrJPDczy1CMVMPmXTc,BLADE1qNA1uNjRgER6DtUFf7FU3c1TWLLdpPeEcKatZ2,Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3" target="_blank">https://leaderboard.trillium.so/multi_validator_graph/PUmpKiNnSVAZ3w4KaFX6jKSjXUNHFShGkXbERo54xjb,LA1NEzryoih6CQW3gwQqJQffK2mKgnXcjSQZSRpM3wc,ETcW7iuVraMKLMJayNCCsr9bLvKrJPDczy1CMVMPmXTc,BLADE1qNA1uNjRgER6DtUFf7FU3c1TWLLdpPeEcKatZ2,Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3</a></pre>
+                <p>You can also scroll down or click the "<u>Jump To Compare Section</u>" button to select one or more validators to chart. Check the box next to one or more validators you want to chart and then click the "<u>Compare</u>" button</p>
+                </li>
+            
+                <li>
+                <h4 id="validator-credits-compare">
+                    <a href="#validator-credits-compare" class="anchor-link">#</a>
+                    Validator Credits - Compare Multi Validators
+                </h4>
+                <pre style="margin-left: 20px;"><a href="https://leaderboard.trillium.so/multi_validator_credits_graph" target="_blank">https://leaderboard.trillium.so/multi_validator_credits_graph</a></pre>
+                <p>Shows the past 10 epochs of validator credits related data for a set of default validators</p>
+                <p>NOTE: the bars DO NOT START AT ZERO -- they are relative to the minimum of credits</p>                
+                <p>You can pass one or more comma separated <span class="gray">identity_pubkey</span> values or <span class="gray">vote_account_pubkey</span> values to get data for specific validators</p>
+                <pre style="margin-left: 20px;"><a href="https://leaderboard.trillium.so/multi_validator_credits_graph/Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3" target="_blank">https://leaderboard.trillium.so/multi_validator_credits_graph/Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3</a></pre>
+                <pre style="margin-left: 20px;"><a href="https://leaderboard.trillium.so/multi_validator_credits_graph/tri1cHBy47fPyhCvrCf6FnR7Mz6XdSoSBah2FsZVQeT" target="_blank">https://leaderboard.trillium.so/multi_validator_credits_graph/tri1cHBy47fPyhCvrCf6FnR7Mz6XdSoSBah2FsZVQeT</a></pre>
+                <pre style="margin-left: 20px;"><a href="https://leaderboard.trillium.so/multi_validator_credits_graph/PUmpKiNnSVAZ3w4KaFX6jKSjXUNHFShGkXbERo54xjb,LA1NEzryoih6CQW3gwQqJQffK2mKgnXcjSQZSRpM3wc,ETcW7iuVraMKLMJayNCCsr9bLvKrJPDczy1CMVMPmXTc,BLADE1qNA1uNjRgER6DtUFf7FU3c1TWLLdpPeEcKatZ2,Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3" target="_blank">https://leaderboard.trillium.so/multi_validator_credits_graph/PUmpKiNnSVAZ3w4KaFX6jKSjXUNHFShGkXbERo54xjb,LA1NEzryoih6CQW3gwQqJQffK2mKgnXcjSQZSRpM3wc,ETcW7iuVraMKLMJayNCCsr9bLvKrJPDczy1CMVMPmXTc,BLADE1qNA1uNjRgER6DtUFf7FU3c1TWLLdpPeEcKatZ2,Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3</a></pre>
+                <p>You can also scroll down or click the "<u>Jump To Compare Section</u>" button to select one or more validators to chart. Check the box next to one or more validators you want to chart and then click the "<u>Compare</u>" button</p>
+                </li>
+            
+                <li>
+                <h4 id="validator-mev-compare">
+                    <a href="#validator-mev-compare" class="anchor-link">#</a>
+                    Validator MEV - Compare Multi Validators
+                </h4>
+                <pre style="margin-left: 20px;"><a href="https://leaderboard.trillium.so/multi_validator_mev_graph" target="_blank">https://leaderboard.trillium.so/multi_validator_mev_graph</a></pre>
+                <p>Shows the past 10 epochs of validator credits related data for a set of default validators</p>
+                <p>You can pass one or more comma separated <span class="gray">identity_pubkey</span> values or <span class="gray">vote_account_pubkey</span> values to get data for specific validators</p>
+                <pre style="margin-left: 20px;"><a href="https://leaderboard.trillium.so/multi_validator_mev_graph/Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3" target="_blank">https://leaderboard.trillium.so/multi_validator_mev_graph/Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3</a></pre>
+                <pre style="margin-left: 20px;"><a href="https://leaderboard.trillium.so/multi_validator_mev_graph/tri1cHBy47fPyhCvrCf6FnR7Mz6XdSoSBah2FsZVQeT" target="_blank">https://leaderboard.trillium.so/multi_validator_mev_graph/tri1cHBy47fPyhCvrCf6FnR7Mz6XdSoSBah2FsZVQeT</a></pre>
+                <pre style="margin-left: 20px;"><a href="https://leaderboard.trillium.so/multi_validator_mev_graph/PUmpKiNnSVAZ3w4KaFX6jKSjXUNHFShGkXbERo54xjb,LA1NEzryoih6CQW3gwQqJQffK2mKgnXcjSQZSRpM3wc,ETcW7iuVraMKLMJayNCCsr9bLvKrJPDczy1CMVMPmXTc,BLADE1qNA1uNjRgER6DtUFf7FU3c1TWLLdpPeEcKatZ2,Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3" target="_blank">https://leaderboard.trillium.so/multi_validator_mev_graph/PUmpKiNnSVAZ3w4KaFX6jKSjXUNHFShGkXbERo54xjb,LA1NEzryoih6CQW3gwQqJQffK2mKgnXcjSQZSRpM3wc,ETcW7iuVraMKLMJayNCCsr9bLvKrJPDczy1CMVMPmXTc,BLADE1qNA1uNjRgER6DtUFf7FU3c1TWLLdpPeEcKatZ2,Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3</a></pre>
+                <p>You can also scroll down or click the "<u>Jump To Compare Section</u>" button to select one or more validators to chart. Check the box next to one or more validators you want to chart and then click the "Compare" button</p>
+                </li>
+
+                <li>
+                <h4>Stake / Leader Slots Distribution</h4>
+                <ol>
+                    <li>
+                        <h4>Stake / Leader Slots Distribution By Metro</h4>
+                        <pre style="margin-left: 20px;"><a href="https://trillium.so/pages/stake_distribution_charts_metro.html" target="_blank">https://trillium.so/pages/stake_distribution_charts_metro.html</a></pre>
+                        <p>Shows the current epoch's distribution of Stake (same as distribution of Leader Slots) by Metro</p>
+                    </li>
+                    <li>
+                        <h4>Jito Validators By Continent & Country - Top 200</h4>
+                        <pre style="margin-left: 20px;"><a href="https://trillium.so/pages/validator_counts_charts-jito-200.html" target="_blank">https://trillium.so/pages/validator_counts_charts-jito-200.html</a></pre>
+                        <p>Shows the distribution of the top 200 Jito Validators by Continent and Country</p>
+                    </li>
+                    <li>
+                        <h4>Jito Validators By Continent & Country - Top 350</h4>
+                        <pre style="margin-left: 20px;"><a href="https://trillium.so/pages/validator_counts_charts-jito-350.html" target="_blank">https://trillium.so/pages/validator_counts_charts-jito-350.html</a></pre>
+                        <p>Shows the distribution of the top 350 Jito Validators by Continent and Country</p>
+                    </li>
+                </ol>
+                <pre style="margin-left: 20px;"><a href="https://trillium.so/pages/stake_distribution_charts.html" target="_blank">https://trillium.so/pages/stake_distribution_charts.html</a></pre>
+                <p>Shows the current epoch's distribution of Stake (same as distribution of Leader Slots) by Continent and by Country</p>
+                </li>
+
+                <li>
+                <h4>Epoch Rewards - Overview by Epoch</h4>
+                <pre style="margin-left: 20px;"><a href="https://trillium.so/pages/epoch_metrics_chart.html" target="_blank">https://trillium.so/pages/epoch_metrics_chart.html</a></pre>
+                <p>Shows the past 10 epochs' Total Rewards (Priority, Signature and MEV)</p>
+                </li>
+
+                <li>
+                <h4>Client Version - Averages Per Block Comparison</h4>
+                <pre style="margin-left: 20px;"><a href="https://trillium.so/pages/epoch_comparison_charts.html" target="_blank">https://trillium.so/pages/epoch_comparison_charts.html</a></pre>
+                <p>Compares Firedancer with Agave for Block performance metrics</p>
+                </li>
+
+                <li>
+                <h4>Client Version - Latency Comparison</h4>
+                <pre style="margin-left: 20px;"><a href="https://trillium.so/pages/latency_and_consensus_charts.html" target="_blank">https://trillium.so/pages/latency_and_consensus_charts.html</a></pre>
+                <p>Compares Firedancer with Agave for Latency performance metrics</p>
+                </li>
+
+                <li>
+                <h4>Votes Cast - Overview by Epoch</h4>
+                <pre style="margin-left: 20px;"><a href="https://trillium.so/pages/votes_cast_metrics_chart.html" target="_blank">https://trillium.so/pages/votes_cast_metrics_chart.html</a></pre>
+                <p>Shows the previous 10 Epochs' Votes Cast metrics</p>
+                </li>
+            </ol>
+        </section>
+
+        <section id="additional-metrics">
+            <h2 id="additional-metrics">
+                <a href="#additional-metrics" class="anchor-link">#</a>
+                Additional Metrics
+            </h2>
+            <ol start="9">
+                <li>
+                    <h4>Vote Latency Tables & API</h4>
+                    <pre style="margin-left: 20px;"><a href="https://linktr.ee/trillium.so2" target="_blank">https://linktr.ee/trillium.so2</a></pre>
+                    <p>Allows you to choose Vote Latency Tables by various metrics</p>
+                </li>
+            </ol>
+        </section>
+
+        <section id="apy-calculations">
+            <h2 id="apy-calculations">
+                <a href="#apy-calculations" class="anchor-link">#</a>
+                APY Calculations Documentation
+            </h2>
+            <pre style="margin-left: 20px;"><a href="https://trillium.so/pages/apy-documentation.html" target="_blank">https://trillium.so/pages/apy-documentation.html</a></pre>
+            <p>Shows the available APY metrics and how they are derived.</p>
+        </section>
+
+        <section id="usage-attribution">
+            <h2 id="usage-attribution">
+                <a href="#usage-attribution" class="anchor-link">#</a>
+                Usage & Attribution
+            </h2>
+            
+            <h3>Usage & Rate Limits</h3>
+            
+            <p>This API is open to the public and does not require any authentication, tokens, or registration.</p>
+            <p>While Trillium does not currently enforce rate limits, we kindly ask that you use the API responsibly. If we notice performance degradation due to increased usage, rate limits may be implemented in the future.</p>
+            
+            <h3>Attribution</h3>
+            
+            <p>If you are using a Trillium API for any non-personal use, we request that you provide attribution on your site or project.</p>
+            <p>Please use the image 
+                <a href="https://trillium.so/images/fueled-by-trillium.png" target="_blank">https://trillium.so/images/fueled-by-trillium.png</a>
+                and link to 
+                <a href="https://trillium.so" target="_blank">https://trillium.so</a> as attribution:
+            </p>
+            <p style="margin: 0; padding: 0;">
+                <a href="https://trillium.so" target="_blank">
+                    <img src="https://trillium.so/images/fueled-by-trillium.png" alt="Fueled by Trillium" class="left-aligned-image">
+                </a>
+            </p>                     
+                
+            <p><br><br><br>We appreciate your cooperation in giving credit to our service.</p>
+        </section>
+
+    </div>
+
+    <footer>
+        <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo" class="logo">
+        <div>
+            <p>Trillium is passionate about Solana</p>
+            <p>Your stake helps fuel the Solana ecosystem growth</p>
+            <p>Join the Trillium revolution today!</p>
+        </div>
+        <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo" class="logo">
+    </footer>
+</body>
+</html>

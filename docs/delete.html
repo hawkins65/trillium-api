@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APY Calculations Documentation</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .formula {
+            font-family: 'Times New Roman', serif;
+            background: #f9f9f9;
+            padding: 10px;
+            border-left: 4px solid #3498db;
+            margin: 10px 0;
+        }
+        .inputs, .outputs {
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>APY Calculations Documentation</h1>
+    <p>This document provides an updated explanation of the formulas used for APY calculations based on the latest Python implementation.</p>
+
+    <h2>Formulas</h2>
+
+    <h3>Inflation APY</h3>
+    <p class="formula">
+        \[
+        \text{Delegator Inflation Rate} = \frac{\text{Inflation Reward} \times (1 - \text{Commission})}{\text{Activated Stake}}
+        \]
+        \[
+        \text{Validator Inflation Rate} = \frac{\text{Inflation Reward} \times \text{Commission}}{	ext{Activated Stake}}
+        \]
+        \[
+        \text{Compound Inflation APY} = \left( \left( 1 + \text{Delegator Inflation Rate} \right)^{\text{Epochs per Year}} - 1 \right) \times 100
+        \]
+    </p>
+
+    <h3>MEV APY</h3>
+    <p class="formula">
+        \[
+        \text{Delegator MEV Rate} = \frac{\text{MEV Earned} - \text{MEV to Validator}}{\text{Activated Stake}}
+        \]
+        \[
+        \text{Validator MEV Rate} = \frac{\text{MEV to Validator}}{\text{Activated Stake}}
+        \]
+        \[
+        \text{Compound MEV APY} = \left( \left( 1 + \text{Delegator MEV Rate} \right)^{\text{Epochs per Year}} - 1 \right) \times 100
+        \]
+    </p>
+
+    <h3>Block Rewards APY</h3>
+    <p class="formula">
+        \[
+        \text{Epoch Block Rewards Rate} = \frac{\text{Block Rewards}}{\text{Activated Stake}}
+        \]
+        \[
+        \text{Compound Block Rewards APY} = \left( \left( 1 + \text{Epoch Block Rewards Rate} \right)^{\text{Epochs per Year}} - 1 \right) \times 100
+        \]
+    </p>
+
+    <h3>Total APY</h3>
+    <p class="formula">
+        \[
+        \text{Total APY} = \text{Compound Inflation APY} + \text{Compound MEV APY} + \text{Compound Block Rewards APY}
+        \]
+    </p>
+
+    <h2>Example Inputs</h2>
+    <div class="inputs">
+        <ul>
+            <li><b>Activated Stake (SOL):</b> 5,490,000.00000</li>
+            <li><b>Inflation Reward (SOL):</b> 110.15025</li>
+            <li><b>Inflation Commission (%):</b> 10.00</li>
+            <li><b>MEV Earned (SOL):</b> 950.22550</li>
+            <li><b>MEV to Validator (SOL):</b> 300.00000</li>
+            <li><b>Block Rewards (SOL):</b> 510.65430</li>
+            <li><b>Epochs per Year:</b> 182.50</li>
+        </ul>
+    </div>
+
+    <h2>Example Outputs</h2>
+    <div class="outputs">
+        <ul>
+            <li><b>Current Inflation APY:</b> 2.01%</li>
+            <li><b>Compound Inflation APY:</b> 3.62%</li>
+            <li><b>Validator Inflation APY:</b> 1.00%</li>
+            <li><b>Validator Compound Inflation APY:</b> 3.62%</li>
+            <li><b>Current MEV APY:</b> 4.15%</li>
+            <li><b>Compound MEV APY:</b> 6.87%</li>
+            <li><b>Validator MEV APY:</b> 5.45%</li>
+            <li><b>Validator Compound MEV APY:</b> 6.87%</li>
+            <li><b>Current Block Rewards APY:</b> 1.05%</li>
+            <li><b>Compound Block Rewards APY:</b> 1.75%</li>
+            <li><b>Validator Block Rewards APY:</b> 1.75%</li>
+            <li><b>Validator Compound Block Rewards APY:</b> 1.75%</li>
+            <li><b>Current Total APY:</b> 7.21%</li>
+            <li><b>Compound Total APY:</b> 12.24%</li>
+            <li><b>Validator Total APY:</b> 8.20%</li>
+            <li><b>Validator Compound Total APY:</b> 12.24%</li>
+        </ul>
+    </div>
+</body>
+</html>

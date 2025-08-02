@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trillium | Validator Leaderboard Guide</title>
+    <link rel="icon" href="https://trillium.so/images/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0;
+        }
+        header, footer {
+            background-color: #f4ac07;
+            color: white;
+            padding: 10px 0;
+            margin: 0 -20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header {
+            margin-bottom: 20px;
+        }
+        header a, footer a {
+            color: white;
+            text-decoration: none;
+        }
+        h1 {
+            color: #f4ac07;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #0066cc;
+        }
+        .logo {
+            max-width: 100px;
+            margin: 0 20px;
+            height: 100px; /* Make sure width and height are equal to create a circle */
+            border-radius: 50%; /* This makes the image circular */
+        }
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header-title {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .small {
+            font-size: 0.8em;
+        }
+        [role="main"] {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        footer {
+            justify-content: space-around;
+            padding: 10px 0;
+            margin-top: 20px;
+        }
+        footer p {
+            margin: 5px 0;
+            text-align: center;
+        }
+        .feature-highlight {
+            background-color: #e6fffa;
+            border-left: 4px solid #38b2ac;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .arrow {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .up-arrow {
+            color: #38a169; /* green */
+        }
+        .down-arrow {
+            color: #e53e3e; /* red */
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <a href="https://trillium.so" target="_blank">
+                <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo" class="logo">
+            </a>
+            <a href="https://trillium.so" target="_blank" class="small">trillium.so</a>
+        </div>
+        <h1 class="header-title">Trillium | Validator Leaderboard Guide</h1>
+        <div style="width: 100px;"></div>
+    </header>
+
+    <div role="main">
+        <section>
+            <h2>Introduction</h2>
+            <p>Welcome to the <a href="https://trillium-dashboard.vercel.app/" target="_blank">Trillium Validator Leaderboard</a>! This dashboard is a powerful tool designed to provide comprehensive insights into validator performance on the Solana network. This guide will walk you through its features to help you make the most of the available data.</p>
+        </section>
+
+        <section>
+            <h2>Getting Started</h2>
+            <p>The two main controls at the top of the page are:</p>
+            <ul>
+                <li><strong>Epoch Selector:</strong> Allows you to view historical performance data for a specific epoch.</li>
+                <li><strong>Metric Group Selector:</strong> Organizes validator metrics into logical groups (e.g., Basic Information, Vote Performance, APY Metrics). You can switch between these groups to explore different facets of validator data.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Key Features</h2>
+
+            <div class="feature-highlight">
+                <h3>Persistent Selections & Filters</h3>
+                <p>
+                    One of the most powerful features of this leaderboard is its persistence. Any filters you apply, validators you select for comparison, or the epoch you are viewing will remain active even when you switch between different <strong>Metric Groups</strong>.
+                </p>
+                <p>
+                    This is achieved by storing your selections in the URL. This allows you to analyze a consistent set of validators across various performance categories without having to re-apply your filters. You can also share the URL with others to show them the exact same data you are seeing.
+                </p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>Epoch-over-Epoch Performance Changes</h3>
+                <p>
+                    To help you quickly identify trends, the table indicates how a validator's metrics have changed compared to the <strong>previous</strong> epoch.
+                </p>
+                <ul>
+                    <li>A green up arrow <span class="arrow up-arrow">▲</span> next to a value signifies an improvement in that metric (e.g., higher APY, more blocks produced). For rank-based metrics, an up arrow means a better (lower) rank number.</li>
+                    <li>A red down arrow <span class="arrow down-arrow">▼</span> signifies a decline in that metric (e.g., lower APY, higher skip rate).</li>
+                </ul>
+                <p>
+                    <strong>Hovering your mouse over an arrow</strong> will reveal a tooltip showing the precise percentage change from the previous epoch, giving you a deeper understanding of the magnitude of the change.
+                </p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Filtering and Sorting</h2>
+            <p>Each column in the table can be sorted by clicking on its header. You can also apply fine-grained filters:</p>
+            <ul>
+                <li>Click the filter icon <img src="https://trillium.so/images/filter-icon.png" alt="filter icon" style="height: 1em; vertical-align: middle;"> in the column header to open a filter popup.</li>
+                <li>You can filter by name, public key, client type, version, and a range of values for numerical metrics.</li>
+                <li>The "Averages for Filtered Validators" tab provides aggregate statistics for the set of validators that match your current filters.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Validator Comparison Chart</h2>
+            <p>You can visually compare the performance of up to 15 validators:</p>
+            <ol>
+                <li>Use the checkboxes in the "Select" column to choose the validators you want to compare.</li>
+                <li>Once you have selected at least one validator, click on the "Chart" tab.</li>
+                <li>The chart will display a visual comparison of the selected validators for the metrics in the currently active group (available for Performance, Averages, and Slot Durations groups).</li>
+            </ol>
+        </section>
+
+    </div>
+
+    <footer>
+        <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo" class="logo">
+        <div>
+            <p>Trillium is passionate about Solana</p>
+            <p>Your stake helps fuel the Solana ecosystem growth</p>
+            <p>Join the Trillium revolution today!</p>
+        </div>
+        <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo" class="logo">
+    </footer>
+</body>
+</html>

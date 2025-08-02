@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Vote is Worth a Vote - Proposal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1, h2, h3 {
+      color: #2c3e50;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1em 0;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.6em;
+    }
+    th {
+      background-color: #ecf0f1;
+    }
+    a {
+      color: #2980b9;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    code {
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+<pre>
+# My Vote is Worth a Vote
+
+## 🧠 Purpose
+
+This proposal presents a structured simulation framework to evaluate the safety, fairness, and validator incentives under Solana’s proposed Alpenglow consensus protocol. It builds on Chorus One’s analysis and integrates real-world validator data available from the Trillium API.
+
+## 🎯 Goals
+
+- Validate consensus safety under latency, failure, and stake imbalance scenarios.
+- Evaluate MEV centralization and economic fairness in fast vs. slow finality paths.
+- Identify geographic and relay-related disadvantages for global validator distribution.
+- Provide reproducible simulation input using open, real-time data.
+
+## 🔗 Data Source
+
+Live validator performance metrics are sourced from:
+[https://api.trillium.so/recency_weighted_average_validator_rewards](https://api.trillium.so/recency_weighted_average_validator_rewards)
+
+## 🧩 Input Data Schema (Key Fields)
+
+| Field | Description | Simulation Role |
+|-------|-------------|------------------|
+| `identity_pubkey` | Validator ID | Node uniqueness |
+| `average_stake_percentage` | Stake weight | Voting power |
+| `average_skip_rate` | Slot reliability | Liveness simulation |
+| `average_mev_to_validator` | MEV earnings | Reward modeling |
+| `average_median_vote_latency` | Vote arrival timing | Fork race modeling |
+| `average_votes_cast` | Vote activity | Finality quorum input |
+| `asn`, `country`, `region` | Network geography | Latency simulation |
+
+## 🧱 Simulation Architecture
+
+This proposal is language-agnostic. Suggested modules:
+
+- `ValidatorSet`: Ingest and normalize JSON data
+- `RelayNetwork`: Assign latency/failure risks
+- `ConsensusRound`: Simulate fast vs. slow finality
+- `RewardEngine`: Calculate rewards, MEV share, penalties
+
+## 🧪 Test Plan
+
+| Concern | Scenario | Metric |
+|--------|----------|--------|
+| Fork resolution timing | Two async leaders | Finality winner latency |
+| Safety margin under fault | 25% skip rate | Certificate failure rate |
+| Reward centralization | Latency-favored validator | MEV over 10 epochs |
+| Regional relay inequality | Non-relay validator | Block inclusion failure %
+
+## 🤝 Chorus One Alignment
+
+This simulation framework directly addresses these Chorus One concerns:
+
+- ✅ Weak adversarial threshold (20%)
+- ✅ Economic centralization under low-latency
+- ✅ Relay bias (Rotor)
+- ✅ Lack of PoH reorder/catch-up
+- ✅ Lack of public testbed
+
+## 📢 Call to Action
+
+We invite AG contributors, Anza, and community validators to collaborate on this effort and provide feedback or sponsorship to formally test consensus readiness before deployment of Alpenglow.
+
+</pre>
+</body>
+</html>

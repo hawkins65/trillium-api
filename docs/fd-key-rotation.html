@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana FireDancer Key Rotation Guide | Trillium</title>
+    <link rel="icon" href="https://trillium.so/images/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0;
+        }
+        header, footer {
+            background-color: #f4ac07;
+            color: white;
+            padding: 10px 0;
+            margin: 0 -20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header {
+            margin-bottom: 20px;
+        }
+        header a, footer a {
+            color: white;
+            text-decoration: none;
+        }
+        h1 {
+            color: #f4ac07;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #0066cc;
+        }
+        .logo {
+            max-width: 100px;
+            margin: 0 20px;
+            height: 100px;
+            border-radius: 50%;
+        }
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header-title {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .small {
+            font-size: 0.8em;
+        }
+        [role="main"] {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        footer {
+            justify-content: space-around;
+            padding: 10px 0;
+            margin-top: 20px;
+        }
+        footer p {
+            margin: 5px 0;
+            text-align: center;
+        }
+        .note {
+            background-color: #e6fffa;
+            border-left: 4px solid #38b2ac;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <a href="https://trillium.so" target="_blank">
+                <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo" class="logo">
+            </a>
+            <a href="https://trillium.so" target="_blank" class="small">trillium.so</a>
+        </div>
+        <h1 class="header-title">Solana FireDancer Key Rotation Guide</h1>
+        <div style="width: 100px;"></div>
+    </header>
+
+    <div role="main">
+        <section>
+            <div class="note">
+                <p><strong>Note:</strong> After completion, be sure to update your watchtower service with the new identity public key because agave-watchtower will no longer recognize the old identity.</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Overview</h2>
+            <p>The key rotation process is executed in a phased manner:</p>
+            <ul>
+                <li>Set up a new FireDancer (FD) server with a new identity and voting authority.</li>
+                <li>Update vote authority from the old key to the new key.</li>
+                <li>Transition over two epochs to ensure uninterrupted operations.</li>
+                <li>Finalize configurations on both the new and old FD servers.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Step-by-Step Instructions</h2>
+
+            <h3>Step 1. Start the New FD Server as a Non-Voting, Non-Staked Validator</h3>
+            <p>On the NEW FD server, start the validator using the existing vote public key but in a non-voting, non-staked mode.</p>
+
+            <h3>Step 2. Prepare the New FD Server with the New Identity & Authorized Voter</h3>
+            <p>Update your <code>config.toml</code> on the NEW FD server with the new identity and voting authority settings:</p>
+            <pre>
+[consensus]
+# Path to the new identity key
+identity_path = "<path-to-your-new-identity-key>.json"
+
+# Existing vote account public key
+vote_account_path = "<vote-account-pubkey>"
+
+# Authorized voter is initially the new identity key
+authorized_voter_paths = [
+  "<path-to-your-new-identity-key>.json"
+]
+            </pre>
+
+            <h3>Step 3. Fund the New Identity Account</h3>
+            <p>Ensure that the new identity account is sufficiently funded:</p>
+            <pre>
+solana transfer --allow-unfunded-recipient <path-to-your-new-validator-keypair> 10
+            </pre>
+
+            <h3>Step 4. Change the Validator Identity</h3>
+            <p>An operator (e.g., your designated team member who controls the authorized-withdrawer keypair) should update the validator identity by executing:</p>
+            <pre>
+solana vote-update-validator \
+  <vote-account-pubkey> \
+  <path-to-your-new-identity-key>.json \
+  <new-auth-withdrawer-keypair>
+            </pre>
+            <p><strong>Explanation:</strong></p>
+            <ul>
+                <li><code>&lt;vote-account-pubkey&gt;</code>: The public key of your vote account.</li>
+                <li><code>&lt;path-to-your-new-identity-key&gt;.json</code>: The file containing your new identity key.</li>
+                <li><code>&lt;new-auth-withdrawer-keypair&gt;</code>: The new authorized withdrawer key.</li>
+            </ul>
+
+            <h3>Step 5. Restart Firedancer on the New FD Server with the Updated Configuration</h3>
+            <p>Update the <code>config.toml</code> on the NEW FD server to use the new identity and vote authority:</p>
+            <pre>
+[consensus]
+identity_path = "<path-to-your-new-identity-key>.json"
+vote_account_path = "<vote-account-pubkey>"
+authorized_voter_paths = [
+  "<path-to-your-new-identity-key>.json"
+]
+            </pre>
+            <p>Then, restart Firedancer:</p>
+            <pre>
+sudo systemctl restart firedancer.service
+            </pre>
+
+            <h3>Step 6. Reconfigure the OLD FD Server for Block Production Only</h3>
+            <p>On the OLD FD server, modify the <code>config.toml</code> as follows:</p>
+            <ul>
+                <li>Keep: The <code>identity_path</code> entry.</li>
+                <li>Remove: The <code>vote_account_path</code> and <code>authorized_voter_paths</code> entries.</li>
+                <li>Add: The following line to bypass waiting for vote start-up:</li>
+            </ul>
+            <pre>
+wait_for_vote_to_start_leader = false
+            </pre>
+            <p>After updating, restart the OLD FD service:</p>
+            <pre>
+sudo systemctl restart firedancer.service
+            </pre>
+
+            <h3>Step 7. Temporarily Add the Old Authorized Voter on the New FD Server</h3>
+            <p>For a transitional period of two epochs, update the NEW FD server's <code>config.toml</code> to include both the new identity and the old authorized voter:</p>
+            <pre>
+[consensus]
+identity_path = "<path-to-your-new-identity-key>.json"
+vote_account_path = "<vote-account-pubkey>"
+authorized_voter_paths = [
+  "<path-to-your-new-identity-key>.json",
+  "<path-to-your-old-auth-voter-key>.json"
+]
+            </pre>
+            <p>Restart Firedancer to apply these changes:</p>
+            <pre>
+sudo systemctl restart firedancer.service
+            </pre>
+
+            <h3>Step 8. Schedule the Vote Authority Transition</h3>
+            <p>Set the new vote authority to take effect at the start of the next epoch:</p>
+            <pre>
+solana vote-authorize-voter-checked \
+  <vote-account-pubkey> \
+  <path-to-your-old-auth-voter-key>.json \
+  <path-to-your-new-identity-key>.json
+            </pre>
+            <p><strong>Note:</strong> This command schedules the new identity to become the active vote authority, replacing the old one.</p>
+
+            <h3>Step 9. Finalize the New FD Server Configuration</h3>
+            <p>After two epochs, remove the old authorized voter from the NEW FD server configuration so that only the new identity remains:</p>
+            <pre>
+[consensus]
+identity_path = "<path-to-your-new-identity-key>.json"
+vote_account_path = "<vote-account-pubkey>"
+authorized_voter_paths = [
+  "<path-to-your-new-identity-key>.json"
+]
+            </pre>
+            <p>Restart Firedancer one final time:</p>
+            <pre>
+sudo systemctl restart firedancer.service
+            </pre>
+        </section>
+    </div>
+
+    <footer>
+        <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo" class="logo">
+        <div>
+            <p>Trillium is passionate about Solana</p>
+            <p>Your stake helps fuel the Solana ecosystem growth</p>
+            <p><a href="https://trillium.so" target="_blank">Join the Trillium revolution today!</a></p>
+        </div>
+        <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo" class="logo">
+    </footer>
+</body>
+</html>

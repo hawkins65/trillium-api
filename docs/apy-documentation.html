@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trillium | Solana API - APY Calculations</title>
+    <link rel="icon" href="https://trillium.so/images/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0;
+        }
+        header, footer {
+            background-color: #f4ac07;
+            color: white;
+            padding: 10px 0;
+            margin: 0 -20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header {
+            margin-bottom: 20px;
+        }
+        header a, footer a {
+            color: white;
+            text-decoration: none;
+        }
+        h1 {
+            color: #f4ac07;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #0066cc;
+        }
+        .logo {
+            max-width: 100px;
+            margin: 0 20px;
+            height: 100px;
+            border-radius: 50%;
+        }
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header-title {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+        }
+        .math-equation {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .small {
+            font-size: 0.8em;
+        }
+        [role="main"] {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        footer {
+            justify-content: space-around;
+            padding: 10px 0;
+            margin-top: 20px;
+        }
+        footer p {
+            margin: 5px 0;
+            text-align: center;
+        }
+        .feature-highlight {
+            background-color: #e6fffa;
+            border-left: 4px solid #38b2ac;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        ul, ol {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <a href="https://trillium.so" target="_blank">
+                <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo" class="logo">
+            </a>
+            <a href="https://trillium.so" target="_blank" class="small">trillium.so</a>
+        </div>
+        <h1 class="header-title">Trillium | Solana API - APY Calculations</h1>
+        <div style="width: 100px;"></div>
+    </header>
+
+    <div role="main">
+        <section>
+            <h2>Table of Contents</h2>
+            <ul>
+                <li>Context</li>
+                <li>APY Types and Calculations
+                    <ol>
+                        <li>Delegator Inflation APY</li>
+                        <li>Delegator Compound Inflation APY</li>
+                        <li>Delegator MEV APY</li>
+                        <li>Delegator Compound MEV APY</li>
+                        <li>Delegator Total APY</li>
+                        <li>Delegator Compound Total APY</li>
+                        <li>Validator Inflation APY</li>
+                        <li>Validator Compound Inflation APY</li>
+                        <li>Validator MEV APY</li>
+                        <li>Validator Compound MEV APY</li>
+                        <li>Validator Block Rewards APY</li>
+                        <li>Validator Compound Block Rewards APY</li>
+                        <li>Validator Total APY</li>
+                        <li>Validator Compound Total APY</li>
+                        <li>Total Overall APY</li>
+                        <li>Compound Overall APY</li>
+                    </ol>
+                </li>
+                <li>Notes and Caveats</li>
+                <li>Conclusion</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Context</h2>
+            <p>This document explains the Annual Percentage Yield (APY) calculations provided by the Trillium | Solana API for the Solana ecosystem. It focuses on the meaning, components, and caveats of each APY type calculated for validators and delegators, based on data from the Solana blockchain.</p>
+            <ul>
+                <li><strong>Maximal Extractable Value (MEV):</strong> On Solana, MEV refers to the maximum profit a validator (block producer) can extract by strategically ordering or including transactions within a block, beyond standard transaction fees. MEV earnings are distributed among delegators, validators, and other entities (e.g., Jito tip router).</li>
+                <li><strong>Epoch:</strong> A period in the Solana network during which validator performance and rewards are measured.</li>
+                <li><strong>Activated Stake:</strong> The total stake (in SOL) delegated to a validator, used as the denominator in APY calculations. The activated_stake refers to the active stake during the epoch.</li>
+                <li><strong>Lamports per SOL:</strong> 1,000,000,000 lamports = 1 SOL, used for unit conversion.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>APY Types and Calculations</h2>
+            <p>APY calculations annualize returns based on rewards earned in a single epoch, scaled by the number of epochs per year (epochs_per_year). All monetary values are converted from lamports to SOL.</p>
+
+            <h3>General Formula</h3>
+            <p><strong>Simple APY:</strong></p>
+            <div class="math-equation">
+                \[ \text{APY} = \left( \frac{\text{Reward (in SOL)}}{\text{Activated Stake (in SOL)}} \right) \times \text{epochs_per_year} \times 100 \]
+            </div>
+            <p><strong>Compound APY (for inflation rewards):</strong></p>
+            <div class="math-equation">
+                \[ \text{Compound APY} = \left( \left(1 + \frac{\text{reward (in SOL)}}{\text{activated_stake (in SOL)}} \right)^{\text{epochs_per_year}} - 1 \right) \times 100 \]
+            </div>
+
+            <h3>Calculations</h3>
+
+            <div class="feature-highlight">
+                <h3>I. Delegator Inflation APY</h3>
+                <p><strong>Meaning:</strong> The annualized return for delegators based on inflation rewards distributed by the Solana protocol to incentivize staking.</p>
+                <p><strong>Components</strong></p>
+                <ul>
+                    <li>delegator_inflation_reward: Inflation rewards allocated to delegators (in lamports).</li>
+                    <li>activated_stake: Active stake during the epoch (in lamports).</li>
+                    <li>epochs_per_year: Number of epochs in a year.</li>
+                </ul>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{delegator_inflation_apy} = \left( \frac{\text{delegator_inflation_reward} / 10^9}{\text{activated_stake} / 10^9} \right) \times \text{epochs_per_year} \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>II. Delegator Compound Inflation APY</h3>
+                <p><strong>Meaning:</strong> The annualized return for delegators from inflation rewards, assuming rewards are reinvested (compounded) each epoch.</p>
+                <p><strong>Components:</strong> Same as delegator_inflation_apy.</p>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{delegator_compound_inflation_apy} = \left( \left(1 + \frac{\text{delegator_inflation_reward} / 10^9}{\text{activated_stake} / 10^9} \right)^{\text{epochs_per_year}} - 1 \right) \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>III. Delegator MEV APY</h3>
+                <p><strong>Meaning:</strong> The annualized return for delegators based on their share of MEV earnings, which validators extract by optimizing transaction ordering.</p>
+                <p><strong>Components</strong></p>
+                <ul>
+                    <li>mev_earned: Total MEV earnings (in lamports).</li>
+                    <li>mev_to_validator: MEV allocated to the validator (in lamports).</li>
+                    <li>mev_to_jito_tip_router: MEV allocated to the Jito tip router (in lamports).</li>
+                    <li>activated_stake: Active stake during the epoch (in lamports).</li>
+                    <li>epochs_per_year: Number of epochs in a year.</li>
+                </ul>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{delegator_mev_apy} = \left( \frac{(\text{mev_earned} - \text{mev_to_validator} - \text{mev_to_jito_tip_router}) / 10^9}{\text{activated_stake} / 10^9} \right) \times \text{epochs_per_year} \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>IV. Delegator Compound MEV APY</h3>
+                <p><strong>Meaning:</strong> Not yet compounded, same as delegator_mev_apy.</p>
+                <p><strong>Components:</strong> Same as delegator_mev_apy.</p>
+                <p><strong>Calculation:</strong> Same as delegator_mev_apy.</p>
+                <p><strong>Note:</strong> Compounding for MEV earnings is not currently implemented but may be considered in future updates.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>V. Delegator Total APY</h3>
+                <p><strong>Meaning:</strong> The total annualized return for delegators, combining inflation and MEV rewards.</p>
+                <p><strong>Components</strong></p>
+                <ul>
+                    <li>delegator_inflation_reward: Inflation rewards (in lamports).</li>
+                    <li>mev_earned, mev_to_validator, mev_to_jito_tip_router: MEV components (in lamports).</li>
+                    <li>activated_stake: Active stake during the epoch (in lamports).</li>
+                    <li>epochs_per_year: Number of epochs in a year.</li>
+                </ul>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{delegator_total_apy} = \left( \frac{(\text{delegator_inflation_reward} + \text{mev_earned} - \text{mev_to_validator} - \text{mev_to_jito_tip_router}) / 10^9}{\text{activated_stake} / 10^9} \right) \times \text{epochs_per_year} \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>VI. Delegator Compound Total APY</h3>
+                <p><strong>Meaning:</strong> The total annualized return for delegators, combining compounded inflation rewards and simple MEV rewards.</p>
+                <p><strong>Components:</strong> Same as delegator_total_apy.</p>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{delegator_compound_total_apy} = \left( \left( \left(1 + \frac{\text{delegator_inflation_reward} / 10^9}{\text{activated_stake} / 10^9} \right)^{\text{epochs_per_year}} - 1 \right) + \left( \frac{(\text{mev_earned} - \text{mev_to_validator} - \text{mev_to_jito_tip_router}) / 10^9}{\text{activated_stake} / 10^9} \right) \times \text{epochs_per_year} \right) \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>VII. Validator Inflation APY</h3>
+                <p><strong>Meaning:</strong> The annualized return for validators based on inflation rewards allocated to them.</p>
+                <p><strong>Components</strong></p>
+                <ul>
+                    <li>validator_inflation_reward: Inflation rewards for validators (in lamports).</li>
+                    <li>activated_stake: Active stake during the epoch (in lamports).</li>
+                    <li>epochs_per_year: Number of epochs in a year.</li>
+                </ul>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{validator_inflation_apy} = \left( \frac{\text{validator_inflation_reward} / 10^9}{\text{activated_stake} / 10^9} \right) \times \text{epochs_per_year} \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>VIII. Validator Compound Inflation APY</h3>
+                <p><strong>Meaning:</strong> The annualized return for validators from inflation rewards, assuming reinvestment.</p>
+                <p><strong>Components:</strong> Same as validator_inflation_apy.</p>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{validator_compound_inflation_apy} = \left( \left(1 + \frac{\text{validator_inflation_reward} / 10^9}{\text{activated_stake} / 10^9} \right)^{\text{epochs_per_year}} - 1 \right) \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>IX. Validator MEV APY</h3>
+                <p><strong>Meaning:</strong> The annualized return for validators based on their share of MEV earnings.</p>
+                <p><strong>Components</strong></p>
+                <ul>
+                    <li>mev_to_validator: MEV allocated to the validator (in lamports).</li>
+                    <li>activated_stake: Active stake during the epoch (in lamports).</li>
+                    <li>epochs_per_year: Number of epochs in a year.</li>
+                </ul>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{validator_mev_apy} = \left( \frac{\text{mev_to_validator} / 10^9}{\text{activated_stake} / 10^9} \right) \times \text{epochs_per_year} \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>X. Validator Compound MEV APY</h3>
+                <p><strong>Meaning:</strong> Not yet compounded, same as validator_mev_apy.</p>
+                <p><strong>Components:</strong> Same as validator_mev_apy.</p>
+                <p><strong>Calculation:</strong> Same as validator_mev_apy.</p>
+                <p><strong>Note:</strong> Compounding for MEV earnings is not currently implemented but may be considered in future updates.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>XI. Validator Block Rewards APY</h3>
+                <p><strong>Meaning:</strong> The annualized return for validators based on rewards for producing blocks.</p>
+                <p><strong>Components</strong></p>
+                <ul>
+                    <li>rewards: Block production rewards (in lamports).</li>
+                    <li>activated_stake: Active stake during the epoch (in lamports).</li>
+                    <li>epochs_per_year: Number of epochs in a year.</li>
+                </ul>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{validator_block_rewards_apy} = \left( \frac{\text{rewards} / 10^9}{\text{activated_stake} / 10^9} \right) \times \text{epochs_per_year} \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+                <p><strong>Condition:</strong> Calculated only if rewards > 0 and activated_stake is non-null.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>XII. Validator Compound Block Rewards APY</h3>
+                <p><strong>Meaning:</strong> Not yet compounded, same as validator_block_rewards_apy.</p>
+                <p><strong>Components:</strong> Same as validator_block_rewards_apy.</p>
+                <p><strong>Calculation:</strong> Same as validator_block_rewards_apy.</p>
+                <p><strong>Note:</strong> Compounding for block rewards is not currently implemented but may be considered in future updates.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>XIII. Validator Total APY</h3>
+                <p><strong>Meaning:</strong> The total annualized return for validators, combining inflation, MEV, and block rewards.</p>
+                <p><strong>Components</strong></p>
+                <ul>
+                    <li>validator_inflation_reward: Inflation rewards (in lamports).</li>
+                    <li>mev_to_validator: MEV rewards (in lamports).</li>
+                    <li>rewards: Block rewards (in lamports).</li>
+                    <li>activated_stake: Active stake during the epoch (in lamports).</li>
+                    <li>epochs_per_year: Number of epochs in a year.</li>
+                </ul>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{validator_total_apy} = \left( \frac{(\text{validator_inflation_reward} + \text{mev_to_validator} + \text{rewards}) / 10^9}{\text{activated_stake} / 10^9} \right) \times \text{epochs_per_year} \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>XIV. Validator Compound Total APY</h3>
+                <p><strong>Meaning:</strong> The total annualized return for validators, combining compounded inflation rewards and simple MEV/block rewards.</p>
+                <p><strong>Components:</strong> Same as validator_total_apy.</p>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{validator_compound_total_apy} = \left( \left( \left(1 + \frac{\text{validator_inflation_reward} / 10^9}{\text{activated_stake} / 10^9} \right)^{\text{epochs_per_year}} - 1 \right) + \left( \frac{(\text{mev_to_validator} + \text{rewards}) / 10^9}{\text{activated_stake} / 10^9} \right) \times \text{epochs_per_year} \right) \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>XV. Total Overall APY</h3>
+                <p><strong>Meaning:</strong> The total annualized return for all stakeholders (delegators and validators), combining all rewards.</p>
+                <p><strong>Components</strong></p>
+                <ul>
+                    <li>delegator_inflation_reward: Delegator inflation rewards (in lamports).</li>
+                    <li>validator_inflation_reward: Validator inflation rewards (in lamports).</li>
+                    <li>mev_earned: Total MEV earnings (in lamports).</li>
+                    <li>mev_to_jito_tip_router: MEV allocated to Jito tip router (in lamports).</li>
+                    <li>rewards: Block rewards (in lamports).</li>
+                    <li>activated_stake: Active stake during the epoch (in lamports).</li>
+                    <li>epochs_per_year: Number of epochs in a year.</li>
+                </ul>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{total_overall_apy} = \left( \frac{(\text{delegator_inflation_reward} + \text{validator_inflation_reward} + \text{mev_earned} - \text{mev_to_jito_tip_router} + \text{rewards}) / 10^9}{\text{activated_stake} / 10^9} \right) \times \text{epochs_per_year} \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+            </div>
+
+            <div class="feature-highlight">
+                <h3>XVI. Compound Overall APY</h3>
+                <p><strong>Meaning:</strong> The total annualized return for all stakeholders, combining compounded inflation rewards and simple MEV/block rewards.</p>
+                <p><strong>Components:</strong> Same as total_overall_apy.</p>
+                <p><strong>Calculation:</strong></p>
+                <div class="math-equation">
+                    \[ \text{compound_overall_apy} = \left( \left( \left(1 + \frac{(\text{delegator_inflation_reward} + \text{validator_inflation_reward}) / 10^9}{\text{activated_stake} / 10^9} \right)^{\text{epochs_per_year}} - 1 \right) + \left( \frac{(\text{mev_earned} - \text{mev_to_jito_tip_router} + \text{rewards}) / 10^9}{\text{activated_stake} / 10^9} \right) \times \text{epochs_per_year} \right) \times 100 \]
+                </div>
+                <p><strong>Rounded:</strong> To 2 decimal places.</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Notes and Caveats</h2>
+            <ul>
+                <li><strong>Stake Threshold:</strong> APYs are calculated only if activated_stake ≥ 1,000 SOL (1,000,000,000,000 lamports) to ensure meaningful results and avoid division by small denominators.</li>
+                <li><strong>Compounding:</strong> Only inflation rewards are compounded, reflecting the assumption that these rewards can be reinvested. MEV and block rewards use simple APY calculations, as they are not yet compounded. Compounding for MEV and block rewards may be implemented in future updates, which would adjust the respective compound APY calculations.</li>
+                <li><strong>MEV Distribution:</strong> MEV earnings are split among delegators, validators, and the Jito tip router. The calculations account for these allocations explicitly to avoid double-counting.</li>
+                <li><strong>Data Validation:</strong> APY values are validated to exclude NaN, infinite, or excessively large values (≥ 1e20). Invalid results are not stored in the database.</li>
+                <li><strong>Rounding:</strong> All APY values are rounded to 2 decimal places for consistency and readability.</li>
+                <li><strong>Epoch Dependency:</strong> Calculations rely on accurate epochs_per_year data from the epoch_aggregate_data API data. Variations in epoch duration may affect APY accuracy.</li>
+                <li><strong>Null Values:</strong> If any required data (e.g., stake, rewards, or epochs per year) is missing or zero, the APY is set to NULL to avoid invalid calculations.</li>
+                <li><strong>Block Rewards:</strong> validator_block_rewards_apy requires positive rewards and non-null stake, reflecting that not all validators produce blocks in every epoch.</li>
+                <li><strong>API Context:</strong> These APYs are part of the Trillium | Solana API, designed to provide transparent performance metrics for the Solana ecosystem. Users should verify data against on-chain sources for critical applications.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Conclusion</h2>
+            <p>The Trillium | Solana API provides a comprehensive set of APY metrics to evaluate validator and delegator performance on Solana. By accounting for inflation, MEV, and block rewards, these calculations offer valuable insights into staking returns. Users should consider the caveats, particularly around compounding assumptions and data validation, when interpreting these metrics.</p>
+        </section>
+    </div>
+
+    <footer>
+        <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo" class="logo">
+        <div>
+            <p>Trillium is passionate about Solana</p>
+            <p>Your stake helps fuel the Solana ecosystem growth</p>
+            <p><a href="https://trillium.so" target="_blank">Join the Trillium revolution today!</a></p>
+        </div>
+        <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo" class="logo">
+    </footer>
+</body>
+</html>

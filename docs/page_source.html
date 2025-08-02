@@ -1,0 +1,1281 @@
+<html lang="en"><!-- test v0.1 --><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Shinobi Performance Pool</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+</head>
+
+<body>
+    <div id="tooltipContainer"></div>
+
+    <!-- Password form container -->
+    <div id="password-form-container"></div>
+
+    <!--- Main content container -->
+    <div id="content-container" style="display: none;">
+        <header class="header-main">
+            <div class="header-top">
+                <div class="header-logo-container">
+                    <a href="#" class="header-logo-link" id="logoLink">
+                        <img src="images/logo-with-name.png" alt="Shinobi Performance Pool Logo" class="header-logo">
+                    </a>
+                </div>
+
+                <div id="defaultHeader" class="tab-header-content">
+                    <!-- Home tab content -->
+                    <div id="statsContent">
+                        <p id="apyEarnings"><span id="apyValue" class="gold-text">0</span><span class="gold-text">%</span> APY earnings</p>
+                        <p>from <span id="solStaked" class="gold-text">0</span> SOL staked</p>
+                        <p>across the top <span id="validatorCount" class="gold-text">0</span> validators</p>
+                    </div>
+                </div>
+
+                <div id="walletArea">
+                    <div id="walletButtonContainer">
+                        <div class="wallet-label">Wallet</div>
+                        <button id="connectWalletButton" class="connect-wallet-button">Connect</button>
+                    </div>
+                    <div id="walletInfo" class="wallet-info-container" style="display: none;">
+                        <div id="walletBalance" class="wallet-balance-card">
+                            <div class="balance-container">
+                                <img src="images/xSHIN_3d_256x256.png" alt="xSHIN Icon" class="balance-icon">
+                                <div class="balance-text">
+                                    <span id="xShinBalanceValue" class="balance-value">0</span>
+                                    <span id="xShinBalanceLabel" class="balance-label">xSHIN</span>
+                                </div>
+                            </div>
+                            <div class="balance-container">
+                                <img src="images/solana_logo.png" alt="SOL Icon" class="balance-icon">
+                                <div class="balance-text">
+                                    <span id="solBalanceValue" class="balance-value">0</span>
+                                    <span id="solBalanceLabel" class="balance-label">SOL</span>
+                                </div>
+                            </div>
+                            <div class="balance-container stake-balance-container">
+                                <img src="" alt="Validator Icon" class="balance-icon stake-validator-icon">
+                                <div class="balance-text">
+                                    <span id="stakeBalanceValue" class="balance-value">0</span>
+                                    <span id="stakeBalanceLabel" class="balance-label">Stake</span>
+                                </div>
+                                <span class="dropdown-arrow">▼</span>
+                            </div>
+                        </div>
+                        <div class="stake-account-dropdown">
+                            <!-- Stake account balances will be dynamically added here -->
+                        </div>
+                        <div id="walletAddress" class="wallet-address">
+                            <button class="disconnect-icon" id="disconnectButton">❌</button>
+                            <a href="#" target="_blank" id="walletAddressLink"></a>
+                            <button class="refresh-icon" id="refreshButton">🔄</button>
+                        </div>
+                    </div>
+                    <div id="headerMessage" class="header-message" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Tab Links -->
+            <div class="header-bottom">
+                <div id="navigationMenu" class="tab-links">
+                    <button class="tab-link" id="homeTab" onclick="openTab(event, 'Home')">Home</button>
+                    <button class="tab-link" onclick="openTab(event, 'Staking')">Stake Now</button>
+                    <button class="tab-link" onclick="openTab(event, 'Validators')">Validators</button>
+                    <button class="tab-link" onclick="openTab(event, 'Strategy')">Strategy</button>
+                    <button class="tab-link" onclick="openTab(event, 'FAQ')">FAQ</button>
+
+                    <select id="tabDropdown" class="tab-dropdown" onchange="openTab(event, this.value)">
+                        <option value="Home">Home</option>
+                        <option value="Staking">Stake Now</option>
+                        <option value="Validators">Validators</option>
+                        <option value="Strategy">Strategy</option>
+                        <option value="FAQ">FAQ</option>
+                        <option value="Press">Press</option>
+                        <option value="Privacy">Privacy</option>
+                        <option value="Terms">Terms</option>
+                    </select>
+
+                    <div id="searchArea" class="search-area">
+                        <input type="text" id="validatorSearch" placeholder="Find validator..." onkeyup="searchValidators()">
+                        <button id="clearSearchButton" onclick="clearSearch()">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+
+            <!--
+            <div class="mobile-message-overlay"></div>
+			<div class="mobile-message">
+				<button class="close-button">&times;</button>
+				<p>Welcome to the<br><b>Shinobi Performance Pool</b></p><p>Mobile UI in development. View it on a larger screen for the best experience.</p>
+			</div>
+			-->
+
+            <!-- Tab Content -->
+            <!-- TAB: Home -->
+            <div id="Home" class="stake-pool-tab-content">
+
+                <!-- HERO SECTION -->
+                <section class="section-container hero-header-section-HR01">
+                    <div class="section-image-container hero-header-image-container-HR01">
+                        <img src="images/bg/nin-pan-6.png" alt="Hero Image" class="pulse-animation">
+                    </div>
+                    <div class="hero-header-content-HR01">
+                        <h2 class="section-headline hero-header-headline-HR01 fade-in-animation" data-animation-delay="0.2s">
+                            Profit with Purpose
+                        </h2>
+                        <h3 class="section-subheader hero-header-subheader-HR01 slide-right-animation" data-animation-delay="0.3s">
+                            Discover the Power <br>of the <b>Shinobi Performance Pool</b>
+                        </h3>
+                        <p class="section-desription hero-header-description-HR01 slide-right-animation" data-animation-delay="0.4s">
+                            <b>Distribute your Solana stake automatically</b> across the top validators.
+                            <br>Receive great returns and <b>xSHIN liquid staking tokens</b> for DeFi.
+                            <br><b>Invest in the vitality of Solana.</b>
+                        </p>
+
+                        <div class="stake-now-button-container">
+                            <button class="stake-now-button">Stake Now</button>
+                        </div>
+
+                    </div>
+
+
+                </section>
+
+
+                <!-- Comparison Charts -->
+
+                <section class="section-chart-comparison">
+
+                    <div class="custom-legend">
+                        <h3 class="section-subheader hero-header-subheader-HR01 slide-right-animation" data-animation-delay="0.3s">
+                            Shinobi Performance Pool versus The Rest
+                        </h3>
+                        <div>
+                            <span class="legend-key"><span class="color-box ours-color"></span>Ours</span>
+                            <span class="legend-key"><span class="color-box theirs-color"></span>The Rest</span>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div class="chart" id="highValueChartContainer">
+                            <canvas id="highValueChart"></canvas>
+                        </div>
+                        <div class="chart" id="lowValueChartContainer">
+                            <canvas id="lowValueChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-legend">
+                        <img src="images/kunai-icon-b.png" alt="20% improvement" class="legend-image">
+                        <span class="legend-text">= more than 20% improvement</span>
+                    </div>
+                </section>
+
+
+                <!-- B. Featured Validators -->
+                <section>
+                    <div class="subsection">
+                        <h2>Award-Winning&nbsp;Validators in&nbsp;Our&nbsp;Pool
+                        </h2>
+
+                        <div id="awardWinningValidators" class="awards-container"></div>
+
+                        <div class="awards-section" id="awards-section">
+
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Hero Section -->
+                <!-- WHY STAKE WITH SPP SECTION: why-stake-SPP-WSS001 -->
+                <section class="section-container why-stake-spp-section-WSS001">
+                    <h2 class="section-headline why-stake-spp-headline-WSS001 fade-in-animation">Why Stake With
+                        the<br>Shinobi Performance Pool?</h2>
+                    <h3 class="section-subheader why-stake-spp-subheader-WSS001 slide-up-animation">Principle Meets
+                        Performance</h3>
+                    <p class="section-description why-stake-spp-description-WSS001 slide-down-animation">It's about more
+                        than <b>great staking rewards</b>;
+                        <br>it's about <b>driving real change</b> in the Solana ecosystem.
+                        <br><br>
+                        Our transparent, <b>data-driven staking pool</b> builds stakeholder value
+                        <br>
+                        while fostering a robust and <b>decentralized future</b>.
+                        <br><br>
+                        No gimmicks, no empty promises,
+                        <br><b>no way for validators to buy their way into the pool.</b>
+                        <br>Every validator here has earned their place.
+                        <br><br>
+                        <b>Join us</b> in shaping the future of blockchain,
+                        <b>one epoch at a time</b>.
+
+
+
+                    </p>
+
+                    <div class="section-image-container why-stake-spp-image-container-WSS001">
+                        <img src="images/characters/z-and-mu_1000.webp" alt="Golden Podium" class="section-image why-stake-spp-image-WSS001">
+                    </div>
+
+                </section>
+
+                <!-- YOU EARN A HIGH APY SECTION: high-apy-HAPY002 -->
+                <section class="section-container high-apy-section-HAPY002">
+                    <h2 class="section-headline high-apy-headline-HAPY002 fade-in-animation" data-animation-delay="0.1s">You
+                        Earn a High
+                        APY %</h2>
+                    <h3 class="section-subheader high-apy-subheader-HAPY002 slide-up-animation" data-animation-delay="0.2s">
+                        Maximize
+                        Your Returns, Effortlessly</h3>
+                    <p class="section-description high-apy-description-HAPY002 slide-down-animation" data-animation-delay="0.3s">
+                        Your <b>investment is optimized</b> across top-performing validators,
+                        <br>ensuring a high yield <b>without the
+                            manual hassle</b>.
+                    </p>
+                    <div class="section-image-container high-apy-image-container-HAPY002">
+                        <img src="images/characters/z-and-mu_1001.webp" alt="Golden Coins" class="section-image high-apy-image-HAPY002 pulse-animation">
+                    </div>
+                </section>
+
+                <!-- YOU DO NOTHING SECTION: automated-staking-ASTK003 -->
+                <section class="section-container automated-staking-section-ASTK003">
+                    <h2 class="section-headline automated-staking-headline-ASTK003 fade-in-animation" data-animation-delay="0.1s">You Do
+                        Nothing</h2>
+                    <h3 class="section-subheader automated-staking-subheader-ASTK003 slide-up-animation" data-animation-delay="0.2s">
+                        Automated Staking, Real-Time Rebalancing</h3>
+                    <p class="section-description automated-staking-description-ASTK003 slide-down-animation" data-animation-delay="0.3s">
+                        Our automated staking seamlessly <b>rebalances your investment each epoch</b>,
+                        <br>utilizing <b>real-time
+                            performance</b> metrics that are on-chain and verifiable.
+                    </p>
+                    <div class="section-image-container automated-staking-image-container-ASTK003">
+                        <img src="images/characters/z-and-mu_1002.webp" alt="Automated Gear System" class="section-image automated-staking-image-ASTK003 pulse-animation">
+                    </div>
+                </section>
+
+                <!-- YOU ENJOY PEACE OF MIND SECTION: peace-of-mind-POMD004 -->
+                <section class="section-container peace-of-mind-section-POMD004">
+                    <h2 class="section-headline peace-of-mind-headline-POMD004 fade-in-animation" data-animation-delay="0.1s">You Enjoy
+                        Peace of Mind</h2>
+                    <h3 class="section-subheader peace-of-mind-subheader-POMD004 slide-up-animation" data-animation-delay="0.2s">
+                        Constant Monitoring, Proactive Adaptation</h3>
+                    <p class="section-description peace-of-mind-description-POMD004 slide-down-animation" data-animation-delay="0.3s">
+                        We <b>vigilantly monitor</b> validator performance,
+                        <br>ensuring <b>your investment adapts</b>
+                        to maintain
+                        its edge.
+                    </p>
+                    <div class="section-image-container peace-of-mind-image-container-POMD004">
+                        <img src="images/characters/z-and-mu_1003.webp" alt="Golden Shield with Eye" class="section-image peace-of-mind-image-POMD004 pulse-animation">
+                    </div>
+                </section>
+
+                <!-- YOU GAIN FINANCIAL FLEXIBILITY SECTION: financial-flexibility-FFLB005 -->
+                <section class="section-container financial-flexibility-section-FFLB005">
+                    <h2 class="section-headline financial-flexibility-headline-FFLB005 fade-in-animation" data-animation-delay="0.1s">
+                        You Gain Financial Flexibility</h2>
+                    <h3 class="section-subheader financial-flexibility-subheader-FFLB005 slide-up-animation" data-animation-delay="0.2s">Unlocking Opportunities with xSHIN</h3>
+                    <p class="section-description financial-flexibility-description-FFLB005 slide-down-animation" data-animation-delay="0.3s">
+                        Stake with us and receive <b>xSHIN</b>, enabling you
+                        <br>to explore further <b>DeFi investments</b> while your
+                        principal grows.
+                    </p>
+                    <div class="section-image-container financial-flexibility-image-container-FFLB005">
+                        <img src="images/characters/z-and-mu_1004.webp" alt="Key Unlocking Chart" class="section-image financial-flexibility-image-FFLB005 pulse-animation">
+                    </div>
+                </section>
+
+                <!-- YOU BECOME RESILIENT SECTION: resilient-solana-RSLN007 -->
+                <section class="section-container resilient-solana-section-RSLN007">
+                    <h2 class="section-headline resilient-solana-headline-RSLN007 fade-in-animation" data-animation-delay="0.1s">You
+                        Become Resilient</h2>
+                    <h3 class="section-subheader resilient-solana-subheader-RSLN007 slide-up-animation" data-animation-delay="0.2s">
+                        Strengthen Solana, Solidify Your Stake</h3>
+                    <p class="section-description resilient-solana-description-RSLN007 slide-down-animation" data-animation-delay="0.3s">
+                        Investing with the <b>Shinobi Performance Pool</b>
+                        <br> <b>strengthens the Solana network</b>. Your stake supports
+                        <br>well-performing, smaller
+                        validators,
+                        <b>fortifying network robustness</b>.
+                    </p>
+                    <div class="section-image-container resilient-solana-image-container-RSLN007">
+                        <img src="images/characters/z-and-mu_1005.webp" alt="Dense Network" class="section-image resilient-solana-image-RSLN007 pulse-animation">
+                    </div>
+                </section>
+
+                <!-- YOU HELP IMPROVE VALIDATORS SECTION: improve-validators-IMPV006 -->
+                <section class="section-container improve-validators-section-IMPV006">
+                    <h2 class="section-headline improve-validators-headline-IMPV006 fade-in-animation" data-animation-delay="0.1s">You
+                        Help Improve Validators</h2>
+                    <h3 class="section-subheader improve-validators-subheader-IMPV006 slide-up-animation" data-animation-delay="0.2s">
+                        Enhance Quality, Safeguard Earnings</h3>
+                    <p class="section-description improve-validators-description-IMPV006 slide-down-animation" data-animation-delay="0.3s">
+                        We <b>incentivize validators</b> by giving them a percentage
+                        <br>of our own pool profits, based on <b>top-of-class performance</b>.
+                        <br>This greatly <b>enhances the pool's quality</b> over
+                        time.
+                    </p>
+                    <div class="section-image-container improve-validators-image-container-IMPV006">
+                        <img src="images/characters/z-and-mu_1006.webp" alt="Golden Star Rising" class="section-image improve-validators-image-IMPV006 pulse-animation">
+                    </div>
+                </section>
+
+                <!-- YOU HAVE A SIMPLIFIED PORTFOLIO SECTION: simplified-portfolio-SMPL008 -->
+                <section class="section-container simplified-portfolio-section-SMPL008">
+                    <h2 class="section-headline simplified-portfolio-headline-SMPL008 fade-in-animation" data-animation-delay="0.1s">You
+                        Have a Simplified Portfolio</h2>
+                    <h3 class="section-subheader simplified-portfolio-subheader-SMPL008 slide-up-animation" data-animation-delay="0.2s">
+                        Diversify Without Complexity</h3>
+                    <p class="section-description simplified-portfolio-description-SMPL008 slide-down-animation" data-animation-delay="0.3s">
+                        Through the <b>Shinobi Performance Pool</b>
+                        <br>enjoy the <b>diversification benefits</b>
+                        <br>of staking across <b>multiple validators</b>,
+                        <br><b>minus the complexity</b> of managing it personally.
+                    </p>
+                    <div class="section-image-container simplified-portfolio-image-container-SMPL008">
+                        <img src="images/characters/z-and-mu_1007.webp" alt="Organized Portfolio" class="section-image simplified-portfolio-image-SMPL008 pulse-animation">
+                    </div>
+                </section>
+
+                <!-- YOU SUPPORT SOLANA SECTION: support-solana-SOLN009 -->
+                <section class="section-container support-solana-section-SOLN009">
+                    <h2 class="section-headline support-solana-headline-SOLN009 fade-in-animation" data-animation-delay="0.1s">You
+                        Support Solana</h2>
+                    <h3 class="section-subheader support-solana-subheader-SOLN009 slide-up-animation" data-animation-delay="0.2s">
+                        Drive Excellence, Foster Decentralization</h3>
+                    <p class="section-description support-solana-description-SOLN009 slide-down-animation" data-animation-delay="0.3s">
+                        <b>Your stake in the Shinobi Performance Pool</b> drives validators to excel,
+                        <br>fosters decentralization, and <b>strengthens the Solana network</b>.
+                    </p>
+                    <div class="section-image-container support-solana-image-container-SOLN009">
+                        <img src="images/characters/z-and-mu_1008.webp" alt="Solana Symbol" class="section-image support-solana-image-SOLN009 pulse-animation">
+                    </div>
+                </section>
+
+                <!-- YOU JOIN A COMMUNITY SECTION: join-community-JCMY011 -->
+                <section class="section-container join-community-section-JCMY011">
+                    <h2 class="section-headline join-community-headline-JCMY011 fade-in-animation" data-animation-delay="0.1s">You Join
+                        a Community</h2>
+                    <h3 class="section-subheader join-community-subheader-JCMY011 slide-up-animation" data-animation-delay="0.2s">Shared
+                        Values, Collective Progress</h3>
+                    <p class="section-description join-community-description-JCMY011 slide-down-animation" data-animation-delay="0.3s">
+                        Staking with the <b>Shinobi Performance Pool</b> isn't just a financial decision; <br>
+                        it's <b>joining a community</b> of like-minded
+                        individuals
+                        <br>who value
+                        progress, performance, and <b>the power of Solana</b>.
+                    </p>
+                    <div class="section-image-container join-community-image-container-JCMY011">
+                        <img src="images/characters/z-and-mu_1009.webp" alt="Interconnected Community" class="section-image join-community-image-JCMY011 pulse-animation">
+                    </div>
+                </section>
+
+                <!-- SPP VS THE REST SECTION: spp-vs-rest-SVTR012 -->
+                <section class="section-container spp-vs-rest-section-SVTR012">
+                    <h2 class="section-headline spp-vs-rest-headline-SVTR012 fade-in-animation" data-animation-delay="0.1s">
+                        The Shinobi Performance Pool <br> vs. The
+                        Rest</h2>
+                    <h3 class="section-subheader spp-vs-rest-subheader-SVTR012 slide-up-animation" data-animation-delay="0.2s">
+                        Integrity, Performance, Commitment</h3>
+                    <p class="section-description spp-vs-rest-description-SVTR012 slide-down-animation" data-animation-delay="0.3s">
+                        Our pool's <b>commitment to validators</b> that improve performance
+                        <br><b>set us
+                            distinctly apart</b> in the landscape of staking options.
+                    </p>
+                    <div class="section-image-container spp-vs-rest-image-container-SVTR012">
+                        <img src="images/characters/z-and-mu_1010.webp" alt="SPP Podium" class="section-image spp-vs-rest-image-SVTR012 pulse-animation">
+                    </div>
+                </section>
+
+                <!-- CHOOSE SPP SECTION: choose-spp-CSPP013 -->
+                <section class="section-container choose-spp-section-CSPP013">
+                    <h2 class="section-headline choose-spp-headline-CSPP013 fade-in-animation" data-animation-delay="0.1s">
+                        Choose the <br> Shinobi Performance Pool
+                    </h2>
+                    <h3 class="section-subheader choose-spp-subheader-CSPP013 slide-up-animation" data-animation-delay="0.2s">A Harmonious Blend of<br>
+                        Performance, Ease, and Contribution</h3>
+                    <p class="section-description choose-spp-description-CSPP013 slide-down-animation" data-animation-delay="0.3s">
+                        When you stake in the <b>Shinobi Performance Pool</b>,
+                        <br>you're not just <b>securing a spot</b> in the digital economy;
+                        <br>you're <b>casting a vote</b> of confidence in a system
+                        <br>that <b>values transparency</b>, rewards performance,
+                        <br>and prioritizes the <b>collective strength</b> of the network.
+                        <br>This is more than a stake pool—<b>it's a partnership</b>, a journey,
+                        <br>and a <b>commitment to the future</b> of blockchain.
+
+                    </p><div class="stake-now-button-container" onclick="openTab(event, 'Staking')">
+                        <button class="stake-now-button">Stake Now</button>
+                    </div>
+                    <p></p>
+                    <br><br>
+                </section>
+            </div>
+
+            <!-- TAB: Dashboard-->
+            <div id="Dashboard" class="stake-pool-tab-content">
+                <div class="dashboard-container">
+                    <div class="epoch-graphic">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#dfa754" stroke-width="5"></circle>
+                            <text id="epochNumber" x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="24" fill="#353b4e"></text>
+                        </svg>
+                    </div>
+
+                    <div class="spp-stats card-title">
+                        <h2>SPP Validators</h2>
+                        <div class="chart-container">
+                            <canvas id="stakeDistributionChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="solana-stats card-title">
+                        <h2>All Validators</h2>
+                        <div class="stake-distribution-chart">
+                            <canvas id="solanaStakeDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Validators -->
+            <div id="Validators" class="validator-tab-content stake-pool-tab-content">
+
+                <!-- Validator Rows Container -->
+                <div id="validatorsTable" class="validators-table">
+                    <!-- Header for Sortable Columns -->
+                    <div class="validator-type-toggle">
+                        <label>
+                            <input type="radio" name="validatorType" value="all" id="all-validators">
+                            All
+                        </label>
+                        <label>
+                            <input type="radio" name="validatorType" value="pool" id="pool-validators" checked="">
+                            Pool
+                        </label>
+                        <div class="timestamp-container">
+                            <label id="data_timestamp"></label>
+                            <button id="refreshDataButton" class="refresh-icon-timestamp" aria-label="Refresh data">↻</button>
+                        </div>
+                    </div>
+                    <div class="validatorHeaders">
+                        <span class="validator-header validator-icon-name" data-sort-key="details.name"></span>
+                        <span class="validator-header" data-sort-key="details.total_score">Score</span>
+                        <span class="validator-header" data-sort-key="details.stake.active">Total Stake</span>
+                        <span class="validator-header" data-sort-key="pool_stake.active">Pool Stake</span>
+                        <span class="validator-header" data-sort-key="details.target_pool_stake">Target Pool
+                            Stake</span>
+                        <span class="validator-header validator-awards-header" data-sort-key="awards">Awards</span>
+                    </div>
+
+                    <div id="content-loading-spinner" class="content-loading-spinner" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+                    <div id="validatorTableBody" class="validator-container">
+                        <!-- Dynamically generated content will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="noMatchMessage" style="display: none; color: white; text-align: center; margin-top: 20px;">No
+                matches found. <span id="clearSearchLink" style="color: white;">Clear</span> or try another search.
+            </div>
+
+            <!-- Validator details Pane -->
+            <div id="validator-details-pane" class="validator-details-pane">
+                <!-- Dynamically generated content will be inserted here -->
+            </div>
+
+            <!-- TAB: Pool Strategy -->
+            <div id="Strategy" class="stake-pool-tab-content">
+                <div class="strategy-container faq-container">
+                    <!--
+                    <section class="section">
+                        <div class="section-container">
+                            <div class="section-content">
+                                <iframe width="560" height="315" src="" frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </section>
+                    -->
+                    <section class="section-container">
+                        <div class="section-content">
+                            <h1>xSHIN Strategy</h1>
+                            <p>When you stake with us, you receive <b>xSHIN</b>, which lets you <b>explore
+                                    DeFi
+                                    investments as your principal grows</b>.</p>
+                            <p>Our pool strategy is <b>meticulously crafted</b> to ensure <b>optimal performance and
+                                    fairness</b>.</p>
+                            <p>
+                                Here's
+                                an overview of our approach:</p>
+                        </div>
+                    </section>
+                    <section class="section-container">
+                        <div class="section-content">
+                            <h2>1. Empowering the Future of Solana</h2>
+                            <p>The quality of validators determines the future of the Solana network. Our pool of
+                                validators
+                                is meticulously selected and incentivized to deliver unparalleled performance, ensuring
+                                a
+                                robust and efficient network for all stakeholders.</p>
+                            <ul>
+                                <li><b>25% faster voting</b> compared to other pools</li>
+                                <li><b>Lower skip rates</b> for optimal network performance</li>
+                                <li>Prioritizing <b>selection metrics</b> that enhance network
+                                    functioning</li>
+                                <li>Rewarding validators based on <b></b>performance, not vanity
+                                    metrics (like commission rate)</li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <section class="section-container">
+                        <div class="section-content">
+                            <h2>2. Transparent and Data-Driven</h2>
+                            <p>Our pool strategy is built on a foundation of transparency and data-driven
+                                decision-making.
+                                We prioritize verified on-chain data to ensure fairness and accuracy in our validator
+                                selection process.</p>
+                            <ul>
+                                <li><b>Cluster Performance Factors:</b>
+                                    <ul>
+                                        <li>Voting metrics: tx per block, vote credits, avg vote latency, % consensus
+                                            votes
+                                        </li>
+                                        <li>Block production metrics: block skip rate avg over last 10 epochs, prior
+                                            leader
+                                            skip rate, CU per block</li>
+                                    </ul>
+                                </li>
+                                <li><b>Performance Metrics:</b>
+                                    <ul>
+                                        <li>Favoring higher APY for optimal returns</li>
+                                        <li>Supporting smaller validators through stake-weighted multipliers</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <section class="section-container">
+                        <div class="section-content">
+                            <h2>3. Integrity and Fairness</h2>
+                            <p>At Shinobi Performance Pool, we prioritize integrity and fairness in our operations. We
+                                maintain a level playing field for all validators, ensuring that performance is the sole
+                                determining factor for inclusion and ranking within our pool.</p>
+                            <ul>
+                                <li><b>No preferential treatment</b> based on commission paid to
+                                    us
+                                </li>
+                                <li><b>No way for validators to buy their way</b> into the pool
+                                </li>
+                                <li><b>No paid rankings</b> - performance is the only metric
+                                    that
+                                    matters</li>
+                                <li><b>Blacklisted validators can only be reinstated through
+                                        improved
+                                        performance</b></li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <section class="section-container">
+                        <div class="section-content">
+                            <h2>4. Deep Historical Data</h2>
+                            <p>Reaching back to the first epoch, our historical data showcases the consistent
+                                performance
+                                and growth of Shinobi Performance Pool validators. Explore the journey that has shaped
+                                our
+                                robust network.</p>
+                        </div>
+                    </section>
+
+                    <section class="section-container">
+                        <div class="section-content">
+                            <h2>Shinobi Performance Pool: Your Trusted Staking Partner</h2>
+                            <p>When you choose Shinobi Performance Pool, you're not just choosing a staking provider -
+                                you're joining a community dedicated to the long-term success and decentralization of
+                                the
+                                Solana network.</p>
+                            <p>Experience the difference of superior validator performance, lower skip rates, and higher
+                                APYs. Stake with us today and be part of the future of Solana.</p>
+
+                        </div>
+                    </section>
+
+                    <section class="section-container">
+                        <div class="section-content">
+                            <br><br>
+
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- TAB: DEFI -->
+            <div id="DeFi" class="stake-pool-tab-content">
+                <div class="defi-container faq-container">
+                    <h2>Notable Solana DeFi projects that play well with xSHIN tokens</h2>
+                    <div class="defi-tabs">
+                        <button class="defi-tab-link active" onclick="openDefiTab(event, 'Investing')">Investing</button>
+                        <button class="defi-tab-link" onclick="openDefiTab(event, 'Gaming')">Gaming</button>
+                        <button class="defi-tab-link" onclick="openDefiTab(event, 'Art')">Art</button>
+                    </div>
+                    <div id="Investing" class="defi-tab-content active">
+                        <ul id="investingProjectList" class="defi-project-list"></ul>
+                    </div>
+                    <div id="Gaming" class="defi-tab-content">
+                        <ul id="gamingProjectList" class="defi-project-list"></ul>
+                    </div>
+                    <div id="Art" class="defi-tab-content">
+                        <ul id="artProjectList" class="defi-project-list"></ul>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- TAB: FAQ -->
+            <div id="FAQ" class="stake-pool-tab-content">
+                <div class="faq-container">
+                    <h1>Frequently Asked Questions</h1>
+
+                    <div class="section-image-container choose-spp-image-container-CSPP013">
+                        <img src="images/characters/z-and-mu_1011.webp" alt="Seal of Choice" class="section-image choose-spp-image-CSPP013 pulse-animation">
+                    </div>
+
+                    <section class="faq-section">
+
+                        <h2>Awards</h2>
+
+                        <div class="faq-item">
+                            <h3>How are the award winners determined?</h3>
+                            <p>Award winners are determined based on their performance metrics over the past 10 epochs.
+                                A
+                                randomized selection from the top 5% of validators in each category are recognized as
+                                the award
+                                winners. Only validators with a name and icon are eligible to be award winners.
+                            </p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>How often are the awards updated?</h3>
+                            <p>The awards are updated at the beginning of every epoch based on performance during the
+                                previous 10
+                                epochs; additionally, if a validator's performance would drop it out of the top 5%, its
+                                award is
+                                immediately removed and applied to a different qualifying validator.
+                            </p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What are the different award categories for validators in the Shinobi Performance Pool?
+                            </h3>
+                            <p>The Shinobi Performance Pool recognizes top-performing validators in the following
+                                categories:</p>
+                        </div>
+
+                        <div id="awardsContainer"></div>
+                    </section>
+
+                    <section class="faq-section">
+                        <h2>Performance Stats</h2>
+
+                        <div class="faq-item">
+                            <h3>What are the key performance metrics used to rank validators in the pool?</h3>
+                            <p>The key performance metrics used to rank validators in the Shinobi Performance Pool
+                                include:
+                            </p>
+                            <ul>
+                                <li>Block skip rate</li>
+                                <li>CU per block</li>
+                                <li>Vote transactions per block</li>
+                                <li>Vote credits earned per epoch</li>
+                                <li>Average vote latency</li>
+                                <li>Percent Consensus Votes</li>
+                                <li>Block vote inclusion</li>
+                            </ul>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>How is the block skip rate calculated and used in the ranking?</h3>
+                            <p>The block skip rate is calculated as the average skip rate over the previous 10 epochs.
+                                It is
+                                one of the factors used to determine a validator's overall performance ranking.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is the "prior leader skip rate" and how is it factored into the ranking?</h3>
+                            <p>The "prior leader skip rate" is the sum total of prior leaders skipped divided by the
+                                number
+                                of leader slot groups in which the validator produced a block, averaged over the
+                                previous 10
+                                epochs. It is used as a factor in the validator's performance ranking.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>How are CU per block and vote transactions per block used in the ranking?</h3>
+                            <p>CU (Compute Units) per block and vote transactions per block are averaged over the
+                                previous
+                                10 epochs and used as factors in determining a validator's performance ranking. These
+                                metrics help ensure that validators are processing transactions efficiently and
+                                including
+                                votes in their blocks.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What are vote credits and how are they used in the ranking?</h3>
+                            <p>Vote credits are earned by validators for each epoch based on their voting activity. The
+                                vote
+                                credits earned per epoch, averaged over the previous 10 epochs, are used as a factor in
+                                the
+                                validator's performance ranking.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>How is average vote latency calculated and used in the ranking?</h3>
+                            <p>Average vote latency is calculated over the previous 10 epochs and used as a factor in
+                                determining a validator's performance ranking. Lower vote latency indicates faster
+                                voting
+                                and is considered better for the network.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is the "% Consensus Votes" metric and how is it used in the ranking?</h3>
+                            <p>The "% Consensus Votes" metric represents the percentage of votes that a validator
+                                participates in that reach consensus, averaged over the previous 10 epochs. It is used
+                                as a
+                                factor in the validator's performance ranking, with higher percentages being more
+                                favorable.
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="faq-section">
+                        <h2>Stake Pool Terms</h2>
+
+                        <div class="faq-item">
+                            <h3>What is a stake pool?</h3>
+                            <p>A stake pool is a mechanism that allows multiple stakeholders to combine their staking
+                                resources and earn rewards collectively. The Shinobi Performance Pool is a stake pool
+                                that
+                                focuses on optimizing validator performance and rewards.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is a validator?</h3>
+                            <p>A validator is a node in the Solana network responsible for processing transactions,
+                                producing blocks, and maintaining the integrity of the blockchain. Validators are
+                                selected
+                                to participate in the consensus process based on the amount of stake delegated to them.
+                            </p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is a delegator?</h3>
+                            <p>A delegator is an individual or entity that stakes their SOL tokens with a validator or a
+                                stake pool to earn rewards. Delegators do not need to run a validator node themselves
+                                but
+                                can participate in the staking process by delegating their stake.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is an epoch in the context of Solana?</h3>
+                            <p>In Solana, an epoch is a fixed period of time (approximately 2-3 days) during which a set
+                                of
+                                validators is chosen to participate in the consensus process. At the end of each epoch,
+                                the
+                                validator set is updated based on the stake distribution.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is a liquid staking token (LST)?</h3>
+                            <p>A liquid staking token (LST) is a token that represents a claim on staked assets in a
+                                stake
+                                pool. LSTs, such as xSHIN, can be freely traded, transferred, or used in DeFi
+                                applications
+                                while the underlying staked assets remain locked in the pool.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is the xSHIN token?</h3>
+                            <p>xSHIN is the liquid staking token issued by the Shinobi Performance Pool. It represents a
+                                claim on the staked SOL in the pool and allows holders to benefit from staking rewards
+                                while
+                                maintaining liquidity.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is MEV (Maximal Extractable Value)?</h3>
+                            <p>Maximal Extractable Value (MEV) refers to the maximum value that can be extracted from
+                                block
+                                production in excess of the standard block reward and gas fees. MEV can be extracted
+                                through
+                                various strategies, such as transaction reordering, arbitrage, or liquidations.</p>
+                        </div>
+                    </section>
+                    <section class="faq-section">
+                        <h2>DeFi Concepts</h2>
+
+                        <div class="faq-item">
+                            <h3>What is staking?</h3>
+                            <p>Staking is the process of locking up cryptocurrency assets to support the operations of a
+                                blockchain network and earn rewards in return. In Proof-of-Stake (PoS) networks like
+                                Solana,
+                                staking is used to determine which validators are selected to produce blocks and
+                                validate
+                                transactions.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is liquid staking?</h3>
+                            <p>Liquid staking is a mechanism that allows users to stake their assets while maintaining
+                                liquidity. When users stake their assets in a liquid staking pool, they receive a liquid
+                                staking token (e.g., xSHIN) that represents their staked position. These tokens can be
+                                freely
+                                traded or used in DeFi applications.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is a governance token?</h3>
+                            <p>A governance token is a cryptocurrency that grants its holders voting rights to
+                                participate
+                                in the decision-making process of a decentralized project or protocol. Governance token
+                                holders can propose and vote on changes to the protocol's parameters, features, or
+                                direction.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is an airdrop?</h3>
+                            <p>An airdrop is a distribution of cryptocurrency tokens to a large number of wallet
+                                addresses,
+                                usually for free. Airdrops are often used as a marketing strategy to increase awareness
+                                and
+                                adoption of a new token or project. In some cases, airdrops may be used to reward early
+                                adopters, active users, or stakeholders.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is a liquidity pool?</h3>
+                            <p>A liquidity pool is a collection of cryptocurrency assets locked in a smart contract that
+                                provides liquidity for decentralized exchanges (DEXs) and other DeFi protocols.
+                                Liquidity
+                                providers contribute their assets to the pool and earn a share of the trading fees
+                                generated
+                                by the pool.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What is yield farming?</h3>
+                            <p>Yield farming, also known as liquidity mining, is the practice of staking or lending
+                                cryptocurrency assets to earn rewards in the form of additional tokens. Users can
+                                participate in yield farming by providing liquidity to DEXs, lending platforms, or other
+                                DeFi protocols and earning a portion of the fees, interest, or token rewards generated
+                                by
+                                the platform.</p>
+                        </div>
+                    </section>
+
+                    <section class="faq-section">
+                        <h2>xSHIN</h2>
+
+                        <div class="faq-item">
+                            <h3>What is xSHIN and how is it different from SOL?</h3>
+                            <p>xSHIN is the liquid staking token issued by the Shinobi Performance Pool. It represents a
+                                claim on the staked SOL in the pool and accrues staking rewards over time. While SOL is
+                                the
+                                native cryptocurrency of the Solana blockchain, xSHIN is a derivative token that allows
+                                users
+                                to benefit from staking rewards while maintaining liquidity.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>Where can I use xSHIN tokens?</h3>
+                            <p>xSHIN tokens can be used in various DeFi applications built on the Solana ecosystem. They
+                                can
+                                be traded on decentralized exchanges (DEXs), used as collateral for borrowing, or
+                                provided
+                                as liquidity in yield farming protocols. The specific use cases for xSHIN may vary
+                                depending
+                                on the DeFi platforms that support it.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>How do I obtain xSHIN tokens?</h3>
+                            <p>You can obtain xSHIN tokens by staking your SOL in the Shinobi Performance Pool. When you
+                                deposit SOL into the pool, you will receive xSHIN tokens in proportion to your staked
+                                amount.
+                                You can also acquire xSHIN tokens by purchasing them on supported decentralized
+                                exchanges.
+                            </p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What determines the value of xSHIN?</h3>
+                            <p>The value of xSHIN is primarily determined by the underlying value of the staked SOL in
+                                the
+                                Shinobi Performance Pool. As the pool accrues staking rewards, the value of xSHIN
+                                appreciates
+                                accordingly. The market demand and supply of xSHIN on decentralized exchanges also
+                                influence
+                                its trading price.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>Will there be an airdrop of xSHIN tokens?</h3>
+                            <p>The Shinobi Performance Pool may conduct airdrops of xSHIN tokens as a way to incentivize
+                                participation and reward stakeholders. Airdrop details, including eligibility criteria
+                                and
+                                distribution mechanisms, will be announced through official channels when applicable.
+                                Stay
+                                tuned for updates on potential xSHIN airdrops.</p>
+                        </div>
+                    </section>
+
+                    <section class="faq-section" id="improve-validator-ranking">
+                        <h2>How to Improve Your Validator's Ranking</h2>
+
+                        <div class="faq-item">
+                            <h3>What factors contribute to a validator's ranking in the Shinobi Performance Pool?</h3>
+                            <p>A validator's ranking in the Shinobi Performance Pool is determined by several key
+                                factors,
+                                including block skip rate, prior leader skip rate, CU per block, vote transactions per
+                                block, vote credits earned per epoch, average vote latency, and % Consensus Votes.
+                                Improving
+                                performance in these areas can help boost a validator's ranking.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>How can a validator improve their block skip rate?</h3>
+                            <p>To improve block skip rate, validators should ensure their nodes are running on reliable
+                                hardware with sufficient resources, maintain a stable network connection, and optimize
+                                their
+                                software configuration. Regularly monitoring node performance and addressing any issues
+                                promptly can help minimize block skips.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What can a validator do to reduce their "prior leader skip rate"?</h3>
+                            <p>Validators can reduce their "prior leader skip rate" by ensuring they are well-connected
+                                to
+                                the network and have a low-latency connection to other validators. Optimizing network
+                                settings, such as using a reliable network provider and configuring optimal peer
+                                connections, can help minimize prior leader skips.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>How can a validator increase their CU per block and vote transactions per block?</h3>
+                            <p>To increase CU per block and vote transactions per block, validators should focus on
+                                efficiently processing transactions and prioritizing the inclusion of vote transactions
+                                in
+                                their blocks. Optimizing transaction processing algorithms, using powerful hardware, and
+                                allocating sufficient resources to vote transaction handling can contribute to improved
+                                performance in these areas.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What steps can a validator take to earn more vote credits?</h3>
+                            <p>Validators can earn more vote credits by maintaining high uptime, participating actively
+                                in
+                                consensus voting, and minimizing vote latency. Ensuring a reliable and low-latency
+                                connection to the network, promptly processing and broadcasting votes, and avoiding
+                                downtime
+                                are key factors in maximizing vote credits earned per epoch.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>How can a validator reduce their average vote latency?</h3>
+                            <p>To reduce average vote latency, validators should optimize their network infrastructure,
+                                ensure low-latency connections to other validators, and prioritize vote processing in
+                                their
+                                node software. Regularly monitoring vote latency and identifying any bottlenecks or
+                                delays
+                                can help validators take corrective actions to improve their voting performance.</p>
+                        </div>
+
+                        <div class="faq-item">
+                            <h3>What can a validator do to increase their "% Consensus Votes"?</h3>
+                            <p>Validators can increase their "% Consensus Votes" by actively participating in consensus
+                                voting, maintaining high uptime, and ensuring their votes are promptly processed and
+                                included in the consensus. Monitoring voting performance, identifying any missed or
+                                delayed
+                                votes, and taking corrective measures can help improve the percentage of consensus
+                                votes.
+                            </p>
+                        </div>
+                    </section>
+                </div>
+
+
+            </div>
+
+            <!-- TAB: Staking -->
+            <div id="Staking" class="stake-pool-tab-content">
+                <div class="staking-container">
+
+                    <div class="exchange-rate">
+                        <span>1 xSHIN = <span id="exchangeRate">0</span> SOL</span>
+                        <span class="info-icon" data-tooltip="The exchange rate between xSHIN and SOL is not 1:1 because xSHIN grows in value over time relative to SOL. This is how you earn passive income by holding xSHIN.">i</span>
+                    </div>
+
+                    <div class="stakingTabWrap">
+                        <ul class="stakingTabList group">
+                            <li><a class="active" data-tab="stake">Stake</a></li>
+                            <li><a data-tab="unstake">Unstake</a></li>
+                        </ul>
+                        <div class="stakingTabContent">
+                            <div id="stake" class="active">
+                                <div class="sub-tabs">
+                                    <ul class="sub-tab-list group">
+                                        <li>
+                                            <a class="active" data-tab="solToXshin">SOL → xSHIN
+                                                <span class="info-icon" data-tooltip="Stake your SOL to receive xSHIN tokens.">i</span>
+
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a data-tab="stakeToXshin" class="stakeToxSHinText">Stake → xSHIN <span class="info-icon" data-tooltip="Convert your existing staked SOL account to xSHIN tokens.">i</span>
+
+                                            </a>
+                                        </li>
+                                    </ul>
+                                    <div class="sub-tab-content">
+                                        <!-- SOL to xSHIN -->
+                                        <div id="solToXshin" style="display: block;">
+                                            <div class="input-group">
+                                                <input type="number" id="stakeAmount" placeholder="Deposit Amount" min="0" step="1" required="" disabled="">
+                                                <span class="sol-icon"></span>
+                                                <span class="arrow">→</span>
+                                                <span id="solToXshinEstimate"></span>
+                                                <span class="xshin-icon"></span>
+                                            </div>
+                                            <div class="action-group">
+                                                <button id="maxStakeButton" class="max-button" disabled="">Max</button>
+                                                <button id="stakeButton" class="action-button">Connect Wallet</button>
+                                            </div>
+                                        </div>
+                                        <!-- Stake Account to xSHIN -->
+                                        <div id="stakeToXshin" style="display: none;">
+                                            <div id="stakeAccountDropdown" class="input-group">
+                                                <select id="stakeAccountSelect">
+                                                    <option value="" disabled="" selected="">Connect Wallet</option>
+                                                </select>
+                                            </div>
+                                            <div class="estimate-group">
+                                                <span class="arrow">→</span>
+                                                <span id="stakeToXshinEstimate"></span>
+                                                <span class="xshin-icon"></span>
+                                            </div>
+                                            <button id="stakeStakeAccountButton" class="action-button">Connect
+                                                Wallet</button>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="unstake">
+                                <div class="sub-tabs">
+                                    <ul class="sub-tab-list group">
+                                        <li>
+                                            <a class="active" data-tab="xshinToSol">xSHIN → SOL <span class="info-icon" data-tooltip="Unstake your xSHIN tokens and receive SOL in
+                          return. (Amount you can withdraw as SOL limited by reserve
+                          liquidity.)">i</span>
+
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a data-tab="xshinToStake">xSHIN → Stake <span class="info-icon" data-tooltip="Convert your xSHIN tokens to a staked SOL
+                          account with a validator from our pool. (Or more than one validator,
+                          depending on your withdraw amount.) ">i</span>
+
+                                            </a>
+                                        </li>
+                                    </ul>
+                                    <div class="sub-tab-content">
+                                        <!-- xSHIN to SOL -->
+                                        <div id="xshinToSol" style="display: block;">
+                                            <div class="input-group">
+                                                <input type="number" id="unstakeXshinAmount" placeholder="Withdraw Amount" min="0" step="1" required="" disabled="">
+                                                <span class="xshin-icon"></span>
+                                                <span class="arrow">→</span>
+                                                <span id="xshinToSolEstimate"></span>
+                                                <span class="sol-icon"></span>
+                                            </div>
+                                            <div class="action-group">
+                                                <button id="unstakeMaxButton" class="max-button" disabled="">Max</button>
+                                                <button id="unstakeXshinButton" class="action-button">Connect
+                                                    Wallet</button>
+                                            </div>
+                                        </div>
+                                        <!-- xSHIN to Stake Account -->
+                                        <div id="xshinToStake">
+                                            <div class="input-group">
+                                                <input type="number" id="unstakeToStakeAmount" placeholder="Withdraw Amount" min="0" step="1" required="" disabled="">
+                                                <span class="xshin-icon"></span>
+                                                <span class="arrow">→</span>
+                                                <div id="xshinToStakeEstimate" class="two-line-estimate"></div>
+                                                <span class="sol-icon"></span>
+                                            </div>
+                                            <div class="action-group">
+                                                <button id="unstakeToStakeMaxButton" class="max-button" disabled="">Max</button>
+                                                <button id="unstakeToStakeButton" class="action-button">Connect
+                                                    Wallet</button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="priority-fee-toggle">
+                        <label for="priorityFeeLevel">Priority Fee Level:</label>
+                        <select id="priorityFeeLevel">
+                            <option value="none">None</option>
+                            <option value="low" selected="">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                        <div id="priorityFeeEstimates"></div>
+                        <span class="info-icon" data-tooltip="Use a small priority fee to improve the chances of your
+                            transaction going through. Calculated dynamically based on the current network congestion.">i</span>
+                    </div>
+                </div>
+
+
+                <div class="wallet-stats">
+
+                    <div class="advanced-options-container">
+                        <label>
+                            <input type="checkbox" id="advancedOptionsCheckbox"> Advanced Options
+                        </label>
+                        <div id="advancedOptionsContainer2" style="display: none;">
+                            <div class="advanced-options">
+
+                                <label for="rpcUrlInput">
+
+                                    Select the RPC URL to send wallet transactions through.
+
+
+                                </label>
+
+                                <div class="advanced-input-container">
+
+                                    <input type="text" id="rpcUrlInput">
+
+                                    <span class="status-icon" id="rpcStatusIcon"></span>
+
+                                    <button class="apply-button" id="applyRpcButton" onclick="applyRpcUrl()">Apply</button>
+
+                                    <button class="reset-button" id="resetRpcButton" onclick="resetRpcUrl()" style="display: none;">Disconnect</button>
+
+                                </div>
+
+
+                            </div>
+
+
+
+                            <div class="advanced-options">
+
+                                <label for="pubkeyInput">
+
+                                    Use Pubkey w/o connecting wallet (staking disabled)
+
+
+                                </label>
+
+                                <div class="advanced-input-container">
+
+                                    <input type="text" id="pubkeyInput">
+
+                                    <span class="status-icon" id="pubkeyStatusIcon"></span>
+
+                                    <button class="apply-button" id="applyPubkeyButton" onclick="applyPubkey()">Apply</button>
+
+                                    <button class="reset-button" id="disconnectPubkeyButton" onclick="disconnectPubkey()" style="display: none;">Disconnect</button>
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loading" class="loading" style="display: none;"></div>
+                <div id="transactionDetails" class="transaction-details"></div>
+
+
+
+            </div>
+
+    </main></div>
+
+
+    <!-- TAB: Press -->
+    <div id="Press" class="stake-pool-tab-content">
+    </div>
+
+    <!-- TAB: Privacy -->
+    <div id="Privacy" class="stake-pool-tab-content">
+    </div>
+
+    <!-- TAB: Terms -->
+    <div id="Terms" class="stake-pool-tab-content">
+    </div>
+
+    <!--- Mascots Z and Mu! --->
+
+
+    <div id="characterImageContainer"></div>
+
+    
+
+    <!-- Footer -->
+    <footer class="footer-main">
+        <div class="footer-section left-section">
+            <div class="footer-tabs">
+                <button class="footer-tab-link footer-left-side" onclick="openTab(event, 'Press')" style="margin-left: 20px;">Press</button>
+                <button class="footer-tab-link" onclick="openTab(event, 'Privacy')">Privacy</button>
+                <button class="footer-tab-link" onclick="openTab(event, 'Terms')">Terms</button>
+            </div>
+        </div>
+
+        <div class="company-link">
+            <a href="https://www.shinobi-systems.com" target="_blank">© <span id="currentYear"></span> Shinobi
+                Systems</a>
+        </div>
+
+        <div class="footer-section right-section">
+            <!--
+        <a href="link-to-youtube" target="_blank">YouTube</a>
+        -->
+            <a href="https://twitter.com/xShinPerfPool" target="_blank" style="margin-right: 20px;">Twitter/X</a>
+            <a class="footer-right-side" href="https://discord.gg/2wxRbzd66P" target="_blank" style="margin-right: 40px;">Discord</a>
+
+        </div>
+    </footer>
+
+    <footer class="footer-mobile">
+        <a href="https://www.shinobi-systems.com" target="_blank">©&nbsp;<span id="currentYear2"></span>&nbsp;Shinobi&nbsp;Systems</a>
+
+        <!--      
+      <a href="link-to-youtube" target="_blank">YouTube</a>
+      -->
+        <a href="https://twitter.com/xShinPerfPool" target="_blank">Twitter/X</a>
+        <a href="https://discord.gg/2wxRbzd66P" target="_blank">Discord</a>
+        
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="./bundle.js"></script>
+
+    
+
+
+
+</body></html>

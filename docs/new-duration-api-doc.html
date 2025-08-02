@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trillium | Solana API - Slot Duration Metrics</title>
+    <link rel="stylesheet" href="https://trillium.so/styles.css">
+    <link rel="icon" href="https://trillium.so/pages/trillium-logo.gif" type="image/gif">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="https://trillium.so">
+                <img src="https://trillium.so/images/trillium-logo.png" alt="trillium.so">
+            </a>
+        </div>
+        <h1>Trillium | Solana API - Slot Duration Metrics</h1>
+    </header>
+
+    <main>
+        <section id="table-of-contents">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#context">Context</a></li>
+                <li><a href="#slot-duration-metrics">Slot Duration Metrics</a>
+                    <ul>
+                        <li><a href="#individual-validator-metrics">Individual Validator Metrics</a>
+                            <ul>
+                                <li><a href="#mean-slot-duration">Mean Slot Duration</a></li>
+                                <li><a href="#slot-duration-standard-deviation">Slot Duration Standard Deviation</a></li>
+                                <li><a href="#confidence-interval">95% Confidence Interval</a></li>
+                                <li><a href="#regression-coefficient">Regression Coefficient</a></li>
+                                <li><a href="#90-confidence-interval-coefficient">90% Confidence Interval for Coefficient</a></li>
+                                <li><a href="#95-confidence-interval-coefficient">95% Confidence Interval for Coefficient</a></li>
+                                <li><a href="#p-value">P-Value</a></li>
+                                <li><a href="#is-lagging">Is Lagging</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#epoch-level-metrics">Epoch-Level Metrics</a>
+                            <ul>
+                                <li><a href="#average-slot-duration">Average Slot Duration</a></li>
+                                <li><a href="#population-standard-deviation">Population Standard Deviation</a></li>
+                                <li><a href="#total-validators-analyzed">Total Validators Analyzed</a></li>
+                                <li><a href="#validators-lagging">Validators Lagging</a></li>
+                                <li><a href="#percent-lagging">Percent Lagging</a></li>
+                                <li><a href="#minimum-mean-slot-duration">Minimum Mean Slot Duration</a></li>
+                                <li><a href="#maximum-mean-slot-duration">Maximum Mean Slot Duration</a></li>
+                                <li><a href="#median-slot-duration">Median Slot Duration</a></li>
+                                <li><a href="#average-standard-deviation">Average Standard Deviation</a></li>
+                                <li><a href="#average-confidence-interval-width">Average Confidence Interval Width</a></li>
+                                <li><a href="#average-regression-coefficient">Average Regression Coefficient</a></li>
+                                <li><a href="#average-90-confidence-interval-coefficient">Average 90% Confidence Interval for Coefficient</a></li>
+                                <li><a href="#average-95-confidence-interval-coefficient">Average 95% Confidence Interval for Coefficient</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li><a href="#notes-and-caveats">Notes and Caveats</a></li>
+                <li><a href="#conclusion">Conclusion</a></li>
+            </ul>
+        </section>
+
+        <section id="context">
+            <h2>Context</h2>
+            <p>This document outlines the slot duration metrics provided by the Trillium | Solana API for the Solana ecosystem. These metrics measure the time validators take to produce blocks, offering insights into individual validator performance and network-wide efficiency. Calculations account for continental and software-related factors to ensure fair comparisons.</p>
+            
+            <h3>Data Collection Methodology</h3>
+            <p>Trillium collects slot duration data through a network of geographically diverse Firedancer (Frankendancer) validators positioned around the globe. This approach ensures comprehensive coverage and accurate measurements across different network conditions and locations.</p>
+            
+            <h4>Data Processing Pipeline</h4>
+            <ul>
+                <li><strong>Global Observation Network</strong>: Multiple Firedancer validators collect slot duration measurements from their respective geographic locations.</li>
+                <li><strong>Slot Filtering</strong>: Skipped slots and the blocks produced immediately after skipped slots are excluded to prevent duration skewing from network disruptions.</li>
+                <li><strong>Statistical Selection</strong>: For each slot with multiple observations, the fastest duration within 2 standard deviations of the mean is selected to ensure fair representation.</li>
+                <li><strong>Quality Assurance</strong>: Only positive, valid duration measurements are included in the final dataset.</li>
+            </ul>
+
+            <h3>Key Definitions</h3>
+            <ul>
+                <li><strong>Slot Duration</strong>: The time (in milliseconds) a validator takes to produce a block in a slot, a fundamental unit of time in the Solana blockchain.</li>
+                <li><strong>Epoch</strong>: A period in the Solana network (432,000 slots), typically lasting a few days, during which validator performance is measured.</li>
+                <li><strong>Validators</strong>: Nodes responsible for producing blocks, compared across the network with adjustments for continent and client software type (e.g., Firedancer, Agave).</li>
+                <li><strong>Firedancer (Frankendancer)</strong>: High-performance Solana validator client used for data collection due to its precision and reliability.</li>
+                <li><strong>Client Type</strong>: The software used by a validator, determined from the client_type integer field:
+                    <ul>
+                        <li>0: Solana Labs</li>
+                        <li>1: Jito Labs</li>
+                        <li>2: Firedancer</li>
+                        <li>3: Agave</li>
+                        <li>4: Paladin</li>
+                        <li>NULL/Unknown: Unknown</li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+
+        <section id="slot-duration-metrics">
+            <h2>Slot Duration Metrics</h2>
+            <p>Slot duration metrics are calculated for individual validators and across all validators in an epoch. Individual metrics assess a validator's block production speed relative to the network, adjusted for continent and client type, using a weighted least squares (WLS) regression model. Epoch-level metrics provide a network-wide perspective. All times are reported in milliseconds (ms).</p>
+
+            <section id="individual-validator-metrics">
+                <h3>Individual Validator Metrics</h3>
+                <p>These metrics evaluate a validator's performance by comparing its slot production times to the network average, using WLS regression with continent and client type as confounders, weighted by the inverse of the squared standard deviation of slot durations.</p>
+
+                <div id="mean-slot-duration">
+                    <h4>I. Mean Slot Duration</h4>
+                    <p><strong>Meaning</strong>: The average time a validator takes to produce blocks in an epoch, measured in milliseconds.</p>
+                    <p><strong>Calculation</strong>: The arithmetic mean of slot durations for all blocks produced by the validator.</p>
+                    <p>
+                        \[ \text{Mean Slot Duration} = \frac{\sum \text{Slot Durations}}{\text{Number of Slots}} \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically 350–400 ms for efficient validators. For example, a validator might have a mean slot duration of 349.03 ms (fast) or 381.38 ms (average). Values above 500 ms may indicate slower performance.</p>
+                </div>
+
+                <div id="slot-duration-standard-deviation">
+                    <h4>II. Slot Duration Standard Deviation</h4>
+                    <p><strong>Meaning</strong>: The variability in a validator's slot durations, indicating consistency in block production.</p>
+                    <p><strong>Calculation</strong>: The standard deviation of slot durations, in milliseconds.</p>
+                    <p>
+                        \[ \text{Standard Deviation} = \sqrt{\frac{\sum (\text{Slot Duration} - \text{Mean Slot Duration})^2}{\text{Number of Slots}}} \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically 40–60 ms. A value of 49.01 ms indicates moderate variability, while values above 100 ms suggest inconsistent performance.</p>
+                </div>
+
+                <div id="confidence-interval">
+                    <h4>III. 95% Confidence Interval</h4>
+                    <p><strong>Meaning</strong>: The range within which the true mean slot duration lies with 95% confidence, reported as lower and upper bounds in milliseconds.</p>
+                    <p><strong>Calculation</strong>: Derived from the sample mean, standard deviation, and number of slots.</p>
+                    <p>
+                        \[ \text{CI} = \text{Mean} \pm (z \times \frac{\text{Standard Deviation}}{\sqrt{\text{Number of Slots}}}) \]
+                    </p>
+                    <p><strong>Typical Values</strong>: A narrow interval (e.g., 340–360 ms) indicates high precision, while a wider interval (e.g., 300–450 ms) suggests variability or fewer slots produced.</p>
+                </div>
+
+                <div id="regression-coefficient">
+                    <h4>IV. Regression Coefficient</h4>
+                    <p><strong>Meaning</strong>: The estimated difference in a validator's mean slot duration compared to the network baseline, adjusted for continent and client type, in milliseconds.</p>
+                    <p><strong>Calculation</strong>: The coefficient of the validator indicator variable in the WLS regression model, where the dependent variable is the mean slot duration, weighted by \( \frac{1}{\text{Standard Deviation}^2} \).</p>
+                    <p>
+                        \[ \text{slot_duration_mean} = \beta_0 + \beta_1 \cdot \text{validator_indicator} + \beta_2 \cdot \text{continent} + \beta_3 \cdot \text{client} \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically near 0 ms for validators performing similarly to the baseline. Positive values (e.g., 20 ms) indicate slower performance, while negative values (e.g., -15 ms) indicate faster performance.</p>
+                </div>
+
+                <div id="90-confidence-interval-coefficient">
+                    <h4>V. 90% Confidence Interval for Coefficient</h4>
+                    <p><strong>Meaning</strong>: The range within which the true regression coefficient lies with 90% confidence, reported as lower and upper bounds in milliseconds.</p>
+                    <p><strong>Calculation</strong>: Derived from the WLS regression model for the validator indicator coefficient.</p>
+                    <p>
+                        \[ \text{CI}_{90} = \beta_1 \pm (z_{0.95} \times \text{Standard Error}_{\beta_1}) \]
+                    </p>
+                    <p><strong>Typical Values</strong>: A narrow interval (e.g., -5 to 5 ms) indicates high precision, while a wider interval (e.g., -20 to 30 ms) suggests variability in the estimate.</p>
+                </div>
+
+                <div id="95-confidence-interval-coefficient">
+                    <h4>VI. 95% Confidence Interval for Coefficient</h4>
+                    <p><strong>Meaning</strong>: The range within which the true regression coefficient lies with 95% confidence, reported as lower and upper bounds in milliseconds.</p>
+                    <p><strong>Calculation</strong>: Derived from the WLS regression model for the validator indicator coefficient.</p>
+                    <p>
+                        \[ \text{CI}_{95} = \beta_1 \pm (z_{0.975} \times \text{Standard Error}_{\beta_1}) \]
+                    </p>
+                    <p><strong>Typical Values</strong>: A narrow interval (e.g., -10 to 10 ms) indicates high precision, while a wider interval (e.g., -30 to 40 ms) suggests variability. If the lower bound is positive (e.g., 5 to 25 ms), the validator is significantly slower.</p>
+                </div>
+
+                <div id="p-value">
+                    <h4>VII. P-Value</h4>
+                    <p><strong>Meaning</strong>: The probability that a validator's mean slot duration is not slower than the network baseline, adjusted for continent and client type, reported to 7 decimal places.</p>
+                    <p><strong>Calculation</strong>: From the WLS regression, the p-value for the validator indicator coefficient.</p>
+                    <p>
+                        \[ \text{P-Value} = P(T > t_{\beta_1}) \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Values like 0.4999997 or 0.5000000 indicate no significant difference from the baseline. A p-value below 0.000051 (for ~1000 validators) flags a validator as lagging.</p>
+                </div>
+
+                <div id="is-lagging">
+                    <h4>VIII. Is Lagging</h4>
+                    <p><strong>Meaning</strong>: A boolean indicating whether a validator's slot durations are significantly slower than the network baseline, adjusted for continent and client type.</p>
+                    <p><strong>Calculation</strong>: Set to `true` if BOTH the p-value is less than the Bonferroni-corrected threshold (0.05 divided by the number of validators, e.g., ~0.000051 for 979 validators) AND the 95% confidence interval for the coefficient is entirely positive.</p>
+                    <p>
+                        \[ \text{Is Lagging} = \left( \text{P-Value} < \frac{0.05}{\text{Number of Validators}} \right) \text{ AND } \left( \text{slot_duration_ci_lower_95_ms} > 0 \right) \]
+                    </p>
+                    <p><strong>Typical Values</strong>: `False` for most validators (e.g., those with p-values like 0.4999997). `True` for a small subset (e.g., 17–19 out of 979 validators in an epoch) that meet both statistical significance and confidence interval criteria.</p>
+                </div>
+            </section>
+
+            <section id="epoch-level-metrics">
+                <h3>Epoch-Level Metrics</h3>
+                <p>These metrics aggregate slot duration data across all validators in an epoch to provide a network-wide perspective, calculated after clearing any stale data to ensure accuracy.</p>
+
+                <div id="average-slot-duration">
+                    <h4>I. Average Slot Duration</h4>
+                    <p><strong>Meaning</strong>: The mean of all validators' mean slot durations in an epoch, in milliseconds.</p>
+                    <p><strong>Calculation</strong>: The average of individual validator mean slot durations.</p>
+                    <p>
+                        \[ \text{Average Slot Duration} = \frac{\sum \text{Validator Mean Slot Durations}}{\text{Number of Validators}} \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically 350–400 ms. For example, 372.21 ms indicates a healthy network, while values above 450 ms may suggest congestion or inefficiencies.</p>
+                </div>
+
+                <div id="population-standard-deviation">
+                    <h4>II. Population Standard Deviation</h4>
+                    <p><strong>Meaning</strong>: The standard deviation of validators' mean slot durations, indicating network-wide variability.</p>
+                    <p><strong>Calculation</strong>: The standard deviation across all validators' mean slot durations.</p>
+                    <p>
+                        \[ \text{Population StdDev} = \sqrt{\frac{\sum (\text{Validator Mean} - \text{Average Slot Duration})^2}{\text{Number of Validators}}} \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically 60–80 ms. A value of 71.96 ms indicates moderate variability, while values above 100 ms suggest diverse validator performance.</p>
+                </div>
+
+                <div id="total-validators-analyzed">
+                    <h4>III. Total Validators Analyzed</h4>
+                    <p><strong>Meaning</strong>: The number of validators with valid slot duration data in the epoch.</p>
+                    <p><strong>Calculation</strong>: A count of validators with non-null slot duration data.</p>
+                    <p>
+                        \[ \text{Total Validators Analyzed} = \text{Count(Validators with Valid Data)} \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically 900–1000. For example, 979 validators indicates robust network participation.</p>
+                </div>
+
+                <div id="validators-lagging">
+                    <h4>IV. Validators Lagging</h4>
+                    <p><strong>Meaning</strong>: The number of validators flagged as lagging based on their p-values or confidence intervals.</p>
+                    <p><strong>Calculation</strong>: A count of validators with p-values below the Bonferroni-corrected threshold or with a 95% confidence interval for the coefficient entirely positive.</p>
+                    <p>
+                        \[ \text{Validators Lagging} = \text{Count} \left( \text{P-Value} < \frac{0.05}{\text{Number of Validators}} \text{ or } \text{slot_duration_ci_lower_95_ms} > 0 \right) \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically 15–20. A value of 17 (p-value) or 19 (CI) validators (out of 979) indicates a small but notable portion of underperforming validators.</p>
+                </div>
+
+                <div id="percent-lagging">
+                    <h4>V. Percent Lagging</h4>
+                    <p><strong>Meaning</strong>: The percentage of validators flagged as lagging, rounded to two decimal places.</p>
+                    <p><strong>Calculation</strong>: The ratio of lagging validators to total validators analyzed, multiplied by 100.</p>
+                    <p>
+                        \[ \text{Percent Lagging} = \left( \frac{\text{Validators Lagging}}{\text{Total Validators Analyzed}} \right) \times 100 \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically 1–2%. A value of 1.94% (p-value) or 2.04% (CI) indicates a typical proportion of lagging validators.</p>
+                </div>
+
+                <div id="minimum-mean-slot-duration">
+                    <h4>VI. Minimum Mean Slot Duration</h4>
+                    <p><strong>Meaning</strong>: The lowest mean slot duration among all validators in the epoch.</p>
+                    <p><strong>Calculation</strong>: The minimum of individual validator mean slot durations.</p>
+                    <p>
+                        \[ \text{Min Mean Slot Duration} = \min(\text{Validator Mean Slot Durations}) \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically 250–300 ms. A value of 275.76 ms indicates the fastest validator's performance.</p>
+                </div>
+
+                <div id="maximum-mean-slot-duration">
+                    <h4>VII. Maximum Mean Slot Duration</h4>
+                    <p><strong>Meaning</strong>: The highest mean slot duration among all validators in the epoch.</p>
+                    <p><strong>Calculation</strong>: The maximum of individual validator mean slot durations.</p>
+                    <p>
+                        \[ \text{Max Mean Slot Duration} = \max(\text{Validator Mean Slot Durations}) \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically 800–1000 ms. A value of 907.69 ms indicates the slowest validator's performance.</p>
+                </div>
+
+                <div id="median-slot-duration">
+                    <h4>VIII. Median Slot Duration</h4>
+                    <p><strong>Meaning</strong>: The median of validators' median slot durations, providing a robust measure of central tendency.</p>
+                    <p><strong>Calculation</strong>: The 50th percentile of validators' median slot durations.</p>
+                    <p>
+                        \[ \text{Median Slot Duration} = \text{Percentile}_{50}(\text{Validator Median Slot Durations}) \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically 350–400 ms. A value of 355.31 ms reflects typical network performance.</p>
+                </div>
+
+                <div id="average-standard-deviation">
+                    <h4>IX. Average Standard Deviation</h4>
+                    <p><strong>Meaning</strong>: The average of validators' slot duration standard deviations, indicating typical variability across validators.</p>
+                    <p><strong>Calculation</strong>: The mean of individual validator standard deviations.</p>
+                    <p>
+                        \[ \text{Average Standard Deviation} = \frac{\sum \text{Validator Standard Deviations}}{\text{Number of Validators}} \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically 40–60 ms. A value of 49.01 ms suggests moderate variability across validators.</p>
+                </div>
+
+                <div id="average-confidence-interval-width">
+                    <h4>X. Average Confidence Interval Width</h4>
+                    <p><strong>Meaning</strong>: The average width of validators' 95% confidence intervals for mean slot duration, indicating precision of performance estimates.</p>
+                    <p><strong>Calculation</strong>: The mean of the differences between upper and lower confidence interval bounds, excluding zero-width intervals.</p>
+                    <p>
+                        \[ \text{Average CI Width} = \frac{\sum (\text{Upper CI} - \text{Lower CI})}{\text{Number of Non-Zero Width CIs}} \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically 20–30 ms. A value of 22.02 ms indicates high precision in performance estimates.</p>
+                </div>
+
+                <div id="average-regression-coefficient">
+                    <h4>XI. Average Regression Coefficient</h4>
+                    <p><strong>Meaning</strong>: The average of validators' regression coefficients, indicating the typical deviation from the network baseline slot duration.</p>
+                    <p><strong>Calculation</strong>: The mean of individual validator regression coefficients from the WLS model.</p>
+                    <p>
+                        \[ \text{Average Regression Coefficient} = \frac{\sum \text{Validator Coefficients}}{\text{Number of Validators}} \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically near 0 ms, as coefficients balance out across faster and slower validators. A value of 0.50 ms suggests a slight positive skew.</p>
+                </div>
+
+                <div id="average-90-confidence-interval-coefficient">
+                    <h4>XII. Average 90% Confidence Interval for Coefficient</h4>
+                    <p><strong>Meaning</strong>: The average of validators' 90% confidence interval bounds for the regression coefficient, in milliseconds.</p>
+                    <p><strong>Calculation</strong>: The mean of the lower and upper 90% confidence interval bounds across validators.</p>
+                    <p>
+                        \[ \text{Average CI}_{90} = \frac{\sum \text{Validator CI}_{90 \text{ Lower/Upper}}}{\text{Number of Validators}} \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically spans 0 ms (e.g., -5 to 5 ms), reflecting balanced precision in coefficient estimates.</p>
+                </div>
+
+                <div id="average-95-confidence-interval-coefficient">
+                    <h4>XIII. Average 95% Confidence Interval for Coefficient</h4>
+                    <p><strong>Meaning</strong>: The average of validators' 95% confidence interval bounds for the regression coefficient, in milliseconds.</p>
+                    <p><strong>Calculation</strong>: The mean of the lower and upper 95% confidence interval bounds across validators.</p>
+                    <p>
+                        \[ \text{Average CI}_{95} = \frac{\sum \text{Validator CI}_{95 \text{ Lower/Upper}}}{\text{Number of Validators}} \]
+                    </p>
+                    <p><strong>Typical Values</strong>: Typically spans 0 ms (e.g., -10 to 10 ms), reflecting balanced precision. A positive lower bound (e.g., 2 ms) may indicate network-wide slower performance.</p>
+                </div>
+            </section>
+        </section>
+
+        <section id="notes-and-caveats">
+            <h2>Notes and Caveats</h2>
+            <ul>
+                <li><strong>Data Collection Network</strong>: Slot durations are observed through geographically diverse Firedancer validators to ensure comprehensive global coverage and minimize regional bias.</li>
+                <li><strong>Skipped Slot Handling</strong>: Both skipped slots and blocks produced immediately after skipped slots are excluded from calculations to prevent artificial inflation of durations due to network recovery effects.</li>
+                <li><strong>Statistical Filtering</strong>: When multiple duration observations exist for a single slot, the fastest measurement within 2 standard deviations of the mean is selected to balance accuracy with outlier rejection.</li>
+                <li><strong>Data Validation</strong>: Only positive, non-zero slot durations are included. Invalid measurements (N/A, negative, or zero values) are automatically filtered out during processing.</li>
+                <li><strong>Bonferroni Correction</strong>: The p-value threshold for flagging lagging validators is adjusted for multiple testing (0.05 divided by the number of validators), ensuring statistical rigor.</li>
+                <li><strong>WLS Regression</strong>: Validators are compared using a weighted least squares model, with weights as the inverse of the squared standard deviation, adjusting for continent and client type (Firedancer or Agave) to account for geographic and software-related performance differences.</li>
+                <li><strong>Rounding</strong>: Numeric metrics (except p-value) are rounded to two decimal places for consistency and readability, except for validator-level confidence intervals, which use five decimal places.</li>
+                <li><strong>Epoch Variability</strong>: Slot durations may vary due to network conditions, affecting metric values. Users should compare metrics across multiple epochs for trends.</li>
+                <li><strong>Coverage Statistics</strong>: Data coverage percentages indicate the proportion of expected slots with valid measurements, helping users assess data completeness.</li>
+                <li><strong>API Context</strong>: These metrics are part of the Trillium | Solana API, designed for transparency. Users should verify data against on-chain sources for critical applications.</li>
+            </ul>
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <p>The Trillium | Solana API provides a comprehensive set of slot duration metrics to evaluate validator performance and network efficiency on Solana. By analyzing individual validator speed and network-wide trends, adjusted for continental and software-related factors, these metrics offer valuable insights for stakeholders. Users should consider the caveats, particularly around data validation and epoch variability, when interpreting these metrics.</p>
+            
+            <h3>API Endpoints</h3>
+            <p>Access the latest slot duration and validator performance data through these Trillium API endpoints:</p>
+            <ul>
+                <li><strong>Epoch Aggregate Data (latest 10 epochs)</strong>: <a href="https://api.trillium.so/epoch_data/">https://api.trillium.so/epoch_data/</a></li>
+                <li><strong>Validator Rewards Data (latest epoch)</strong>: <a href="https://api.trillium.so/validator_rewards/">https://api.trillium.so/validator_rewards/</a></li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>Trillium is passionate about Solana</p>
+            <p>Your stake helps fuel the Solana ecosystem growth</p>
+            <p>Join the Trillium revolution today!</p>
+        </div>
+    </footer>
+</body>
+</html>

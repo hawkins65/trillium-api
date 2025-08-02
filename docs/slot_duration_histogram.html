@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Slot Duration Distribution for Epoch 819</title>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+<body>
+    <div id="vis"></div>
+    <script type="text/javascript">
+        const spec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "description": "Histogram of slot durations for epoch 819 on the Solana network",
+            "width": 800,
+            "height": 400,
+            "data": {
+                "values": [
+                    {"bin_start_ms": 0, "slot_count": 5},
+                    {"bin_start_ms": 20, "slot_count": 2},
+                    {"bin_start_ms": 60, "slot_count": 5},
+                    {"bin_start_ms": 80, "slot_count": 31},
+                    {"bin_start_ms": 100, "slot_count": 92},
+                    {"bin_start_ms": 120, "slot_count": 201},
+                    {"bin_start_ms": 140, "slot_count": 370},
+                    {"bin_start_ms": 160, "slot_count": 660},
+                    {"bin_start_ms": 180, "slot_count": 1171},
+                    {"bin_start_ms": 200, "slot_count": 2148},
+                    {"bin_start_ms": 220, "slot_count": 3169},
+                    {"bin_start_ms": 240, "slot_count": 4365},
+                    {"bin_start_ms": 260, "slot_count": 6118},
+                    {"bin_start_ms": 280, "slot_count": 9996},
+                    {"bin_start_ms": 300, "slot_count": 17286},
+                    {"bin_start_ms": 320, "slot_count": 33370},
+                    {"bin_start_ms": 340, "slot_count": 149748},
+                    {"bin_start_ms": 360, "slot_count": 89077},
+                    {"bin_start_ms": 380, "slot_count": 42766},
+                    {"bin_start_ms": 400, "slot_count": 22947},
+                    {"bin_start_ms": 420, "slot_count": 11693},
+                    {"bin_start_ms": 440, "slot_count": 8972},
+                    {"bin_start_ms": 460, "slot_count": 4598},
+                    {"bin_start_ms": 480, "slot_count": 3162},
+                    {"bin_start_ms": 500, "slot_count": 2401},
+                    {"bin_start_ms": 520, "slot_count": 1887},
+                    {"bin_start_ms": 540, "slot_count": 1920},
+                    {"bin_start_ms": 560, "slot_count": 1563},
+                    {"bin_start_ms": 580, "slot_count": 3292},
+                    {"bin_start_ms": 600, "slot_count": 2509},
+                    {"bin_start_ms": 620, "slot_count": 683},
+                    {"bin_start_ms": 640, "slot_count": 532},
+                    {"bin_start_ms": 660, "slot_count": 171},
+                    {"bin_start_ms": 680, "slot_count": 162},
+                    {"bin_start_ms": 700, "slot_count": 55},
+                    {"bin_start_ms": 720, "slot_count": 40},
+                    {"bin_start_ms": 740, "slot_count": 38},
+                    {"bin_start_ms": 760, "slot_count": 53},
+                    {"bin_start_ms": 780, "slot_count": 59},
+                    {"bin_start_ms": 800, "slot_count": 74},
+                    {"bin_start_ms": 820, "slot_count": 109},
+                    {"bin_start_ms": 840, "slot_count": 157},
+                    {"bin_start_ms": 860, "slot_count": 722},
+                    {"bin_start_ms": 880, "slot_count": 1741},
+                    {"bin_start_ms": 900, "slot_count": 342},
+                    {"bin_start_ms": 920, "slot_count": 155},
+                    {"bin_start_ms": 940, "slot_count": 114},
+                    {"bin_start_ms": 960, "slot_count": 222},
+                    {"bin_start_ms": 980, "slot_count": 147},
+                    {"bin_start_ms": 1000, "slot_count": 40},
+                    {"bin_start_ms": 1020, "slot_count": 20},
+                    {"bin_start_ms": 1040, "slot_count": 8},
+                    {"bin_start_ms": 1060, "slot_count": 10},
+                    {"bin_start_ms": 1080, "slot_count": 8},
+                    {"bin_start_ms": 1100, "slot_count": 5},
+                    {"bin_start_ms": 1120, "slot_count": 2},
+                    {"bin_start_ms": 1140, "slot_count": 4},
+                    {"bin_start_ms": 1160, "slot_count": 1},
+                    {"bin_start_ms": 1180, "slot_count": 3},
+                    {"bin_start_ms": 1200, "slot_count": 5},
+                    {"bin_start_ms": 1220, "slot_count": 1},
+                    {"bin_start_ms": 1240, "slot_count": 1},
+                    {"bin_start_ms": 1260, "slot_count": 1},
+                    {"bin_start_ms": 1300, "slot_count": 3},
+                    {"bin_start_ms": 1320, "slot_count": 1},
+                    {"bin_start_ms": 1340, "slot_count": 3},
+                    {"bin_start_ms": 1360, "slot_count": 2},
+                    {"bin_start_ms": 1380, "slot_count": 1},
+                    {"bin_start_ms": 1400, "slot_count": 1},
+                    {"bin_start_ms": 1420, "slot_count": 1},
+                    {"bin_start_ms": 1440, "slot_count": 1},
+                    {"bin_start_ms": 1460, "slot_count": 3},
+                    {"bin_start_ms": 1480, "slot_count": 1},
+                    {"bin_start_ms": 1500, "slot_count": 1},
+                    {"bin_start_ms": 1520, "slot_count": 3},
+                    {"bin_start_ms": 1580, "slot_count": 4},
+                    {"bin_start_ms": 1600, "slot_count": 5},
+                    {"bin_start_ms": 1620, "slot_count": 4},
+                    {"bin_start_ms": 1660, "slot_count": 2},
+                    {"bin_start_ms": 1680, "slot_count": 4},
+                    {"bin_start_ms": 1700, "slot_count": 2},
+                    {"bin_start_ms": 1720, "slot_count": 6},
+                    {"bin_start_ms": 1740, "slot_count": 9},
+                    {"bin_start_ms": 1760, "slot_count": 26},
+                    {"bin_start_ms": 1780, "slot_count": 20},
+                    {"bin_start_ms": 1800, "slot_count": 9},
+                    {"bin_start_ms": 1820, "slot_count": 3},
+                    {"bin_start_ms": 1840, "slot_count": 8},
+                    {"bin_start_ms": 1860, "slot_count": 2},
+                    {"bin_start_ms": 1880, "slot_count": 3},
+                    {"bin_start_ms": 1900, "slot_count": 4},
+                    {"bin_start_ms": 1920, "slot_count": 3},
+                    {"bin_start_ms": 1940, "slot_count": 4},
+                    {"bin_start_ms": 1960, "slot_count": 5},
+                    {"bin_start_ms": 1980, "slot_count": 5},
+                    {"bin_start_ms": 2000, "slot_count": 3},
+                    {"bin_start_ms": 2020, "slot_count": 4},
+                    {"bin_start_ms": 2040, "slot_count": 2},
+                    {"bin_start_ms": 2080, "slot_count": 1},
+                    {"bin_start_ms": 2120, "slot_count": 2},
+                    {"bin_start_ms": 2200, "slot_count": 1},
+                    {"bin_start_ms": 2240, "slot_count": 1},
+                    {"bin_start_ms": 2760, "slot_count": 1}
+                ]
+            },
+            "layer": [
+                {
+                    "mark": {
+                        "type": "bar",
+                        "width": 18
+                    },
+                    "encoding": {
+                        "x": {
+                            "field": "bin_start_ms",
+                            "type": "quantitative",
+                            "title": "Slot Duration (ms)",
+                            "axis": {"tickCount": 20}
+                        },
+                        "y": {
+                            "field": "slot_count",
+                            "type": "quantitative",
+                            "title": "Number of Slots"
+                        },
+                        "color": {
+                            "condition": [
+                                {
+                                    "test": "datum.bin_start_ms < 207.73",
+                                    "value": "#FF6666"
+                                },
+                                {
+                                    "test": "datum.bin_start_ms >= 536.76",
+                                    "value": "#66B2FF"
+                                }
+                            ],
+                            "value": "#4CAF50"
+                        }
+                    }
+                },
+                {
+                    "mark": {
+                        "type": "rule",
+                        "color": "black",
+                        "strokeWidth": 2,
+                        "strokeDash": [4, 4]
+                    },
+                    "encoding": {
+                        "x": {
+                            "datum": 372.25
+                        }
+                    }
+                },
+                {
+                    "mark": {
+                        "type": "rule",
+                        "color": "red",
+                        "strokeWidth": 2,
+                        "strokeDash": [4, 4]
+                    },
+                    "encoding": {
+                        "x": {
+                            "datum": 207.73
+                        }
+                    }
+                },
+                {
+                    "mark": {
+                        "type": "rule",
+                        "color": "blue",
+                        "strokeWidth": 2,
+                        "strokeDash": [4, 4]
+                    },
+                    "encoding": {
+                        "x": {
+                            "datum": 536.76
+                        }
+                    }
+                },
+                {
+                    "mark": {
+                        "type": "text",
+                        "align": "center",
+                        "baseline": "bottom",
+                        "dy": -10,
+                        "fontSize": 12,
+                        "fontWeight": "bold"
+                    },
+                    "encoding": {
+                        "x": {"datum": 372.25},
+                        "text": {"value": "Mean: 372.25 ms"},
+                        "y": {"value": 160000}
+                    }
+                },
+                {
+                    "mark": {
+                        "type": "text",
+                        "align": "right",
+                        "baseline": "bottom",
+                        "dx": -10,
+                        "dy": -10,
+                        "fontSize": 12,
+                        "fontWeight": "bold",
+                        "color": "red"
+                    },
+                    "encoding": {
+                        "x": {"datum": 207.73},
+                        "text": {"value": "Super Fast (0.75%)"},
+                        "y": {"value": 140000}
+                    }
+                },
+                {
+                    "mark": {
+                        "type": "text",
+                        "align": "left",
+                        "baseline": "bottom",
+                        "dx": 10,
+                        "dy": -10,
+                        "fontSize": 12,
+                        "fontWeight": "bold",
+                        "color": "blue"
+                    },
+                    "encoding": {
+                        "x": {"datum": 536.76},
+                        "text": {"value": "Slower than Expected (3.58%)"},
+                        "y": {"value": 140000}
+                    }
+                }
+            ],
+            "title": "Slot Duration Distribution for Epoch 819 (Solana Network)"
+        };
+        vegaEmbed('#vis', spec);
+    </script>
+</body>
+</html>
