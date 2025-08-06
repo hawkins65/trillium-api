@@ -1,10 +1,16 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Enable strict mode for safer scripting
 set -euo pipefail
 
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -19,7 +25,7 @@ if [ $# -ne 2 ]; then
     echo "Usage: $0 <file_pattern> <output_directory>"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Invalid arguments" "Usage: $0 <file_pattern> <output_directory>" "1" ""
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Invalid arguments" "Usage: $0 <file_pattern> <output_directory>" "1" ""
     
     exit 1
 fi
@@ -38,7 +44,7 @@ else
     log "ERROR" "❌ Failed to create output directory: $OUTPUT_DIR"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Directory creation failed" "mkdir -p $OUTPUT_DIR" "1" ""
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Directory creation failed" "mkdir -p $OUTPUT_DIR" "1" ""
     
     exit 1
 fi
@@ -88,7 +94,7 @@ for input_file in $FILE_PATTERN; do
             files_failed=$((files_failed + 1))
             
             # Send error notification for individual file compression failure
-            bash 999_discord_notify.sh error "$script_name" "File compression failed" "zstd $input_file -o $output_file" "1" ""
+            bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "File compression failed" "zstd $input_file -o $output_file" "1" ""
         fi
     fi
 done
@@ -117,7 +123,7 @@ if [[ $files_failed -eq 0 ]]; then
    • Pattern: $FILE_PATTERN
    • Output directory: $OUTPUT_DIR"
         
-        bash 999_discord_notify.sh success "$script_name" "" "File Compression Completed Successfully" "$components_processed"
+        bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "" "File Compression Completed Successfully" "$components_processed"
         cleanup_logging
     else
         log "INFO" "ℹ️ Compression completed (no files found) for pattern: $FILE_PATTERN"
@@ -126,7 +132,7 @@ else
     log "ERROR" "❌ Compression completed with $files_failed failures for pattern: $FILE_PATTERN"
     
     # Send error notification for overall failures
-    bash 999_discord_notify.sh error "$script_name" "Compression failures" "$files_failed files failed to compress for pattern: $FILE_PATTERN" "1" ""
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Compression failures" "$files_failed files failed to compress for pattern: $FILE_PATTERN" "1" ""
     
     exit 1
 fi

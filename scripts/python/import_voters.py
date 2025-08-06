@@ -3,8 +3,8 @@ import psycopg2
 from db_config import db_params
 
 # Paths to JSON files
-GOOD_JSON = '/home/smilax/api/good.json'
-POOR_JSON = '/home/smilax/api/poor.json'
+GOOD_JSON = '/home/smilax/trillium_api/data/temp/good.json'
+POOR_JSON = '/home/smilax/trillium_api/data/temp/poor.json'
 
 def create_table_if_not_exists(cursor):
     """Create the voter_classifications table if it doesn't exist."""

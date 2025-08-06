@@ -29,10 +29,36 @@ trillium_api/
 │   ├── nodejs/         # API data fetching
 │   ├── sql/           # Database operations
 │   └── get_slots/     # Epoch data collection
-├── config/            # Configuration files
-├── docs/             # API documentation
-└── data/             # Sample data and schemas
+├── config/            # Database and app configuration
+├── data/
+│   ├── configs/       # Centralized configuration files
+│   ├── epochs/        # Epoch processing data
+│   ├── monitoring/    # Monitoring outputs
+│   ├── backups/       # Automated backups
+│   └── stake_accounts/# Stake analysis data
+└── docs/             # Documentation
 ```
+
+## Configuration Management
+
+The Trillium API uses a **centralized configuration system** for all external integrations:
+
+### Configuration Files (in `data/configs/`)
+
+1. **`notification_webhooks.json`** - Discord, Telegram, PagerDuty webhooks
+2. **`urls_and_endpoints.json`** - RPC endpoints, API URLs, web resources
+3. **`validator_identities.json`** - Validator pubkeys and groupings
+4. **`telegram_config.json`** - Telegram bot settings (template)
+5. **`pagerduty_config.json`** - PagerDuty integration (template)
+
+### Key Features
+
+- **No hardcoded values** - All URLs/webhooks in config files
+- **Single update point** - Change configs without touching code
+- **Config loader** - `999_config_loader.sh` provides helper functions
+- **Production ready** - Templates include actual production values
+
+See [Configuration Migration Guide](docs/CONFIGURATION_MIGRATION.md) for details.
 
 ## Main Processing Scripts
 

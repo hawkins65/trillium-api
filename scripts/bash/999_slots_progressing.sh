@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Source common logging functions
-source $HOME/api/999_common_log.sh
+source $HOME/trillium_api/scripts/bash/999_common_log.sh
 
 # Configuration
 CHECK_INTERVAL_MINUTES=5  # Interval to check slot progress
@@ -9,8 +15,8 @@ DISCORD_WEBHOOK="https://discord.com/api/webhooks/1288850414430715914/E6XttHmMxD
 HEALTHY_AVATAR="https://trillium.so/images/slots-progressing.png"
 UNHEALTHY_AVATAR="https://trillium.so/images/slots-not-progressing.png"
 EPOCH_CHANGE_AVATAR="https://trillium.so/images/new-epoch.png"
-CHECK_SLOTS_SCRIPT="$HOME/api/999_slots_progressing.py"
-SLOTS_JSON_FILE="$HOME/api/999_slots_progressing.json"
+CHECK_SLOTS_SCRIPT="$HOME/trillium_api/scripts/python/999_slots_progressing.py"
+SLOTS_JSON_FILE="$HOME/trillium_api/data/slot_progressing/999_slots_progressing.json"
 
 # RPC configuration
 DEFAULT_RPC_URL="https://api.mainnet-beta.solana.com"
@@ -99,14 +105,14 @@ while true; do
     RESPONSE=$(make_rpc_call "$PAYLOAD")
     if [ $? -ne 0 ]; then
         log "ERROR" "Failed to retrieve epoch info from all RPC endpoints"
-        if [[ -x "$HOME/api/999_pagerduty.sh" ]]; then
-            "$HOME/api/999_pagerduty.sh" \
+        if [[ -x "$HOME/trillium_api/999_pagerduty.sh" ]]; then
+            "$HOME/trillium_api/999_pagerduty.sh" \
                 --severity error \
                 --source "$(hostname)" \
                 --details "{\"script\": \"$(basename "$0")\", \"timestamp\": \"$(date -u --iso-8601=seconds)\", \"error\": \"Failed to retrieve epoch info from all RPC endpoints\", \"primary_rpc\": \"$RPC_URL\", \"fallback_rpc\": \"$FALLBACK_RPC_URL\"}" \
                 "Failed to retrieve epoch info from all RPC endpoints"
         else
-            log "WARNING" "PagerDuty script not found at $HOME/api/999_pagerduty.sh"
+            log "WARNING" "PagerDuty script not found at $HOME/trillium_api/999_pagerduty.sh"
         fi
         sleep 60
         continue
@@ -115,14 +121,14 @@ while true; do
     CURRENT_EPOCH=$(echo "$RESPONSE" | jq -r '.result.epoch')
     if [ -z "$CURRENT_EPOCH" ] || [ "$CURRENT_EPOCH" = "null" ]; then
         log "ERROR" "Invalid epoch info received: $RESPONSE"
-        if [[ -x "$HOME/api/999_pagerduty.sh" ]]; then
-            "$HOME/api/999_pagerduty.sh" \
+        if [[ -x "$HOME/trillium_api/999_pagerduty.sh" ]]; then
+            "$HOME/trillium_api/999_pagerduty.sh" \
                 --severity error \
                 --source "$(hostname)" \
                 --details "{\"script\": \"$(basename "$0")\", \"timestamp\": \"$(date -u --iso-8601=seconds)\", \"response\": \"$RESPONSE\", \"rpc_url\": \"$CURRENT_RPC_URL\"}" \
                 "Invalid epoch info received"
         else
-            log "WARNING" "PagerDuty script not found at $HOME/api/999_pagerduty.sh"
+            log "WARNING" "PagerDuty script not found at $HOME/trillium_api/999_pagerduty.sh"
         fi
         sleep 60
         continue
@@ -158,14 +164,14 @@ while true; do
                 HEALTH_STATUS="unhealthy"
                 # Only send PagerDuty alert if we're past the skip threshold
                 if [ $SLOTS_COUNT -gt $SKIP_SLOTS_THRESHOLD ]; then
-                    if [[ -x "$HOME/api/999_pagerduty.sh" ]]; then
-                        "$HOME/api/999_pagerduty.sh" \
+                    if [[ -x "$HOME/trillium_api/999_pagerduty.sh" ]]; then
+                        "$HOME/trillium_api/999_pagerduty.sh" \
                             --severity error \
                             --source "$(hostname)" \
                             --details "{\"script\": \"$(basename "$CHECK_SLOTS_SCRIPT")\", \"epoch\": \"$CURRENT_EPOCH\", \"timestamp\": \"$(date -u --iso-8601=seconds)\", \"error\": \"Invalid slot count in JSON file\"}" \
                             "Invalid slot count in JSON file for epoch $CURRENT_EPOCH"
                     else
-                        log "WARNING" "PagerDuty script not found at $HOME/api/999_pagerduty.sh"
+                        log "WARNING" "PagerDuty script not found at $HOME/trillium_api/999_pagerduty.sh"
                     fi
                 else
                     log "INFO" "Skipping PagerDuty alert for invalid slot count - still in first $SKIP_FIRST_HOURS hours of epoch"
@@ -211,14 +217,14 @@ while true; do
                     else
                         HEALTH_STATUS="unhealthy"
                         log "WARNING" "Unhealthy: Slot count did not increase (previous: $PREV_SLOTS_COUNT, current: $SLOTS_COUNT, $PERCENT_COMPLETE% complete)"
-                        if [[ -x "$HOME/api/999_pagerduty.sh" ]]; then
-                            "$HOME/api/999_pagerduty.sh" \
+                        if [[ -x "$HOME/trillium_api/999_pagerduty.sh" ]]; then
+                            "$HOME/trillium_api/999_pagerduty.sh" \
                                 --severity warning \
                                 --source "$(hostname)" \
                                 --details "{\"prev_slots\": $PREV_SLOTS_COUNT, \"current_slots\": $SLOTS_COUNT, \"percent_complete\": $PERCENT_COMPLETE, \"epoch\": \"$CURRENT_EPOCH\", \"timestamp\": \"$(date -u --iso-8601=seconds)\"}" \
                                 "Slot collection not progressing for epoch $CURRENT_EPOCH"
                         else
-                            log "WARNING" "PagerDuty script not found at $HOME/api/999_pagerduty.sh"
+                            log "WARNING" "PagerDuty script not found at $HOME/trillium_api/999_pagerduty.sh"
                         fi
                     fi
                 fi

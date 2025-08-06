@@ -1,0 +1,18 @@
+[Unit]
+Description=999 Slots Progressing Monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=smilax
+Group=smilax
+ExecStart=/home/smilax/trillium_api/scripts/bash/999_slots_progressing.sh
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=999-slots-progressing
+
+[Install]
+WantedBy=multi-user.target

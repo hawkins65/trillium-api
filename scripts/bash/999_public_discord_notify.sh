@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # 999_public_discord_notify.sh - Public Discord API status notification script
 # Usage: bash 999_public_discord_notify.sh <message_type> <epoch_number> [additional_parameters...]
 
@@ -7,7 +13,7 @@ set -euo pipefail
 
 # Source the common logging functions if available
 if [[ -f "common_log.sh" ]]; then
-    source /home/smilax/api/999_common_log.sh
+    source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
     # Initialize enhanced logging
     init_logging
 else

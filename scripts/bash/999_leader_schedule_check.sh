@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
 # 999_leader_schedule_check.sh - Check for existence of leader schedule files for current and next epoch
 set -euo pipefail
 

@@ -7,10 +7,10 @@ import folium
 import requests
 
 # Output file paths
-CSV_FILE = '/home/smilax/api/fd-validators.csv'
-JSON_FILE = '/home/smilax/api/fd-validators.json'
-PIE_CHART_FILE = '/home/smilax/api/validators_by_metro_pie.png'
-BUBBLE_MAP_FILE = '/home/smilax/api/validators_by_metro_bubble.html'
+CSV_FILE = '/home/smilax/trillium_api/data/exports/fd-validators.csv'
+JSON_FILE = '/home/smilax/trillium_api/data/exports/fd-validators.json'
+PIE_CHART_FILE = '/home/smilax/trillium_api/data/charts/validators_by_metro_pie.png'
+BUBBLE_MAP_FILE = '/home/smilax/trillium_api/data/charts/validators_by_metro_bubble.html'
 
 def create_table_if_not_exists(cursor):
     """Create the voter_classifications table if it doesn't exist."""

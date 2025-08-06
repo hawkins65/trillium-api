@@ -1,9 +1,15 @@
 #!/bin/bash
+
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
 # 999_check_shin_voting.sh - Verify epoch presence in good.json and poor.json for Solana voting data
 set -euo pipefail
 
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -16,7 +22,7 @@ log "INFO" "🚀 Starting Shin voting files validation process"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOME_DIR="${HOME:-/home/smilax}"
 BASE_DIR="$HOME_DIR/get_slots"
-PAGERDUTY_SCRIPT="$HOME_DIR/api/999_pagerduty.sh"
+PAGERDUTY_SCRIPT="$HOME_DIR/trillium_api/999_pagerduty.sh"
 
 log "INFO" "📁 Configuration - Base dir: $BASE_DIR, PagerDuty script: $PAGERDUTY_SCRIPT"
 
@@ -65,14 +71,14 @@ check_dependencies() {
         log "ERROR" "❌ PagerDuty script not found: $PAGERDUTY_SCRIPT"
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "Dependency missing" "PagerDuty script not found: $PAGERDUTY_SCRIPT" "2" ""
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Dependency missing" "PagerDuty script not found: $PAGERDUTY_SCRIPT" "2" ""
         
         return 1
     elif [[ ! -x "$PAGERDUTY_SCRIPT" ]]; then
         log "ERROR" "❌ PagerDuty script is not executable: $PAGERDUTY_SCRIPT"
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "Dependency issue" "PagerDuty script not executable: $PAGERDUTY_SCRIPT" "2" ""
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Dependency issue" "PagerDuty script not executable: $PAGERDUTY_SCRIPT" "2" ""
         
         return 1
     fi
@@ -81,7 +87,7 @@ check_dependencies() {
         log "ERROR" "❌ jq command not found. Please install jq."
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "Dependency missing" "jq command not found" "2" ""
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Dependency missing" "jq command not found" "2" ""
         
         return 1
     fi
@@ -170,7 +176,7 @@ main() {
         usage
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "Invalid arguments" "Expected 1 argument, got $#" "2" ""
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Invalid arguments" "Expected 1 argument, got $#" "2" ""
         
         exit 2
     fi
@@ -183,7 +189,7 @@ main() {
         usage
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "Invalid epoch number" "Epoch '$epoch' is not a valid positive integer" "2" "$epoch"
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Invalid epoch number" "Epoch '$epoch' is not a valid positive integer" "2" "$epoch"
         
         exit 2
     fi
@@ -229,7 +235,7 @@ main() {
    • poor.json epoch verification
    • JSON parsing and data_epochs array validation"
         
-        bash 999_discord_notify.sh success "$script_name" "$epoch" "Shin Voting Files Validation Passed" "$components_processed"
+        bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "$epoch" "Shin Voting Files Validation Passed" "$components_processed"
         cleanup_logging
         
         exit 0
@@ -240,7 +246,7 @@ main() {
         send_pagerduty_alert "$epoch" "${failed_files[@]}" || true
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "Voting files validation failed" "Epoch $epoch missing in: ${failed_files[*]}" "1" "$epoch"
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Voting files validation failed" "Epoch $epoch missing in: ${failed_files[*]}" "1" "$epoch"
         
         exit 1
     fi

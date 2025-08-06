@@ -10,16 +10,28 @@ import math
 import glob
 import select
 import re
+import importlib.util
 import logging
+
+# Setup unified logging
 import sys
+from pathlib import Path
+
+# Add parent directories to path for imports
+sys.path.append(str(Path(__file__).parent.parent / "python"))
+sys.path.append("/home/smilax/api")
+
+import importlib.util
+spec = importlib.util.spec_from_file_location("logging_config", str(Path(__file__).parent.parent / "python" / "999_logging_config.py"))
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
+
 from datetime import datetime
 import signal
 import threading
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
-# Add the directory containing rpc_config.py to sys.path
-sys.path.append("/home/smilax/api")
 from rpc_config import RPC_ENDPOINT
 
 # RPC Configuration
@@ -104,7 +116,8 @@ def get_rpc_url_prefix(url):
 
 def setup_logging():
     """Setup enhanced logging with bandwidth monitoring focus"""
-    logger = logging.getLogger()
+    # Logger setup moved to unified configuration
+    global logger
     logger.setLevel(logging.INFO)
     
     now = datetime.now()
@@ -1007,10 +1020,18 @@ def main():
             epoch_number, slots_to_process
         )
         
-        optimal_threads = get_optimal_thread_count(urgency_level, num_slots_to_process)
-        
-        if args.max_threads:
-            optimal_threads = min(optimal_threads, args.max_threads)
+        # ENHANCED: For past epochs (not current), use max threads and no timeout
+        is_past_epoch = epoch_number < current_epoch
+        if is_past_epoch:
+            logger.info(f"🔄 PAST EPOCH DETECTED: Epoch {epoch_number} < Current {current_epoch}")
+            logger.info("   • Using maximum threads for faster processing")
+            logger.info("   • Removing timeout restrictions")
+            optimal_threads = 12  # Maximum threads for past epochs
+            timeout_seconds = None  # No timeout for past epochs
+        else:
+            optimal_threads = get_optimal_thread_count(urgency_level, num_slots_to_process)
+            if args.max_threads:
+                optimal_threads = min(optimal_threads, args.max_threads)
         
         # Calculate CORRECTED catch-up estimation
         expected_processing_rate = optimal_threads * 0.8  # Assume 0.8 slots/sec per thread
@@ -1088,7 +1109,15 @@ def main():
             
             # Process completed futures with enhanced monitoring
             try:
-                for future in as_completed([f[0] for f in futures], timeout=timeout_seconds):
+                # Handle no timeout for past epochs
+                if timeout_seconds is None:
+                    future_iterator = as_completed([f[0] for f in futures])
+                    logger.info("🚀 Processing with NO TIMEOUT (past epoch)")
+                else:
+                    future_iterator = as_completed([f[0] for f in futures], timeout=timeout_seconds)
+                    logger.info(f"🚀 Processing with {timeout_seconds/60:.1f} minute timeout")
+                
+                for future in future_iterator:
                     try:
                         slot_data_file, vote_data_file = future.result(timeout=60)
                         completed_tasks += 1
@@ -1138,7 +1167,10 @@ def main():
 
             except TimeoutError:
                 unfinished_count = total_futures - completed_tasks - failed_tasks
-                logger.error(f"⏰ Overall timeout after {timeout_seconds/60:.1f} minutes. {unfinished_count} tasks still running")
+                if timeout_seconds is None:
+                    logger.error(f"⏰ Unexpected timeout (should not occur for past epochs). {unfinished_count} tasks still running")
+                else:
+                    logger.error(f"⏰ Overall timeout after {timeout_seconds/60:.1f} minutes. {unfinished_count} tasks still running")
                 
                 for future, thread_id, _, url_prefix in futures:
                     if not future.done():

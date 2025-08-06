@@ -1,10 +1,16 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Enable strict mode for safer scripting
 set -euo pipefail
 
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -31,7 +37,7 @@ execute_compression() {
         log "ERROR" "❌ Failed $description compression (exit code: $exit_code)"
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "$description compression failed" "bash 999_compress_files.sh \"$file_pattern\" \"$output_directory\"" "$exit_code" ""
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "$description compression failed" "bash 999_compress_files.sh \"$file_pattern\" \"$output_directory\"" "$exit_code" ""
         
         return $exit_code
     fi
@@ -59,5 +65,5 @@ components_processed="   • Solana stakes files compression
    • Xshin validators files compression (duplicate pattern)
    • All compression tasks orchestrated successfully"
 
-bash 999_discord_notify.sh success "$script_name" "" "File Compression Orchestration Completed Successfully" "$components_processed"
+bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "" "File Compression Orchestration Completed Successfully" "$components_processed"
 cleanup_logging

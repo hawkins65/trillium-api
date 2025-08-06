@@ -1,6 +1,12 @@
 #!/bin/bash
 
-source $HOME/api/999_common_log.sh
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
+source $HOME/trillium_api/scripts/bash/999_common_log.sh
 
 # Function to check if a file exists
 file_exists() {
@@ -44,7 +50,7 @@ sudo chmod 755 "/var/www/html/pages/$filename"
 log_message "INFO" "File '$filename' has been successfully copied to /var/www/html/pages/$filename"
 log_message "INFO" "You can access it as: https://trillium.so/pages/$filename"
 
-bash /home/smilax/api/cloudflare-purge-cache.sh https://trillium.so/pages/$filename
+bash /home/smilax/trillium_api/scripts/bash/cloudflare-purge-cache.sh https://trillium.so/pages/$filename
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 0 ]; then

@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -17,7 +23,7 @@ if [ -z "$1" ]; then
     echo "Usage: $0 <epoch_number>"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Missing parameter" "No epoch number provided as argument" "1" ""
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Missing parameter" "No epoch number provided as argument" "1" ""
     
     exit 1
 fi
@@ -39,14 +45,14 @@ log "INFO" "   • $FILE_350_DEFAULT (copy)"
 
 # Step 1: Run Python script
 log "INFO" "🐍 Running Python script for epoch $EPOCH"
-if python3 93_build_leaderboard_json-jito-by_count.py "$EPOCH"; then
+if python3 ../python/93_build_leaderboard_json-jito-by_count.py "$EPOCH"; then
     log "INFO" "✅ Python script executed successfully"
 else
     exit_code=$?
     log "ERROR" "❌ Python script failed for epoch $EPOCH (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Python script execution" "python3 93_build_leaderboard_json-jito-by_count.py $EPOCH" "$exit_code" "$EPOCH"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Python script execution" "python3 ../python/93_build_leaderboard_json-jito-by_count.py $EPOCH" "$exit_code" "$EPOCH"
     
     echo "Error: Python script failed for epoch $EPOCH."
     exit 1
@@ -61,7 +67,7 @@ if [ ! -f "$FILE_200" ] || [ ! -f "$FILE_350" ]; then
     ls -l "$FILE_200" "$FILE_350" 2>/dev/null || true
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "File creation verification" "HTML files not found after Python script execution" "1" "$EPOCH"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "File creation verification" "HTML files not found after Python script execution" "1" "$EPOCH"
     
     exit 1
 fi
@@ -77,7 +83,7 @@ else
     log "ERROR" "❌ Failed to copy $FILE_200 to web (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Web copy operation" "bash copy-pages-to-web.sh $FILE_200" "$exit_code" "$EPOCH"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Web copy operation" "bash copy-pages-to-web.sh $FILE_200" "$exit_code" "$EPOCH"
     
     echo "Error: Failed to copy $FILE_200 to web."
     exit 1
@@ -92,7 +98,7 @@ else
     log "ERROR" "❌ Failed to create default copy (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "File copy operation" "cp $FILE_200 $FILE_200_DEFAULT" "$exit_code" "$EPOCH"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "File copy operation" "cp $FILE_200 $FILE_200_DEFAULT" "$exit_code" "$EPOCH"
     
     echo "Error: Failed to create default copy."
     exit 1
@@ -105,7 +111,7 @@ else
     log "ERROR" "❌ Failed to copy $FILE_200_DEFAULT to web (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Web copy operation" "bash copy-pages-to-web.sh $FILE_200_DEFAULT" "$exit_code" "$EPOCH"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Web copy operation" "bash copy-pages-to-web.sh $FILE_200_DEFAULT" "$exit_code" "$EPOCH"
     
     echo "Error: Failed to copy $FILE_200_DEFAULT to web."
     exit 1
@@ -120,7 +126,7 @@ else
     log "ERROR" "❌ Failed to copy $FILE_350 to web (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Web copy operation" "bash copy-pages-to-web.sh $FILE_350" "$exit_code" "$EPOCH"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Web copy operation" "bash copy-pages-to-web.sh $FILE_350" "$exit_code" "$EPOCH"
     
     echo "Error: Failed to copy $FILE_350 to web."
     exit 1
@@ -135,7 +141,7 @@ else
     log "ERROR" "❌ Failed to create default copy (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "File copy operation" "cp $FILE_350 $FILE_350_DEFAULT" "$exit_code" "$EPOCH"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "File copy operation" "cp $FILE_350 $FILE_350_DEFAULT" "$exit_code" "$EPOCH"
     
     echo "Error: Failed to create default copy."
     exit 1
@@ -148,7 +154,7 @@ else
     log "ERROR" "❌ Failed to copy $FILE_350_DEFAULT to web (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Web copy operation" "bash copy-pages-to-web.sh $FILE_350_DEFAULT" "$exit_code" "$EPOCH"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Web copy operation" "bash copy-pages-to-web.sh $FILE_350_DEFAULT" "$exit_code" "$EPOCH"
     
     echo "Error: Failed to copy $FILE_350_DEFAULT to web."
     exit 1
@@ -193,7 +199,7 @@ additional_notes="Files deployed to:
 • https://trillium.so/pages/$FILE_200_DEFAULT
 • https://trillium.so/pages/$FILE_350_DEFAULT"
 
-bash 999_discord_notify.sh success "$script_name" "$EPOCH" "Jito Leaderboard JSON Build Completed Successfully" "$components_processed" "$additional_notes"
+bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "$EPOCH" "Jito Leaderboard JSON Build Completed Successfully" "$components_processed" "$additional_notes"
 cleanup_logging
 
 exit 0

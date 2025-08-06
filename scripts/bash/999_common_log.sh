@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Source path initialization only if not already loaded
+if [[ -z "$TRILLIUM_PATHS_LOADED" ]]; then
+    source "$(dirname "$0")/000_init_paths.sh" || {
+        echo "❌ Failed to source path initialization script" >&2
+        exit 1
+    }
+fi
+
 # Enhanced common logging functions for Solana data processing pipeline
 # Version: 2.0
 # Updated: $(date +'%Y-%m-%d')
@@ -12,11 +20,21 @@ MAX_LOG_SIZE="${MAX_LOG_SIZE:-100M}"  # Maximum size per log file before rotatio
 
 # Color codes for console output (only used if terminal supports colors)
 declare -A LOG_COLORS
-LOG_COLORS[DEBUG]="\033[36m"    # Cyan
+LOG_COLORS[DEBUG]="\033[37m"    # White
 LOG_COLORS[INFO]="\033[32m"     # Green  
 LOG_COLORS[WARN]="\033[33m"     # Yellow
 LOG_COLORS[ERROR]="\033[31m"    # Red
+LOG_COLORS[CRITICAL]="\033[41m" # Red background
 LOG_COLORS[RESET]="\033[0m"     # Reset
+
+# Script type colors
+declare -A SCRIPT_COLORS
+SCRIPT_COLORS[BASH]="\033[32m"      # Green
+SCRIPT_COLORS[PYTHON]="\033[36m"    # Cyan
+SCRIPT_COLORS[JS]="\033[33m"        # Yellow
+SCRIPT_COLORS[SQL]="\033[35m"       # Magenta
+SCRIPT_COLORS[SYSTEM]="\033[90m"    # Dark Gray
+SCRIPT_COLORS[RESET]="\033[0m"      # Reset
 
 # Log level priorities (for filtering)
 declare -A LOG_PRIORITIES
@@ -53,14 +71,21 @@ rotate_log_if_needed() {
         local file_size
         file_size=$(du -h "$log_file" | cut -f1)
         
-        # Simple size check - if file is larger than MAX_LOG_SIZE, rotate it
-        if [[ -n "$file_size" ]] && [[ "$file_size" =~ ^[0-9]+M$ ]] && [[ "${file_size%M}" -gt "${MAX_LOG_SIZE%M}" ]]; then
-            local rotated_file="${log_file}.$(date +'%Y%m%d_%H%M%S')"
-            mv "$log_file" "$rotated_file" 2>/dev/null || true
-            
-            # Compress rotated log file to save space
-            if command -v gzip >/dev/null 2>&1; then
-                gzip "$rotated_file" 2>/dev/null || true
+        # Simple size check - if file is larger than MAX_LOG_SIZE, rotate it  
+        if [[ -n "$file_size" ]] && [[ "$file_size" =~ ^[0-9]+M$ ]]; then
+            local current_size_mb="${file_size%M}"
+            local max_size_mb="${MAX_LOG_SIZE%M}"
+            # Ensure both variables are numeric before comparison, with safe defaults
+            current_size_mb="${current_size_mb:-0}"
+            max_size_mb="${max_size_mb:-100}"
+            if [[ "$current_size_mb" =~ ^[0-9]+$ ]] && [[ "$max_size_mb" =~ ^[0-9]+$ ]] && [[ "${current_size_mb}" -gt "${max_size_mb}" ]] 2>/dev/null; then
+                local rotated_file="${log_file}.$(date +'%Y%m%d_%H%M%S')"
+                mv "$log_file" "$rotated_file" 2>/dev/null || true
+                
+                # Compress rotated log file to save space
+                if command -v gzip >/dev/null 2>&1; then
+                    gzip "$rotated_file" 2>/dev/null || true
+                fi
             fi
         fi
     fi
@@ -109,25 +134,33 @@ log() {
         cleanup_old_logs "$script_name_no_ext" &
     fi
     
-    # Format the log message
-    local log_entry
+    # Determine script type and get colors
+    local script_type="BASH"
+    local script_color="${SCRIPT_COLORS[BASH]}"
+    local level_color="${LOG_COLORS[$level]}"
+    local reset_color="${LOG_COLORS[RESET]}"
+    
+    # Format the log message with script type
+    local log_entry_plain
+    local log_entry_colored
+    
     if [[ -n "$caller_info" ]]; then
-        log_entry="[$timestamp] [$level] [PID:$pid] [$caller_info] - $message"
+        log_entry_plain="[$timestamp] [$level] [${script_type}:${script_name_no_ext}] [PID:$pid] [$caller_info] - $message"
+        log_entry_colored="[$timestamp] [${level_color}${level}${reset_color}] [${script_color}🐚${script_type}:${script_name_no_ext}${reset_color}] [PID:$pid] [$caller_info] - $message"
     else
-        log_entry="[$timestamp] [$level] [PID:$pid] - $message"
+        log_entry_plain="[$timestamp] [$level] [${script_type}:${script_name_no_ext}] [PID:$pid] - $message"
+        log_entry_colored="[$timestamp] [${level_color}${level}${reset_color}] [${script_color}🐚${script_type}:${script_name_no_ext}${reset_color}] [PID:$pid] - $message"
     fi
     
     # Output to console with colors if supported
     if use_colors; then
-        local color="${LOG_COLORS[$level]}"
-        local reset="${LOG_COLORS[RESET]}"
-        printf "%b%s%b\n" "$color" "$log_entry" "$reset" >&2
+        printf "%b\n" "$log_entry_colored" >&2
     else
-        printf "%s\n" "$log_entry" >&2
+        printf "%s\n" "$log_entry_plain" >&2
     fi
     
     # Always write to log file without colors
-    printf "%s\n" "$log_entry" >> "$log_file" 2>/dev/null || true
+    printf "%s\n" "$log_entry_plain" >> "$log_file" 2>/dev/null || true
 }
 
 # Convenience functions for different log levels
@@ -229,4 +262,4 @@ cleanup_logging() {
 }
 
 # Export functions for use in subshells if needed
-export -f log log_debug log_info log_warn log_error log_message
+export -f log log_debug log_info log_warn log_error log_message should_log use_colors get_log_priority rotate_log_if_needed cleanup_old_logs log_with_caller log_context log_execution_time log_system_stats init_logging cleanup_logging

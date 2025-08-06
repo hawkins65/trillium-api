@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -49,7 +55,7 @@ if [[ -z "$EPOCH" ]]; then
     echo "Failed to retrieve or set epoch" >&2
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Epoch retrieval" "Failed to get epoch from database or parameter" "1" ""
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Epoch retrieval" "Failed to get epoch from database or parameter" "1" ""
     
     exit 1
 fi
@@ -68,7 +74,7 @@ for sql_file in "${SQL_FILES[@]}"; do
         log "ERROR" "❌ Error running $sql_file for epoch $EPOCH (exit code: $exit_code)"
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "SQL file execution" "psql -f $sql_file" "$exit_code" "$EPOCH"
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "SQL file execution" "psql -f $sql_file" "$exit_code" "$EPOCH"
         
         echo "Error running $sql_file for $EPOCH" >&2
         exit $exit_code
@@ -82,5 +88,5 @@ components_processed="   • Vote latency epoch aggregate data updates
    • Database table: validator_xshin
    • SQL file execution: vote_latency_update_ead.sql"
 
-bash 999_discord_notify.sh success "$script_name" "$EPOCH" "Vote Latency EAD Update Completed Successfully" "$components_processed"
+bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "$EPOCH" "Vote Latency EAD Update Completed Successfully" "$components_processed"
 cleanup_logging

@@ -2,7 +2,15 @@ import os
 import csv
 import json
 import requests
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 import sys
 import argparse
 from datetime import datetime
@@ -18,7 +26,7 @@ headers = {'Content-Type': 'application/json'}
 
 # Setup logging similar to the original script
 def setup_logging():
-    logger = logging.getLogger()
+    # Logger setup moved to unified configuration
     logger.setLevel(logging.DEBUG)
     now = datetime.now()
     formatted_time = now.strftime('%Y-%m-%d_%H-%M')
@@ -178,7 +186,7 @@ def main():
     logger.info(f"Epoch {epoch_number} Range of slots: {start_slot} to {end_slot}")
 
     # Write the number of slots to an epoch-specific temporary file
-    with open(f"/tmp/slots_to_process_epoch{epoch_number}.txt", "w") as f:
+    with open(f"/home/smilax/trillium_api/data/temp/slots_to_process_epoch{epoch_number}.txt", "w") as f:
         f.write(str(num_slots_to_process))
 
     # Exit with 0 to indicate successful execution

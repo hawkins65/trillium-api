@@ -4,7 +4,15 @@ import csv
 import sys
 import argparse
 import glob
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 from datetime import datetime
 from collections import defaultdict
 import psycopg2
@@ -13,7 +21,7 @@ import statistics
 
 # Constants
 SLOTS_PER_EPOCH = 432000
-CSV_DIR = "/home/smilax/api/wss_slot_duration"
+CSV_DIR = "/home/smilax/trillium_api/wss_slot_duration"
 LOG_DIR = os.path.expanduser("~/log")
 DB_HOST = "localhost"
 DB_PORT = "5432"
@@ -27,16 +35,14 @@ def setup_logging(epoch):
     log_file = os.path.join(LOG_DIR, f"epoch{epoch}_slot_processor.log")
     
     # Configure logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
+    # Logging config moved to unified configurations - %(levelname)s - %(message)s',
         handlers=[
             logging.FileHandler(log_file),
             logging.StreamHandler()
         ]
     )
     
-    logger = logging.getLogger(__name__)
+    # Logger setup moved to unified configuration
     logger.info(f"Starting epoch {epoch} slot duration processing")
     logger.info(f"Log file: {log_file}")
     

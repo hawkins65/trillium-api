@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -23,7 +29,7 @@ execute_with_logging() {
         local exit_code=$?
         local error_msg="❌ Failed to execute $description (exit code: $exit_code)"
         log "ERROR" "$error_msg"
-        bash 999_discord_notify.sh error "$script_name" "$description" "$command" "$exit_code" "$epoch_number"
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "$description" "$command" "$exit_code" "$epoch_number"
         return $exit_code
     fi
 }
@@ -53,10 +59,10 @@ log "INFO" "🔄 Processing epoch $epoch_number"
 
 # Execute each step with logging and error handling
 echo " "
-execute_with_logging "python3 93_skip_analysis.py $epoch_number" "skip analysis" "🔍"
+execute_with_logging "python3 ../python/93_skip_analysis.py $epoch_number" "skip analysis" "🔍"
 
 echo " "
-execute_with_logging "python3 93_vote_latency_json.py $epoch_number" "vote latency JSON generation" "📈"
+execute_with_logging "python3 ../python/93_vote_latency_json.py $epoch_number" "vote latency JSON generation" "📈"
 
 echo " "
 execute_with_logging "bash 93_vote_latency.sh $epoch_number" "vote latency processing" "⏱️"
@@ -68,7 +74,7 @@ echo " "
 execute_with_logging "python3 -m solana_leaderboard.build_leaderboard $epoch_number $epoch_number" "Solana leaderboard build" "🔨"
 
 echo " "
-execute_with_logging "python3 93_plot_slot_duration_histogram.py $epoch_number" "slot duration histogram plotting" "📊"
+execute_with_logging "python3 ../python/93_plot_slot_duration_histogram.py $epoch_number" "slot duration histogram plotting" "📊"
 execute_with_logging "bash copy-pages-to-web.sh slot_duration_histogram_epoch${epoch_number}.html" "copying histogram to web" "🌐"
 
 log "INFO" "🎉 Build leaderboard process completed successfully for epoch $epoch_number"
@@ -82,5 +88,5 @@ components_processed="   • Skip analysis
    • Slot duration histogram plotting
    • Slot duration statistics"
 
-bash 999_discord_notify.sh success "$script_name" "$epoch_number" "Build Leaderboard Completed Successfully" "$components_processed"
+bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "$epoch_number" "Build Leaderboard Completed Successfully" "$components_processed"
 cleanup_logging

@@ -1,9 +1,15 @@
 #!/bin/bash
+
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
 # 999_epoch_90pct_check.sh - Combined checker for stake files, leader schedule files, and shin voting files at 90% epoch completion
 set -euo pipefail
 
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -15,7 +21,7 @@ log "INFO" "🚀 Starting comprehensive file checks for 90% epoch completion"
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOME_DIR="${HOME:-/home/smilax}"
-API_DIR="$HOME_DIR/api"
+API_DIR="$HOME_DIR/trillium_api"
 
 log "INFO" "📁 Configuration - Script dir: $SCRIPT_DIR, Home dir: $HOME_DIR, API dir: $API_DIR"
 
@@ -41,9 +47,9 @@ ARGUMENTS:
 
 CHECKS PERFORMED:
     Stake Files (current epoch):
-        \$HOME/api/solana-stakes_<epoch>.json
-        \$HOME/api/solana-stakes_<epoch>._v1.json
-        \$HOME/api/solana-stakes_<epoch>._v2.json
+        \$HOME/trillium_api/solana-stakes_<epoch>.json
+        \$HOME/trillium_api/solana-stakes_<epoch>._v1.json
+        \$HOME/trillium_api/solana-stakes_<epoch>._v2.json
     
     Leader Schedule Files (future epochs):
         \$HOME/block-production/leaderboard/leader_schedules/epoch<epoch>-leaderschedule.json
@@ -104,7 +110,7 @@ check_dependencies() {
         printf '  %s\n' "${missing_scripts[@]}" >&2
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "Dependency check failed" "Missing scripts: ${missing_scripts[*]}" "1" ""
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Dependency check failed" "Missing scripts: ${missing_scripts[*]}" "1" ""
         
         return 1
     fi
@@ -203,7 +209,7 @@ main() {
         usage
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "Invalid arguments" "Expected 1 argument, got $#" "2" ""
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Invalid arguments" "Expected 1 argument, got $#" "2" ""
         
         exit 2
     fi
@@ -216,7 +222,7 @@ main() {
         usage
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "Invalid epoch number" "Epoch '$epoch' is not a valid positive integer" "2" "$epoch"
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Invalid epoch number" "Epoch '$epoch' is not a valid positive integer" "2" "$epoch"
         
         exit 2
     fi
@@ -260,7 +266,7 @@ main() {
    • Shin voting files validation
    • All checks completed at 90% epoch completion"
         
-        bash 999_discord_notify.sh success "$script_name" "$epoch" "90% Epoch Completion Checks Passed" "$components_processed"
+        bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "$epoch" "90% Epoch Completion Checks Passed" "$components_processed"
         cleanup_logging
         
         exit 0
@@ -274,7 +280,7 @@ main() {
         fi
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "File validation failures" "Failed checks: ${failed_checks[*]}" "1" "$epoch"
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "File validation failures" "Failed checks: ${failed_checks[*]}" "1" "$epoch"
         
         exit 1
     fi

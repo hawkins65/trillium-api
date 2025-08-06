@@ -3,27 +3,33 @@ import websocket
 import json
 import argparse
 import os
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 from datetime import datetime
 import sys
 
 # Configuration
-JSON_FILE = "/home/smilax/api/92_slot_duration_server_list.json"
+JSON_FILE = "/home/smilax/trillium_api/data/configs/92_slot_duration_server_list.json"
 LOG_DIR = os.path.expanduser("~/log")
 os.makedirs(LOG_DIR, exist_ok=True)
 
 # Set up logging
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 log_file = os.path.join(LOG_DIR, f"test_websocket_{timestamp}.log")
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(message)s",
+# Logging config moved to unified configurations - %(message)s",
     handlers=[
         logging.FileHandler(log_file),
         logging.StreamHandler()
     ]
 )
-logger = logging.getLogger(__name__)
+# Logger setup moved to unified configuration
 
 def load_servers():
     """Load servers from JSON file."""

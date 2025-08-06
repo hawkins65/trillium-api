@@ -1,0 +1,14 @@
+[Unit]
+Description=Sui Mainnet Validator Dolphin Monitoring
+After=network.target
+
+[Service]
+User=smilax
+WorkingDirectory=/home/smilax/dolphin-configs
+ExecStart=/home/smilax/go/bin/dolphin --config /home/smilax/dolphin-configs/.dolphin-sui-mainnet scan
+StandardOutput=append:/home/smilax/dolphin-configs/sui-mainnet.out.log
+StandardError=append:append:/home/smilax/dolphin-configs/sui-mainnet.err.log
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

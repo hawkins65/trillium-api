@@ -6,7 +6,15 @@ DEBUG = False  # Set to False to disable debug printing
 import os
 import json
 import random
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 from datetime import datetime, timedelta
 from decimal import Decimal
 from collections import defaultdict
@@ -27,7 +35,7 @@ from sqlalchemy import create_engine, text
 from db_config import db_params
 
 # Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Logging config moved to unified configurations - %(levelname)s - %(message)s')
 
 def format_elapsed_time(seconds):
     days = seconds // (24 * 3600)
@@ -274,7 +282,7 @@ def get_epoch_aggregate_data(epoch, engine):
     with engine.connect() as conn:
         result = conn.execute(text(query), {"epoch": epoch}).fetchone()
         if result is None:
-            logging.warning(f"No data found for epoch {epoch} in epoch_aggregate_data table")
+            logger.warning(f"No data found for epoch {epoch} in epoch_aggregate_data table")
             return None
         columns = conn.execute(text(query), {"epoch": epoch}).keys()
         data = dict(zip(columns, result))
@@ -284,7 +292,7 @@ def get_epoch_aggregate_data(epoch, engine):
         try:
             data['avg_vote_cost'] = data['total_vote_cost'] / data['total_active_validators']
         except (ValueError, TypeError) as e:
-            logging.error(f"Error calculating avg_vote_cost for epoch {epoch}: {e}")
+            logger.error(f"Error calculating avg_vote_cost for epoch {epoch}: {e}")
             data['avg_vote_cost'] = None
     else:
         data['avg_vote_cost'] = None
@@ -365,7 +373,7 @@ def get_epoch_aggregate_data(epoch, engine):
                 avg_stake_per_leader_slot = int(float(data['total_active_stake']) / 432000)
                 data['avg_stake_per_leader_slot'] = avg_stake_per_leader_slot
             except (ValueError, TypeError) as e:
-                logging.error(f"Error calculating avg_stake_per_leader_slot for epoch {epoch}: {e}")
+                logger.error(f"Error calculating avg_stake_per_leader_slot for epoch {epoch}: {e}")
                 data['avg_stake_per_leader_slot'] = None
         else:
             data['avg_stake_per_leader_slot'] = None
@@ -1192,23 +1200,23 @@ def calculate_stake_statistics(epoch, max_epoch, engine):
         """
 
         with engine.connect() as conn:
-            logging.info(f"validator_stats for epoch {epoch} query")
+            logger.info(f"validator_stats for epoch {epoch} query")
             validator_stats = conn.execute(text(query), {"epoch": epoch}).fetchall()
-            logging.info(f"block_slot_results for epoch {epoch} slot_query")
+            logger.info(f"block_slot_results for epoch {epoch} slot_query")
             block_slot_results = conn.execute(text(slot_query), {"epoch": epoch}).fetchall()
 
         total_slots = sum(slot_count for _, slot_count in block_slot_results)
-        logging.info(f"total_slots for epoch {epoch} {total_slots}")
+        logger.info(f"total_slots for epoch {epoch} {total_slots}")
         
         if total_slots == 0:
-            logging.warning(f"total_slots is zero for epoch {epoch}. Setting to 1 to avoid division by zero.")
+            logger.warning(f"total_slots is zero for epoch {epoch}. Setting to 1 to avoid division by zero.")
             total_slots = 1  # Avoid division by zero
             
         total_activated_stake = sum(stats[1] for stats in validator_stats if stats[1] is not None)
-        logging.info(f"total_activated_stake for epoch {epoch} {total_activated_stake}")
+        logger.info(f"total_activated_stake for epoch {epoch} {total_activated_stake}")
         
         if total_activated_stake == 0:
-            logging.warning(f"total_activated_stake is zero for epoch {epoch}. Setting to 1 to avoid division by zero.")
+            logger.warning(f"total_activated_stake is zero for epoch {epoch}. Setting to 1 to avoid division by zero.")
             total_activated_stake = 1  # Avoid division by zero
         
         slot_counts = dict(block_slot_results)
@@ -1250,7 +1258,7 @@ def calculate_stake_statistics(epoch, max_epoch, engine):
         # Check if DataFrames are empty
         for df_name, df in [("country_df", country_df), ("continent_df", continent_df), ("region_df", region_df)]:
             if df.empty:
-                logging.warning(f"{df_name} is empty for epoch {epoch}")
+                logger.warning(f"{df_name} is empty for epoch {epoch}")
                 # Create a minimal valid DataFrame with required columns
                 df = pd.DataFrame({
                     'count': [0], 
@@ -1273,7 +1281,7 @@ def calculate_stake_statistics(epoch, max_epoch, engine):
             if 'total_slots' in df.columns:
                 df = df.sort_values(by="total_slots", ascending=False)
             else:
-                logging.warning(f"'total_slots' column not found in DataFrame for epoch {epoch}")
+                logger.warning(f"'total_slots' column not found in DataFrame for epoch {epoch}")
             
             # Safely apply transformations with error checking
             if 'total_activated_stake' in df.columns:
@@ -1309,7 +1317,7 @@ def calculate_stake_statistics(epoch, max_epoch, engine):
             continent_color_map = get_color_map(continents)
             region_color_map = get_color_map(regions)
         except Exception as e:
-            logging.error(f"Error creating color maps for epoch {epoch}: {str(e)}")
+            logger.error(f"Error creating color maps for epoch {epoch}: {str(e)}")
             # Create default color maps if there's an error
             country_color_map = {'Unknown': '#CCCCCC'}
             continent_color_map = {'Unknown': '#CCCCCC'}
@@ -1318,12 +1326,12 @@ def calculate_stake_statistics(epoch, max_epoch, engine):
         def create_pie_chart(df, title, color_map, subplot_col):
             try:
                 if 'percent_stake' not in df.columns:
-                    logging.warning(f"'percent_stake' column not found in DataFrame for {title}")
+                    logger.warning(f"'percent_stake' column not found in DataFrame for {title}")
                     return
                 
                 df_for_pie = df[df['percent_stake'] >= 0.0].sort_values(by='percent_stake', ascending=False)
                 if df_for_pie.empty:
-                    logging.warning(f"No data with percent_stake >= 0.0 for {title}")
+                    logger.warning(f"No data with percent_stake >= 0.0 for {title}")
                     return
                 
                 labels = df_for_pie.index
@@ -1353,8 +1361,8 @@ def calculate_stake_statistics(epoch, max_epoch, engine):
                     textfont=text_font
                 ), row=1, col=subplot_col)
             except Exception as e:
-                logging.error(f"Error creating pie chart for {title}: {str(e)}")
-                logging.error(f"Pie chart traceback: {traceback.format_exc()}")
+                logger.error(f"Error creating pie chart for {title}: {str(e)}")
+                logger.error(f"Pie chart traceback: {traceback.format_exc()}")
 
         try:
             fig = make_subplots(rows=1, cols=2, 
@@ -1390,38 +1398,38 @@ def calculate_stake_statistics(epoch, max_epoch, engine):
                 save_chart_html(fig, "Solana Stake Distribution Charts", filename)
 
         except Exception as e:
-            logging.error(f"Error creating or saving figure for epoch {epoch}: {str(e)}")
-            logging.error(f"Figure traceback: {traceback.format_exc()}")
+            logger.error(f"Error creating or saving figure for epoch {epoch}: {str(e)}")
+            logger.error(f"Figure traceback: {traceback.format_exc()}")
 
         # Safely write CSV files
         try:
             country_df.to_csv(f'epoch{epoch}_country_stats.csv', index=True)
-            logging.info(f"country_df epoch{epoch}_country_stats.csv")
+            logger.info(f"country_df epoch{epoch}_country_stats.csv")
         except Exception as e:
-            logging.error(f"Error writing country_df to CSV for epoch {epoch}: {e}")
+            logger.error(f"Error writing country_df to CSV for epoch {epoch}: {e}")
             # Create an empty CSV file to avoid further errors
             pd.DataFrame().to_csv(f'epoch{epoch}_country_stats.csv')
 
         try:
             continent_df.to_csv(f'epoch{epoch}_continent_stats.csv', index=True)
-            logging.info(f"continent_df epoch{epoch}_continent_stats.csv")
+            logger.info(f"continent_df epoch{epoch}_continent_stats.csv")
         except Exception as e:
-            logging.error(f"Error writing continent_df to CSV for epoch {epoch}: {e}")
+            logger.error(f"Error writing continent_df to CSV for epoch {epoch}: {e}")
             pd.DataFrame().to_csv(f'epoch{epoch}_continent_stats.csv')
 
         try:
             region_df.to_csv(f'epoch{epoch}_region_stats.csv', index=True)
-            logging.info(f"region_df epoch{epoch}_region_stats.csv")
+            logger.info(f"region_df epoch{epoch}_region_stats.csv")
         except Exception as e:
-            logging.error(f"Error writing region_df to CSV for epoch {epoch}: {e}")
+            logger.error(f"Error writing region_df to CSV for epoch {epoch}: {e}")
             pd.DataFrame().to_csv(f'epoch{epoch}_region_stats.csv')
 
         return country_df, continent_df, region_df
     
     except Exception as e:
-        logging.error(f"Error in calculate_stake_statistics for epoch {epoch}: {str(e)}")
-        logging.error(f"Exception details: {type(e).__name__}")
-        logging.error(f"Traceback: {traceback.format_exc()}")
+        logger.error(f"Error in calculate_stake_statistics for epoch {epoch}: {str(e)}")
+        logger.error(f"Exception details: {type(e).__name__}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         
         # Create empty DataFrames
         empty_df = pd.DataFrame({
@@ -1464,23 +1472,23 @@ def calculate_stake_statistics_metro(epoch, max_epoch, engine):
         """
 
         with engine.connect() as conn:
-            logging.info(f"validator_stats for epoch {epoch} query")
+            logger.info(f"validator_stats for epoch {epoch} query")
             validator_stats = conn.execute(text(query), {"epoch": epoch}).fetchall()
-            logging.info(f"block_slot_results for epoch {epoch} slot_query")
+            logger.info(f"block_slot_results for epoch {epoch} slot_query")
             block_slot_results = conn.execute(text(slot_query), {"epoch": epoch}).fetchall()
 
         total_slots = sum(slot_count for _, slot_count in block_slot_results)
-        logging.info(f"total_slots for epoch {epoch} {total_slots}")
+        logger.info(f"total_slots for epoch {epoch} {total_slots}")
         
         if total_slots == 0:
-            logging.warning(f"total_slots is zero for epoch {epoch}. Setting to 1 to avoid division by zero.")
+            logger.warning(f"total_slots is zero for epoch {epoch}. Setting to 1 to avoid division by zero.")
             total_slots = 1
             
         total_activated_stake = sum(stats[1] for stats in validator_stats if stats[1] is not None)
-        logging.info(f"total_activated_stake for epoch {epoch} {total_activated_stake}")
+        logger.info(f"total_activated_stake for epoch {epoch} {total_activated_stake}")
         
         if total_activated_stake == 0:
-            logging.warning(f"total_activated_stake is zero for epoch {epoch}. Setting to 1 to avoid division by zero.")
+            logger.warning(f"total_activated_stake is zero for epoch {epoch}. Setting to 1 to avoid division by zero.")
             total_activated_stake = 1
         
         slot_counts = dict(block_slot_results)
@@ -1515,7 +1523,7 @@ def calculate_stake_statistics_metro(epoch, max_epoch, engine):
         
         for df_name, df in [("country_df", country_df), ("metro_df", metro_df)]:
             if df.empty:
-                logging.warning(f"{df_name} is empty for epoch {epoch}")
+                logger.warning(f"{df_name} is empty for epoch {epoch}")
                 df = pd.DataFrame({
                     'count': [0], 
                     'total_activated_stake': [0.0], 
@@ -1534,7 +1542,7 @@ def calculate_stake_statistics_metro(epoch, max_epoch, engine):
             if 'total_slots' in df.columns:
                 df = df.sort_values(by="total_slots", ascending=False)
             else:
-                logging.warning(f"'total_slots' column not found in DataFrame for epoch {epoch}")
+                logger.warning(f"'total_slots' column not found in DataFrame for epoch {epoch}")
             
             if 'total_activated_stake' in df.columns:
                 df['total_activated_stake'] = df['total_activated_stake'].apply(
@@ -1562,19 +1570,19 @@ def calculate_stake_statistics_metro(epoch, max_epoch, engine):
             country_color_map = get_persistent_color_map(countries)
             metro_color_map = get_color_map(metros)
         except Exception as e:
-            logging.error(f"Error creating color maps for epoch {epoch}: {str(e)}")
+            logger.error(f"Error creating color maps for epoch {epoch}: {str(e)}")
             country_color_map = {'Unknown': '#CCCCCC'}
             metro_color_map = {'Unknown': '#CCCCCC'}
 
         def create_pie_chart(df, title, color_map, subplot_col, limit=None):
             try:
                 if 'percent_stake' not in df.columns:
-                    logging.warning(f"'percent_stake' column not found in DataFrame for {title}")
+                    logger.warning(f"'percent_stake' column not found in DataFrame for {title}")
                     return
                 
                 df_for_pie = df[df['percent_stake'] >= 0.5].sort_values(by='percent_stake', ascending=False) if subplot_col == 1 else df.sort_values(by='percent_stake', ascending=False).head(30)
                 if df_for_pie.empty:
-                    logging.warning(f"No data with percent_stake >= 0.5 for {title}")
+                    logger.warning(f"No data with percent_stake >= 0.5 for {title}")
                     return
                 
                 labels = df_for_pie.index
@@ -1603,8 +1611,8 @@ def calculate_stake_statistics_metro(epoch, max_epoch, engine):
                     textfont=text_font
                 ), row=1, col=subplot_col)
             except Exception as e:
-                logging.error(f"Error creating pie chart for {title}: {str(e)}")
-                logging.error(f"Pie chart traceback: {traceback.format_exc()}")
+                logger.error(f"Error creating pie chart for {title}: {str(e)}")
+                logger.error(f"Pie chart traceback: {traceback.format_exc()}")
 
         try:
             fig = make_subplots(rows=1, cols=2, 
@@ -1639,25 +1647,25 @@ def calculate_stake_statistics_metro(epoch, max_epoch, engine):
                 save_chart_html(fig, "Solana Stake Distribution Charts (Metro)", filename)
 
         except Exception as e:
-            logging.error(f"Error creating or saving figure for epoch {epoch}: {str(e)}")
-            logging.error(f"Figure traceback: {traceback.format_exc()}")
+            logger.error(f"Error creating or saving figure for epoch {epoch}: {str(e)}")
+            logger.error(f"Figure traceback: {traceback.format_exc()}")
 
         try:
             country_df.to_csv(f'epoch{epoch}_country_stats_metro.csv', index=True)
-            logging.info(f"country_df epoch{epoch}_country_stats_metro.csv")
+            logger.info(f"country_df epoch{epoch}_country_stats_metro.csv")
             metro_df.to_csv(f'epoch{epoch}_metro_stats_metro.csv', index=True)
-            logging.info(f"metro_df epoch{epoch}_metro_stats_metro.csv")
+            logger.info(f"metro_df epoch{epoch}_metro_stats_metro.csv")
         except Exception as e:
-            logging.error(f"Error writing CSVs for epoch {epoch}: {e}")
+            logger.error(f"Error writing CSVs for epoch {epoch}: {e}")
             pd.DataFrame().to_csv(f'epoch{epoch}_country_stats_metro.csv')
             pd.DataFrame().to_csv(f'epoch{epoch}_metro_stats_metro.csv')
 
         return country_df, metro_df
     
     except Exception as e:
-        logging.error(f"Error in calculate_stake_statistics_metro for epoch {epoch}: {str(e)}")
-        logging.error(f"Exception details: {type(e).__name__}")
-        logging.error(f"Traceback: {traceback.format_exc()}")
+        logger.error(f"Error in calculate_stake_statistics_metro for epoch {epoch}: {str(e)}")
+        logger.error(f"Exception details: {type(e).__name__}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         
         empty_df = pd.DataFrame({
             'count': [0], 
@@ -2284,36 +2292,36 @@ def main(start_epoch=None, end_epoch=None):
     for epoch in epochs:
         print(f"Processing epoch: {epoch}")
         try:
-            logging.info(f" get_validator_stats for epoch {epoch}")
+            logger.info(f" get_validator_stats for epoch {epoch}")
             validator_stats = get_validator_stats(epoch, engine)
-            logging.info(f"write_validator_stats_to_json for epoch {epoch}")
+            logger.info(f"write_validator_stats_to_json for epoch {epoch}")
             write_validator_stats_to_json(epoch, validator_stats)
             epoch_aggregate_data = get_epoch_aggregate_data(epoch, engine)
             if epoch_aggregate_data is not None:
-                logging.info(f"write_epoch_aggregate_data_to_json for epoch {epoch}")
+                logger.info(f"write_epoch_aggregate_data_to_json for epoch {epoch}")
                 write_epoch_aggregate_data_to_json(epoch, epoch_aggregate_data)
             else:
-                logging.warning(f"Skipping epoch_aggregate_data for epoch {epoch} due to missing data")
+                logger.warning(f"Skipping epoch_aggregate_data for epoch {epoch} due to missing data")
                 missing_data_epochs.append(epoch)
 
-            logging.info(f"country_df - calculate_stake_statistics for epoch {epoch}")
+            logger.info(f"country_df - calculate_stake_statistics for epoch {epoch}")
             country_df, continent_df, region_df = calculate_stake_statistics(epoch, max_epoch, engine)
-            logging.info(f"country_df epoch{epoch}_country_stats.csv")
+            logger.info(f"country_df epoch{epoch}_country_stats.csv")
             country_df.to_csv(f'epoch{epoch}_country_stats.csv', index=True)
-            logging.info(f"country_df epoch{epoch}_continent_stats.csv")
+            logger.info(f"country_df epoch{epoch}_continent_stats.csv")
             continent_df.to_csv(f'epoch{epoch}_continent_stats.csv', index=True)
-            logging.info(f"country_df epoch{epoch}_region_stats.csv")
+            logger.info(f"country_df epoch{epoch}_region_stats.csv")
             region_df.to_csv(f'epoch{epoch}_region_stats.csv', index=True)
 
-            logging.info(f"calculate_stake_statistics_metro for epoch {epoch}")
+            logger.info(f"calculate_stake_statistics_metro for epoch {epoch}")
             country_df_metro, metro_df = calculate_stake_statistics_metro(epoch, max_epoch, engine)
-            logging.info(f"country_df epoch{epoch}_country_stats_metro.csv")
+            logger.info(f"country_df epoch{epoch}_country_stats_metro.csv")
             country_df_metro.to_csv(f'epoch{epoch}_country_stats_metro.csv', index=True)
-            logging.info(f"metro_df epoch{epoch}_metro_stats_metro.csv")
+            logger.info(f"metro_df epoch{epoch}_metro_stats_metro.csv")
             metro_df.to_csv(f'epoch{epoch}_metro_stats_metro.csv', index=True)
 
         except Exception as e:
-            logging.error(f"93_build_leaderboard_json.py Failed to process epoch {epoch}: {str(e)}")
+            logger.error(f"93_build_leaderboard_json.py Failed to process epoch {epoch}: {str(e)}")
 
     if max_epoch not in epochs:
         try:
@@ -2322,10 +2330,10 @@ def main(start_epoch=None, end_epoch=None):
             country_df_metro, metro_df = calculate_stake_statistics_metro(max_epoch, max_epoch, engine)
             print(f"Stake distribution chart for max epoch {max_epoch} has been generated.")
         except Exception as e:
-            logging.error(f"Failed to generate stake distribution chart for max epoch {max_epoch}: {str(e)}")
+            logger.error(f"Failed to generate stake distribution chart for max epoch {max_epoch}: {str(e)}")
 
     if missing_data_epochs:
-        logging.warning(f"Missing epoch_aggregate_data for epochs: {missing_data_epochs}")
+        logger.warning(f"Missing epoch_aggregate_data for epochs: {missing_data_epochs}")
 
     generate_last_ten_epochs_data(end_epoch, engine)
     generate_ten_epoch_validator_rewards(end_epoch, engine)

@@ -7,6 +7,10 @@
 
 const axios = require('axios');
 const fs = require('fs').promises;
+const { setupLogging } = require('./999_logging_config');
+
+// Setup unified logging
+const logger = setupLogging('90_xshin');
 
 function base(ALPHABET) {
   if (ALPHABET.length >= 255) { throw new TypeError('Alphabet too long') }
@@ -783,7 +787,7 @@ async function fetchLatestTimestamp() {
     const response = await axios.get('https://xshin.fi/data/pool/newest');
     return Number(response.data);
   } catch (error) {
-    console.error('error fetching latest timestamp:', error);
+    logger.error('❌ Error fetching latest timestamp:', error);
     throw error;
   }
 }
@@ -795,7 +799,7 @@ async function fetchBinaryData(url) {
     });
     return response.data;
   } catch (error) {
-    console.error(`error fetching data from ${url}:`, error);
+    logger.error(`❌ Error fetching data from ${url}:`, error);
     throw error;
   }
 }
@@ -806,7 +810,7 @@ async function loadSearch(timestamp) {
     const buffer = new Uint8Array(searchBin).buffer;
     return bincode_search(bincode_parser(buffer));
   } catch (error) {
-    console.error('error loading search data:', error);
+    logger.error('❌ Error loading search data:', error);
     throw error;
   }
 }
@@ -817,7 +821,7 @@ async function loadPoolDetails(timestamp) {
     const buffer = new Uint8Array(poolBin).buffer;
     return bincode_pool_details(bincode_parser(buffer));
   } catch (error) {
-    console.error('error loading pool details:', error);
+    logger.error('❌ Error loading pool details:', error);
     throw error;
   }
 }
@@ -828,7 +832,7 @@ async function loadNonPoolVoters(timestamp) {
     const buffer = new Uint8Array(nonPoolVotersBin).buffer;
     return bincode_non_pool_voters(bincode_parser(buffer));
   } catch (error) {
-    console.error('error loading non-pool voters:', error);
+    logger.error('❌ Error loading non-pool voters:', error);
     throw error;
   }
 }

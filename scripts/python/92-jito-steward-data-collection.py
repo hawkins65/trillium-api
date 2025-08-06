@@ -2,7 +2,15 @@ import subprocess
 import sys
 import os
 import psycopg2
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 from datetime import datetime
 from db_config import db_params  # Using your provided db_config.py
 from rpc_config import RPC_ENDPOINT  # Import the centralized RPC endpoint
@@ -22,7 +30,7 @@ log_dir = os.path.expanduser('~/log')
 log_file = os.path.join(log_dir, f"{script_name}.log")
 
 # Create logger
-logger = logging.getLogger()
+# Logger setup moved to unified configuration
 logger.setLevel(logging.INFO)
 
 # Create formatter

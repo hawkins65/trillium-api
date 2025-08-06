@@ -2,8 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # File paths to your CSVs
-stake_buckets_file = '/home/smilax/api/stake_buckets_refined.csv'
-total_stake_file = '/home/smilax/api/total_active_stake.csv'
+stake_buckets_file = '/home/smilax/trillium_api/data/temp/stake_buckets_refined.csv'
+total_stake_file = '/home/smilax/trillium_api/data/temp/total_active_stake.csv'
 
 # Load the data
 df_buckets = pd.read_csv(stake_buckets_file)
@@ -61,7 +61,7 @@ ax1.legend(lines1 + lines2, labels1 + labels2, title='Stake Buckets & Total', lo
 plt.tight_layout()
 
 # Save the plot
-plt.savefig('/home/smilax/api/smoothed_stake_distribution_with_total_sol_line_plot.png', dpi=300, bbox_inches='tight')
+plt.savefig('/home/smilax/trillium_api/data/charts/smoothed_stake_distribution_with_total_sol_line_plot.png', dpi=300, bbox_inches='tight')
 
 # Display the plot
 plt.show()

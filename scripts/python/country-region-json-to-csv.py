@@ -6,7 +6,7 @@ with open('country-region.json', 'r') as json_file:
     data = json.load(json_file)
 
 # Write to CSV
-with open('country-region.csv', 'w', newline='') as csv_file:
+with open('/home/smilax/trillium_api/data/exports/country-region.csv', 'w', newline='') as csv_file:
     writer = csv.writer(csv_file)
     # Write header
     writer.writerow(['country', 'region'])

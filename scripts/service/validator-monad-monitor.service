@@ -1,0 +1,18 @@
+[Unit]
+Description=Monad Validator Monitor
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=smilax
+ExecStart=/home/smilax/watchtower/validator-monad-monitor.sh
+StandardOutput=append:/home/smilax/log/monad/validator-monad-monitor.out.log
+StandardError=append:/home/smilax/log/monad/validator-monad-monitor.err.log
+
+SyslogIdentifier=monad-validator-monitor
+
+[Install]
+WantedBy=multi-user.target

@@ -1,13 +1,19 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # 999_discord_notify.sh - Centralized Discord notification script
-# Usage: bash 999_discord_notify.sh <message_type> <script_name> [additional_parameters...]
+# Usage: bash "$DISCORD_NOTIFY_SCRIPT" <message_type> <script_name> [additional_parameters...]
 
 set -euo pipefail
 
 # Source the common logging functions if available
-if [[ -f "/home/smilax/api/999_common_log.sh" ]]; then
-    source /home/smilax/api/999_common_log.sh
+if [[ -f "$TRILLIUM_SCRIPTS_BASH/999_common_log.sh" ]]; then
+    source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
     # Initialize enhanced logging
     init_logging 2>/dev/null || true
 else
@@ -112,7 +118,8 @@ generate_timestamps() {
 # Function to escape JSON strings
 escape_json() {
     local input="$1"
-    echo "$input" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g'
+    # Properly escape JSON special characters
+    echo "$input" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/\r/\\r/g' | sed 's/\t/\\t/g'
 }
 
 # Function to send Discord message

@@ -1,5 +1,13 @@
 import psycopg2
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 import sys
 import os
 import json
@@ -12,9 +20,7 @@ def configure_logging():
     log_dir = os.path.expanduser('~/log')
     os.makedirs(log_dir, exist_ok=True)
     log_file = os.path.join(log_dir, f"{script_name}.log")    
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
+    # Logging config moved to unified configurations - %(levelname)s - %(message)s",
         handlers=[
             logging.FileHandler(log_file),
             logging.StreamHandler()
@@ -31,7 +37,7 @@ def get_epoch_range() -> Tuple[int, int]:
             end_epoch = int(sys.argv[2])
             return start_epoch, end_epoch
         except ValueError:
-            logging.error("Invalid epoch numbers provided as arguments")
+            logger.error("Invalid epoch numbers provided as arguments")
             sys.exit(1)
     while True:
         try:
@@ -52,10 +58,10 @@ def read_epochs_per_year(epoch: int) -> float:
         with open(json_file, 'r') as f:
             data = json.load(f)
             epochs_per_year = data.get('epochs_per_year', 183.0)  # Default to 183 if not found
-            logging.info(f"Read epochs_per_year = {epochs_per_year} for epoch {epoch}")
+            logger.info(f"Read epochs_per_year = {epochs_per_year} for epoch {epoch}")
             return epochs_per_year
     except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
-        logging.warning(f"Could not read epochs_per_year for epoch {epoch}: {e}. Using default 183.0")
+        logger.warning(f"Could not read epochs_per_year for epoch {epoch}: {e}. Using default 183.0")
         return 183.0
 
 def calculate_inflation_rate(epoch: int, epochs_per_year: float) -> float:
@@ -76,10 +82,10 @@ def calculate_inflation_rate(epoch: int, epochs_per_year: float) -> float:
         # Calculate inflation rate
         annual_rate = initial_rate * (1 - disinflation_rate) ** epoch_years
         inflation_rate = max(annual_rate, long_term_rate)
-        logging.info(f"Calculated inflation rate for epoch {epoch}: {inflation_rate * 100:.4f}%")
+        logger.info(f"Calculated inflation rate for epoch {epoch}: {inflation_rate * 100:.4f}%")
         return inflation_rate
     except Exception as e:
-        logging.error(f"Failed to calculate inflation rate for epoch {epoch}: {e}")
+        logger.error(f"Failed to calculate inflation rate for epoch {epoch}: {e}")
         return 0.0
 
 def update_epoch_aggregate_data(epoch: int, inflation_rate: float, inflation_decay_rate: float = 0.15):
@@ -114,20 +120,20 @@ def update_epoch_aggregate_data(epoch: int, inflation_rate: float, inflation_dec
         conn.commit()
         cur.close()
         conn.close()
-        logging.info(f"Updated epoch_aggregate_data for epoch {epoch}: "
+        logger.info(f"Updated epoch_aggregate_data for epoch {epoch}: "
                      f"inflation_decay_rate = {inflation_decay_rate}, inflation_rate = {inflation_rate}")
     except Exception as e:
-        logging.error(f"Failed to update epoch_aggregate_data for epoch {epoch}: {e}")
+        logger.error(f"Failed to update epoch_aggregate_data for epoch {epoch}: {e}")
 
 def main():
     configure_logging()
     start_epoch, end_epoch = get_epoch_range()
-    logging.info(f"Processing epochs {start_epoch} to {end_epoch}")
+    logger.info(f"Processing epochs {start_epoch} to {end_epoch}")
 
     for epoch in range(start_epoch, end_epoch + 1):
         # Skip epochs before inflation started
         if epoch < 150:
-            logging.info(f"Skipping epoch {epoch}: Inflation started at epoch 150")
+            logger.info(f"Skipping epoch {epoch}: Inflation started at epoch 150")
             continue
 
         # Read epochs_per_year from JSON
@@ -136,7 +142,7 @@ def main():
         # Calculate inflation rate
         inflation_rate = calculate_inflation_rate(epoch, epochs_per_year)
         if inflation_rate == 0.0:
-            logging.error(f"Skipping epoch {epoch} due to calculation failure")
+            logger.error(f"Skipping epoch {epoch} due to calculation failure")
             continue
 
         # Update database with inflation_decay_rate (fixed at 0.15) and inflation_rate

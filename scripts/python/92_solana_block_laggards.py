@@ -1,3 +1,4 @@
+import os
 # -*- coding: utf-8 -*-
 """solana_block_laggards_db_update.py
 
@@ -10,7 +11,15 @@ import statsmodels.formula.api as smf
 import numpy as np
 import psycopg2
 from psycopg2.extras import execute_values
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 import argparse
 import re
 
@@ -31,8 +40,8 @@ CLIENT_TYPE_MAP = {
 NS_TO_MS = 1_000_000
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Logging config moved to unified configuration
+# Logger setup moved to unified configuration
 
 def get_db_connection_string(db_params):
     return f"postgresql://{db_params['user']}@{db_params['host']}:{db_params['port']}/{db_params['database']}?sslmode={db_params['sslmode']}"

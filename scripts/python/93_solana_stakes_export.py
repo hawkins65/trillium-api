@@ -193,7 +193,7 @@ def main():
     # Execute each query and export the results to CSV
     for filename, query in queries.items():
         #print(f"Exporting {filename}...")
-        #export_to_csv(cursor, query, f"/home/smilax/block-production/api/solana-stakes/{filename}")
+        #export_to_csv(cursor, query, f"/home/smilax/trillium_api/solana-stakes/{filename}")
         continue
     # Clean up
     cursor.close()

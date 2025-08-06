@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -32,16 +38,16 @@ log "INFO" "🗂️ Removing old log files (older than 6 hours) from various dir
 
 # Remove log files older than 6 hours with logging and error checking
 directories=(
-    "~/api"
-    "~/api/major_minor_version"
-    "~/api/get_epoch_stake_account_details"
-    "~/api/stake-percentage"
-    "~/api/geolite2"
+    "~/trillium_api"
+    "~/trillium_api/major_minor_version"
+    "~/trillium_api/get_epoch_stake_account_details"
+    "~/trillium_api/stake-percentage"
+    "~/trillium_api/geolite2"
 )
 
 for dir in "${directories[@]}"; do
     # Handle .log files for most directories, .csv for geolite2
-    if [ "$dir" = "~/api/geolite2" ]; then
+    if [ "$dir" = "~/trillium_api/geolite2" ]; then
         pattern="*.csv"
         file_type="CSV files"
     else

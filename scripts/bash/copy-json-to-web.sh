@@ -1,9 +1,22 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
+# Source common logging
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/999_common_log.sh"
+
+# Initialize logging
+init_logging
+
 # Function to check if a file exists
 file_exists() {
     if [ ! -f "$1" ]; then
-        echo "Error: File '$1' does not exist."
+        log_error "❌ File '$1' does not exist"
         exit 1
     fi
 }
@@ -38,6 +51,9 @@ sudo chown www-data:www-data "/var/www/html/json/$filename"
 # Set the permissions of the copied file
 sudo chmod 755 "/var/www/html/json/$filename"
 
-echo "A copy with timestamp has been created in the current directory"
-echo "File '$filename' has been successfully copied to /var/www/html/json/"
-echo "You can access it as: https://trillium.so/json/$filename"
+log_info "📄 Timestamped copy created: $new_filename"
+log_info "✅ File '$filename' copied to /var/www/html/json/"
+log_info "🌐 Access at: https://trillium.so/json/$filename"
+
+# Cleanup logging
+cleanup_logging

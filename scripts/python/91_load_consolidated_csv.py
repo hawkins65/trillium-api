@@ -6,9 +6,18 @@ import csv
 import time
 import re
 import json
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 
 epoch_number = input("Enter the epoch number: ")
-print(f"Epoch number: {epoch_number}")
+logger.info(f"🚀 Processing epoch number: {epoch_number}")
 
 #initialize the timers
 start_time_1 = time.time()
@@ -51,12 +60,12 @@ cursor.execute("""
 # Create temp_validator_data table with the same structure as the original table, excluding indexes
 cursor.execute("CREATE TABLE temp_validator_data (LIKE validator_data);")
 conn.commit()
-print("Temp tables created successfully")
+logger.info("✅ Temp tables created successfully")
 
 # Search for directories matching the pattern "run*"
 run_directories = sorted(glob.glob(os.path.join(base_directory, "run*")), key=lambda x: [int(y) if y.isdigit() else y.lower() for y in re.split(r'(\d+)', os.path.basename(x))])
 total_run_directories = len(run_directories)
-print(f"Found {total_run_directories} run directories.")
+logger.info(f"📁 Found {total_run_directories} run directories")
 
 # Initialize a global variable to track mismatches
 mismatch_found = False
@@ -66,17 +75,17 @@ total_csv_rows = 0
 
 # Iterate over the run directories
 for index, run_directory in enumerate(run_directories, start=1):
-    print(f"Processing run directory {index} of {total_run_directories}: {run_directory}")
+    logger.info(f"🔄 Processing run directory {index} of {total_run_directories}: {run_directory}")
 
     # Find all epoch_votes CSV files in the run directory
     epoch_votes_files = glob.glob(os.path.join(run_directory, "epoch_votes_*.csv"))
     epoch_votes_count = len(epoch_votes_files)
-    print(f"Found {epoch_votes_count} epoch_votes CSV files.")
+    logger.info(f"📊 Found {epoch_votes_count} epoch_votes CSV files")
 
     # Find all slot_data CSV files in the run directory
     slot_data_files = glob.glob(os.path.join(run_directory, "slot_data_*.csv"))
     slot_data_count = len(slot_data_files)
-    print(f"Found {slot_data_count} slot_data CSV files.")
+    logger.info(f"📊 Found {slot_data_count} slot_data CSV files")
 
     # Sanity check
     count_difference = epoch_votes_count - slot_data_count

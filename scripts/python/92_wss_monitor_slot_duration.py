@@ -13,9 +13,9 @@ from datetime import datetime, timedelta, timezone
 import glob
 
 # Configuration
-CONFIG_FILE = "/home/smilax/api/92_slot_duration_server_list.json"
+CONFIG_FILE = "/home/smilax/trillium_api/data/configs/92_slot_duration_server_list.json"
 LOG_DIR = os.path.expanduser("~/log")
-OUTPUT_DIR = "/home/smilax/api/wss_slot_duration"
+OUTPUT_DIR = "/home/smilax/trillium_api/data/monitoring/wss_slot_duration"
 CHECK_INTERVAL = 60  # seconds
 MAX_LOG_AGE = 300    # 5 minutes without new log entries is concerning
 ALERT_COOLDOWN = 3600  # 1 hour in seconds for Discord alert suppression

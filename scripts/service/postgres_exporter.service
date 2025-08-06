@@ -1,0 +1,14 @@
+[Unit]
+Description=Prometheus PostgreSQL Exporter
+Documentation=https://github.com/prometheus-community/postgres_exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=smilax
+Environment="DATA_SOURCE_NAME=postgresql://prometheus:prom_sol_blocks@localhost:5432/sol_blocks?sslmode=disable"
+ExecStart=/home/smilax/postgres_exporter/postgres_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

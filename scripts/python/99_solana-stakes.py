@@ -3,7 +3,15 @@ import json
 import subprocess
 import psycopg2
 import requests
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 import time
 from db_config import db_params
 from rpc_config import RPC_ENDPOINT  # Import the centralized RPC endpoint
@@ -16,7 +24,7 @@ RPC_URL2 = "https://silent-frequent-firefly.solana-mainnet.quiknode.pro/2059a051
 SCRIPT_DIR = "/home/smilax/api"
 LOG_DIR = os.getenv("LOG_DIR", os.path.expanduser("~/log"))
 LOG_FILE = os.path.join(LOG_DIR, "99_solana-stakes.log")
-SOLANA_BIN = "/home/smilax/.local/share/solana/install/active_release/bin/solana"
+SOLANA_BIN = "/home/smilax/agave/bin/solana"
 
 # Constants
 MAX_RETRIES = 3
@@ -25,7 +33,7 @@ RETRY_DELAY = 5  # Seconds between retries
 headers = {"Content-Type": "application/json"}
 
 # Configure logging
-logger = logging.getLogger("SolanaStakes")
+# Logger setup moved to unified configuration
 logger.setLevel(logging.INFO)
 
 # Clear any existing handlers

@@ -1,10 +1,16 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Enable strict mode for safer scripting
 set -euo pipefail
 
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -14,7 +20,7 @@ script_name=$(basename "$0")
 log "INFO" "🚀 Starting no-wait Jito processing for data pipeline"
 
 # Ensure the ~/api directory exists
-mkdir -p "$HOME/api"
+mkdir -p "$HOME/trillium_api"
 
 # Function to execute a command and check for errors
 execute_and_check() {
@@ -29,13 +35,13 @@ execute_and_check() {
         log "ERROR" "❌ Command failed with exit code $exit_code: $cmd"
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "Command execution failed" "$cmd" "$exit_code" "$epoch_number"
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Command execution failed" "$cmd" "$exit_code" "$epoch_number"
         
         echo "An error occurred. Press Y or Enter to continue, or anything else to exit."
         read -r choice
         if [[ "$choice" != "Y" && "$choice" != "y" && -n "$choice" ]]; then
             log "INFO" "🛑 Script terminated by user choice after error"
-            bash 999_discord_notify.sh custom "$script_name" "Script Terminated" "Script terminated by user after error in command: $cmd\nEpoch: $epoch_number\nUser chose to exit rather than continue" "🛑"
+            bash "$DISCORD_NOTIFY_SCRIPT" custom "$script_name" "Script Terminated" "Script terminated by user after error in command: $cmd\nEpoch: $epoch_number\nUser chose to exit rather than continue" "🛑"
             exit 1
         fi
         log "INFO" "⚠️ User chose to continue after error"
@@ -70,7 +76,7 @@ if [[ "$epoch" -eq "$epoch_number" && "$mev_rewards" != "null" ]]; then
     log "INFO" "⏭️ No need to run processing - data already available, exiting"
     
     # Send notification that processing was skipped
-    bash 999_discord_notify.sh custom "$script_name" "Processing Skipped" "Already have Jito Staknet History CLI data for epoch $epoch_number with MEV = $mev_rewards\nNo processing needed - data already available" "⏭️"
+    bash "$DISCORD_NOTIFY_SCRIPT" custom "$script_name" "Processing Skipped" "Already have Jito Staknet History CLI data for epoch $epoch_number with MEV = $mev_rewards\nNo processing needed - data already available" "⏭️"
     exit 0
 fi
 
@@ -84,10 +90,10 @@ log "INFO" "🏗️ Building leaderboard JSON..."
 execute_and_check "bash 3_build_leaderboard_json.sh $epoch_number"
 
 # jrh not using this yet and files are HUGE
-# execute_and_check "python3 93_solana_stakes_export.py"
+# execute_and_check "python3 ../python/93_solana_stakes_export.py"
 
 log "INFO" "📊 Running skip analysis..."
-execute_and_check "python3 93_skip_analysis.py $epoch_number"
+execute_and_check "python3 ../python/93_skip_analysis.py $epoch_number"
 
 log "INFO" "📁 Moving JSON files to production..."
 execute_and_check "bash 4_move_json_to_production.sh"
@@ -114,7 +120,7 @@ components_processed="   • Validator aggregate info updates
 
 additional_notes="Full processing completed because mev_rewards was null. Flag file created for wait script to skip redundant processing."
 
-bash 999_discord_notify.sh success "$script_name" "$epoch_number" "No-Wait Jito Processing Completed Successfully" "$components_processed" "$additional_notes"
+bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "$epoch_number" "No-Wait Jito Processing Completed Successfully" "$components_processed" "$additional_notes"
 cleanup_logging
 
 # Create a flag file to indicate full processing occurred

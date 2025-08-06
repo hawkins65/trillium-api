@@ -1,8 +1,14 @@
 #!/bin/bash
+
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
 set -euo pipefail  # Using stricter mode like the second script
 
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -29,7 +35,7 @@ execute_with_logging() {
         local exit_code=$?
         local error_msg="❌ Failed to execute $description (exit code: $exit_code)"
         log "ERROR" "$error_msg"
-        bash 999_discord_notify.sh error "$script_name" "$description" "$command" "$exit_code" "$epoch_number" "Automated processing loop interrupted"
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "$description" "$command" "$exit_code" "$epoch_number" "Automated processing loop interrupted"
         exit $exit_code
     fi
 }
@@ -51,7 +57,7 @@ log "INFO" "🚀 Starting automated processing script with initial epoch $epoch_
 startup_details="🔄 **Starting automated epoch processing loop**
 📊 **Initial Epoch:** $epoch_number
 ♾️ **Mode:** Continuous processing (infinite loop)
-📁 **Working Directory:** /home/smilax/block-production/get_slots/
+📁 **Working Directory:** $TRILLIUM_DATA_EPOCHS/
 
 ⚙️ **Process Flow:**
    1. Create epoch directory
@@ -60,13 +66,13 @@ startup_details="🔄 **Starting automated epoch processing loop**
    4. Move to next epoch
    5. Repeat indefinitely"
 
-bash 999_discord_notify.sh startup "$script_name" "$epoch_number" "Process All Automated Script Started" "$startup_details"
+bash "$DISCORD_NOTIFY_SCRIPT" startup "$script_name" "$epoch_number" "Process All Automated Script Started" "$startup_details"
 
 while true; do
     log "INFO" "🔄 Processing epoch number: $epoch_number"
 
     # Create the directory for the current epoch
-    epoch_dir="/home/smilax/block-production/get_slots/epoch$epoch_number"
+    epoch_dir="$TRILLIUM_DATA_EPOCHS/epoch$epoch_number"
     execute_with_logging "mkdir -p \"$epoch_dir\"" "Creating directory for epoch $epoch_number" "📁" "$epoch_number"
 
     # Copy necessary files into the epoch directory
@@ -83,12 +89,12 @@ while true; do
     )
     
     for file in "${files_to_copy[@]}"; do
-        source_file="/home/smilax/block-production/get_slots/$file"
+        source_file="/home/smilax/trillium_api/scripts/get_slots/$file"
         execute_with_logging "cp \"$source_file\" \"$epoch_dir\"" "Copying $file" "📄" "$epoch_number"
     done
 
     # Execute the processing script with the current epoch number
-    execute_with_logging "bash \"/home/smilax/block-production/api/0_process_getslots_data.sh\" \"$epoch_number\"" "Executing processing script for epoch $epoch_number" "⚙️" "$epoch_number"
+    execute_with_logging "bash \"/home/smilax/trillium_api/0_process_getslots_data.sh\" \"$epoch_number\"" "Executing processing script for epoch $epoch_number" "⚙️" "$epoch_number"
 
     log "INFO" "🎉 Successfully completed processing for epoch $epoch_number"
     
@@ -100,7 +106,7 @@ while true; do
 
     additional_notes="Continuing automated processing loop..."
 
-    bash 999_discord_notify.sh success "$script_name" "$epoch_number" "Epoch Processing Completed Successfully" "$components_processed" "$additional_notes"
+    bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "$epoch_number" "Epoch Processing Completed Successfully" "$components_processed" "$additional_notes"
     cleanup_logging
 
     # Remove the epoch directory after processing (currently commented out for safety)

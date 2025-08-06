@@ -1,14 +1,21 @@
 import sys
 import psycopg2
 import json
-import logging
+import importlib.util
+import os
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 from db_config import db_params
 from decimal import Decimal
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+# Logging config moved to unified configurations - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler("vx-call-export.log"),
         logging.StreamHandler()
@@ -49,7 +56,7 @@ def fetch_data(epoch, vote_accounts=None):
         # Convert result into a list of dictionaries
         return [dict(zip(colnames, row)) for row in data]
     except Exception as e:
-        logging.error(f"Failed to fetch data from the database: {e}")
+        logger.error(f"Failed to fetch data from the database: {e}")
         raise
 
 def write_json(data, filename):
@@ -62,14 +69,14 @@ def write_json(data, filename):
     try:
         with open(filename, "w") as json_file:
             json.dump(data, json_file, indent=4, default=decimal_to_float)
-        logging.info(f"Data successfully written to {filename}")
+        logger.info(f"Data successfully written to {filename}")
     except Exception as e:
-        logging.error(f"Failed to write JSON to file: {e}")
+        logger.error(f"Failed to write JSON to file: {e}")
         raise
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        logging.error("Usage: python3 vx-call-export.py <epoch> [vote_account_pubkey1,vote_account_pubkey2,...]")
+        logger.error("Usage: python3 vx-call-export.py <epoch> [vote_account_pubkey1,vote_account_pubkey2,...]")
         sys.exit(1)
 
     # Parse arguments
@@ -80,7 +87,7 @@ if __name__ == "__main__":
     try:
         data = fetch_data(epoch, vote_accounts)
         if not data:
-            logging.info("No data found for the specified parameters.")
+            logger.info("No data found for the specified parameters.")
             sys.exit(0)
 
         # Construct filename
@@ -93,5 +100,5 @@ if __name__ == "__main__":
         # Write data to JSON
         write_json(data, filename)
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
         sys.exit(1)

@@ -36,4 +36,4 @@
         AND vs.activated_stake >= 100 / 1e9
     ORDER BY 
         vs.epoch
-) TO '/home/smilax/block-production/api/kiln1.csv' CSV HEADER;
+) TO '/home/smilax/trillium_api/data/exports/kiln1.csv' CSV HEADER;

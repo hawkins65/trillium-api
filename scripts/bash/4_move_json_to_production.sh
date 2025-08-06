@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -30,33 +36,57 @@ run_command() {
 
 log "INFO" "📁 Moving website JSON files to production directory"
 
-# Move website JSON files
-if ls ./json/epoch*.json 1> /dev/null 2>&1; then
-    log "INFO" "📊 Found epoch*.json files to move"
-    run_command "mv -v ./json/epoch*.json /home/smilax/block-production/leaderboard/production/validator_rewards/static/json"
+# Define the leaderboard JSON directory
+LEADERBOARD_JSON_DIR="${TRILLIUM_DATA}/leaderboard/json"
+
+# Move website JSON files from leaderboard output directory
+if ls ${LEADERBOARD_JSON_DIR}/epoch*.json 1> /dev/null 2>&1; then
+    log "INFO" "📊 Found epoch*.json files to move from leaderboard output"
+    run_command "mv -v ${LEADERBOARD_JSON_DIR}/epoch*.json /home/smilax/block-production/leaderboard/production/validator_rewards/static/json"
 else
-    log "INFO" "ℹ️ No './json/epoch*.json' files found to move"
+    log "INFO" "ℹ️ No '${LEADERBOARD_JSON_DIR}/epoch*.json' files found to move"
 fi
 
-if [ -e "./json/last_ten_epoch_aggregate_data.json" ]; then
-    log "INFO" "📈 Moving last ten epoch aggregate data file"
-    run_command "mv -v ./json/last_ten_epoch_aggregate_data.json /home/smilax/block-production/leaderboard/production/validator_rewards/static/json"
+if [ -e "${LEADERBOARD_JSON_DIR}/last_ten_epoch_aggregate_data.json" ]; then
+    log "INFO" "📈 Moving last ten epoch aggregate data file from leaderboard output"
+    run_command "mv -v ${LEADERBOARD_JSON_DIR}/last_ten_epoch_aggregate_data.json /home/smilax/block-production/leaderboard/production/validator_rewards/static/json"
 else
-    log "INFO" "ℹ️ File not found: ./json/last_ten_epoch_aggregate_data.json"
+    log "INFO" "ℹ️ File not found: ${LEADERBOARD_JSON_DIR}/last_ten_epoch_aggregate_data.json"
 fi
 
-if ls ./json/ten_epoch_*.json 1> /dev/null 2>&1; then
-    log "INFO" "📊 Found ten_epoch_*.json files to move"
-    run_command "mv -v ./json/ten_epoch_*.json /home/smilax/block-production/leaderboard/production/validator_rewards/static/json"
+if ls ${LEADERBOARD_JSON_DIR}/ten_epoch_*.json 1> /dev/null 2>&1; then
+    log "INFO" "📊 Found ten_epoch_*.json files to move from leaderboard output"
+    run_command "mv -v ${LEADERBOARD_JSON_DIR}/ten_epoch_*.json /home/smilax/block-production/leaderboard/production/validator_rewards/static/json"
 else
-    log "INFO" "ℹ️ No './json/ten_epoch_*.json' files found to move"
+    log "INFO" "ℹ️ No '${LEADERBOARD_JSON_DIR}/ten_epoch_*.json' files found to move"
 fi
 
-if [ -e "./json/recency_weighted_average_validator_rewards.json" ]; then
-    log "INFO" "⚖️ Moving recency weighted average validator rewards file"
-    run_command "mv -v ./json/recency_weighted_average_validator_rewards.json /home/smilax/block-production/leaderboard/production/validator_rewards/static/json"
+if [ -e "${LEADERBOARD_JSON_DIR}/recency_weighted_average_validator_rewards.json" ]; then
+    log "INFO" "⚖️ Moving recency weighted average validator rewards file from leaderboard output"
+    run_command "mv -v ${LEADERBOARD_JSON_DIR}/recency_weighted_average_validator_rewards.json /home/smilax/block-production/leaderboard/production/validator_rewards/static/json"
 else
-    log "INFO" "ℹ️ File not found: ./json/recency_weighted_average_validator_rewards.json"
+    log "INFO" "ℹ️ File not found: ${LEADERBOARD_JSON_DIR}/recency_weighted_average_validator_rewards.json"
+fi
+
+# Also check the original data/json directory for any remaining files
+if ls ${TRILLIUM_DATA_JSON}/epoch*.json 1> /dev/null 2>&1; then
+    log "INFO" "📊 Found epoch*.json files in original location"
+    run_command "mv -v ${TRILLIUM_DATA_JSON}/epoch*.json /home/smilax/block-production/leaderboard/production/validator_rewards/static/json"
+fi
+
+if [ -e "${TRILLIUM_DATA_JSON}/last_ten_epoch_aggregate_data.json" ]; then
+    log "INFO" "📈 Moving last ten epoch aggregate data file from original location"
+    run_command "mv -v ${TRILLIUM_DATA_JSON}/last_ten_epoch_aggregate_data.json /home/smilax/block-production/leaderboard/production/validator_rewards/static/json"
+fi
+
+if ls ${TRILLIUM_DATA_JSON}/ten_epoch_*.json 1> /dev/null 2>&1; then
+    log "INFO" "📊 Found ten_epoch_*.json files in original location"
+    run_command "mv -v ${TRILLIUM_DATA_JSON}/ten_epoch_*.json /home/smilax/block-production/leaderboard/production/validator_rewards/static/json"
+fi
+
+if [ -e "${TRILLIUM_DATA_JSON}/recency_weighted_average_validator_rewards.json" ]; then
+    log "INFO" "⚖️ Moving recency weighted average validator rewards file from original location"
+    run_command "mv -v ${TRILLIUM_DATA_JSON}/recency_weighted_average_validator_rewards.json /home/smilax/block-production/leaderboard/production/validator_rewards/static/json"
 fi
 
 log "INFO" "🗳️ Processing vote latency files"
@@ -77,7 +107,7 @@ for file in vote_latency*.{json,txt}; do
 done
 
 log "INFO" "☁️ Purging Cloudflare cache"
-if bash /home/smilax/api/cloudflare-purge-cache.sh; then
+if bash /home/smilax/trillium_api/scripts/bash/cloudflare-purge-cache.sh; then
     log "INFO" "✅ Successfully purged Cloudflare cache"
 else
     log "ERROR" "❌ Failed to purge Cloudflare cache"

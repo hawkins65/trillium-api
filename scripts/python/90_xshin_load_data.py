@@ -1,8 +1,15 @@
 import json
 import psycopg2
-import logging
 import os
 import sys
+import logging
+import importlib.util
+
+# Setup unified logging
+spec = importlib.util.spec_from_file_location("logging_config", os.path.join(os.path.dirname(__file__), "999_logging_config.py"))
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 from db_config import db_params
 
 # Directory configurations
@@ -10,7 +17,7 @@ LOG_DIR = os.getenv("LOG_DIR", os.path.expanduser("~/log"))
 LOG_FILE = os.path.join(LOG_DIR, "validator_scores.log")
 
 # Configure logging
-logger = logging.getLogger("ValidatorScores")
+# Logger setup moved to unified configuration
 logger.setLevel(logging.INFO)
 logger.handlers = []
 

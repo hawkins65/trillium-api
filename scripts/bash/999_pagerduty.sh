@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
 # 999_pagerduty.sh - Universal PagerDuty alerting script
 set -euo pipefail
 

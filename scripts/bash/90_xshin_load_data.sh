@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -22,14 +28,14 @@ fi
 log "INFO" "📡 Running node script to fetch all validators data"
 
 # Run node script and rename output
-if node 90_xshin.js all all; then
+if node ${TRILLIUM_SCRIPTS_NODEJS}/90_xshin.js all all; then
     log "INFO" "✅ Successfully fetched all validators data"
 else
     exit_code=$?
     log "ERROR" "❌ Failed to fetch all validators data (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "All validators data fetch" "node 90_xshin.js all all" "$exit_code" "$epoch"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "All validators data fetch" "node ${TRILLIUM_SCRIPTS_NODEJS}/90_xshin.js all all" "$exit_code" "$epoch"
     
     exit $exit_code
 fi
@@ -42,7 +48,7 @@ else
     log "ERROR" "❌ Failed to rename all validators file (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "File rename operation" "mv all_all_validators.json 90_xshin_all_validators_${epoch}.json" "$exit_code" "$epoch"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "File rename operation" "mv all_all_validators.json 90_xshin_all_validators_${epoch}.json" "$exit_code" "$epoch"
     
     exit $exit_code
 fi
@@ -50,14 +56,14 @@ fi
 log "INFO" "🏆 Running node script to fetch award winners data"
 
 # Run node script for award winners
-if node 90_xshin.js award; then
+if node ${TRILLIUM_SCRIPTS_NODEJS}/90_xshin.js award; then
     log "INFO" "✅ Successfully fetched award winners data"
 else
     exit_code=$?
     log "ERROR" "❌ Failed to fetch award winners data (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Award winners data fetch" "node 90_xshin.js award" "$exit_code" "$epoch"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Award winners data fetch" "node ${TRILLIUM_SCRIPTS_NODEJS}/90_xshin.js award" "$exit_code" "$epoch"
     
     exit $exit_code
 fi
@@ -70,7 +76,7 @@ else
     log "ERROR" "❌ Failed to rename award winners file (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "File rename operation" "mv all_award_winners.json 90_xshin_all_award_winners_${epoch}.json" "$exit_code" "$epoch"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "File rename operation" "mv all_award_winners.json 90_xshin_all_award_winners_${epoch}.json" "$exit_code" "$epoch"
     
     exit $exit_code
 fi
@@ -78,14 +84,14 @@ fi
 log "INFO" "🐍 Running Python script to load Xshin data for epoch $epoch"
 
 # Run Python script to load data
-if python3 90_xshin_load_data.py ${epoch}; then
+if python3 ${TRILLIUM_SCRIPTS_PYTHON}/90_xshin_load_data.py ${epoch}; then
     log "INFO" "✅ Successfully completed Python data loading for epoch $epoch"
 else
     exit_code=$?
     log "ERROR" "❌ Failed to load Xshin data via Python script (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Python data loading" "python3 90_xshin_load_data.py ${epoch}" "$exit_code" "$epoch"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Python data loading" "python3 ${TRILLIUM_SCRIPTS_PYTHON}/90_xshin_load_data.py ${epoch}" "$exit_code" "$epoch"
     
     exit $exit_code
 fi
@@ -98,5 +104,5 @@ components_processed="   • All validators data fetch (Node.js)
    • File renaming operations
    • Python data loading and processing"
 
-bash 999_discord_notify.sh success "$script_name" "$epoch" "Xshin Data Loading Completed Successfully" "$components_processed"
+bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "$epoch" "Xshin Data Loading Completed Successfully" "$components_processed"
 cleanup_logging

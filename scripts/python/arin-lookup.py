@@ -85,7 +85,7 @@ ips = [
 results = process_ips(ips)
 
 # Write results to CSV
-with open('arin_lookup_results.csv', 'w', newline='') as csvfile:
+with open('/home/smilax/trillium_api/data/exports/arin_lookup_results.csv', 'w', newline='') as csvfile:
     fieldnames = ['IP', 'Name', 'Organization', 'City', 'State', 'Country', 'NetRange', 'Error']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()

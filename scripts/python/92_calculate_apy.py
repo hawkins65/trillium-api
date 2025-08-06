@@ -4,7 +4,15 @@ from typing import Dict, List
 from db_config import db_params
 import sys
 import os
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 import statistics
 from math import isinf, isnan
 
@@ -14,9 +22,7 @@ LAMPORTS_PER_SOL = 1_000_000_000
 script_name = os.path.basename(sys.argv[0]).replace('.py', '')
 log_dir = os.path.expanduser('~/log')
 log_file = os.path.join(log_dir, f"{script_name}.log")
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+# Logging config moved to unified configurations - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler(log_file),
         logging.StreamHandler()
@@ -67,10 +73,10 @@ def update_validator_stats(epoch: int, results: List[Dict]):
         for result in results:
             is_valid, invalid_key = validate_result(result)
             if not is_valid:
-                logging.error(f"Skipping update for {result['vote_account_pubkey']} in epoch {epoch}: invalid {invalid_key} = {result[invalid_key]}")
+                logger.error(f"Skipping update for {result['vote_account_pubkey']} in epoch {epoch}: invalid {invalid_key} = {result[invalid_key]}")
                 continue
             if 'validator_block_rewards_apy' not in result or result['validator_block_rewards_apy'] is None:
-                logging.warning(f"Skipping update for {result['vote_account_pubkey']} in epoch {epoch}: validator_block_rewards_apy is missing or None")
+                logger.warning(f"Skipping update for {result['vote_account_pubkey']} in epoch {epoch}: validator_block_rewards_apy is missing or None")
                 continue
             cur.execute(
                 """
@@ -119,10 +125,10 @@ def update_validator_stats(epoch: int, results: List[Dict]):
         conn.commit()
         cur.close()
         conn.close()
-        logging.info(f"Successfully updated validator_stats for epoch {epoch}.")
+        logger.info(f"Successfully updated validator_stats for epoch {epoch}.")
 
     except Exception as e:
-        logging.error(f"Failed to update validator_stats: {e}")
+        logger.error(f"Failed to update validator_stats: {e}")
         if 'conn' in locals():
             conn.rollback()
 
@@ -301,11 +307,11 @@ def query_data_for_epoch(epoch: int):
         )
 
         rows = cur.fetchall()
-        logging.info(f"Fetched {len(rows)} rows for epoch {epoch}")
+        logger.info(f"Fetched {len(rows)} rows for epoch {epoch}")
         results = []
         for row in rows:
             if row[2] is None or row[2] == 0 or row[3] is None or row[3] == 0:
-                logging.warning(f"Invalid data for {row[1]} in epoch {row[0]}: stake={row[2]}, epochs_per_year={row[3]}")
+                logger.warning(f"Invalid data for {row[1]} in epoch {row[0]}: stake={row[2]}, epochs_per_year={row[3]}")
                 continue
             apys = {
                 'epoch': row[0],
@@ -331,15 +337,15 @@ def query_data_for_epoch(epoch: int):
             epochs_per_year = Decimal(row[3])
 
             results.append(apys)
-            logging.debug(f"APYs for {row[1]} in epoch {row[0]}: {apys}")
+            logger.debug(f"APYs for {row[1]} in epoch {row[0]}: {apys}")
 
-        logging.info(f"Processed {len(results)} valid results for epoch {epoch}")
+        logger.info(f"Processed {len(results)} valid results for epoch {epoch}")
         cur.close()
         conn.close()
         return results
 
     except Exception as e:
-        logging.error(f"Error querying data for epoch {epoch}: {e}")
+        logger.error(f"Error querying data for epoch {epoch}: {e}")
         return []
 
 def validate_epoch(epoch: int):
@@ -352,7 +358,7 @@ def validate_epoch(epoch: int):
         conn.close()
         return count > 0
     except Exception as e:
-        logging.error(f"Error validating epoch {epoch}: {e}")
+        logger.error(f"Error validating epoch {epoch}: {e}")
         sys.exit(1)
 
 def calculate_summary_statistics(results: List[Dict]):
@@ -374,9 +380,9 @@ def calculate_summary_statistics(results: List[Dict]):
             median = statistics.median(values)
             minimum = min(values)
             maximum = max(values)
-            logging.debug(f"{key}: Mean = {mean:.2f}%, Median = {median:.2f}%, Min = {minimum:.2f}%, Max = {maximum:.2f}%")
+            logger.debug(f"{key}: Mean = {mean:.2f}%, Median = {median:.2f}%, Min = {minimum:.2f}%, Max = {maximum:.2f}%")
         else:
-            logging.debug(f"{key}: No valid values found.")
+            logger.debug(f"{key}: No valid values found.")
 
 def get_epoch_from_user():
     try:
@@ -394,7 +400,7 @@ def get_epoch_from_user():
             except ValueError:
                 print("Invalid input. Please enter a valid integer epoch.")
     except Exception as e:
-        logging.error(f"Error retrieving epoch range: {e}")
+        logger.error(f"Error retrieving epoch range: {e}")
         sys.exit(1)
 
 def main():
@@ -402,22 +408,22 @@ def main():
         try:
             epoch = int(sys.argv[1])
             if not validate_epoch(epoch):
-                logging.error(f"Epoch {epoch} does not exist in the database.")
+                logger.error(f"Epoch {epoch} does not exist in the database.")
                 sys.exit(1)
         except ValueError:
-            logging.error("Invalid epoch number passed. Please enter a valid integer.")
+            logger.error("Invalid epoch number passed. Please enter a valid integer.")
             epoch = get_epoch_from_user()
     else:
         epoch = get_epoch_from_user()
 
-    logging.info(f"Calculating APYs for all vote accounts in epoch {epoch}...")
+    logger.info(f"Calculating APYs for all vote accounts in epoch {epoch}...")
 
     results = query_data_for_epoch(epoch)
     if results:
         update_validator_stats(epoch, results)
         calculate_summary_statistics(results)
     else:
-        logging.warning(f"No data found for epoch {epoch}.")
+        logger.warning(f"No data found for epoch {epoch}.")
 
 if __name__ == "__main__":
     main()

@@ -1,11 +1,17 @@
 #!/bin/bash
+
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
 # 999_stake_files_check.sh - Check for existence of stake files for a given epoch
 set -euo pipefail
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOME_DIR="${HOME:-/home/smilax}"
-API_DIR="$HOME_DIR/api"
+API_DIR="$HOME_DIR/trillium_api"
 PAGERDUTY_SCRIPT="$SCRIPT_DIR/999_pagerduty.sh"
 
 # Source common logging functions
@@ -22,9 +28,9 @@ ARGUMENTS:
     epoch_number    The epoch number to check files for
 
 FILES CHECKED:
-    \$HOME/api/solana-stakes_<epoch>.json
-    \$HOME/api/solana-stakes_<epoch>_v1.json
-    \$HOME/api/solana-stakes_<epoch>_v2.json
+    \$HOME/trillium_api/solana-stakes_<epoch>.json
+    \$HOME/trillium_api/solana-stakes_<epoch>_v1.json
+    \$HOME/trillium_api/solana-stakes_<epoch>_v2.json
 
 EXAMPLES:
     $0 123    # Check stake files for epoch 123

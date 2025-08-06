@@ -4,7 +4,7 @@ from db_config import db_params
 import sys
 
 # Read the CSV file
-csv_file = '/home/smilax/api/stakewiz_age.csv'  # Path to the correct CSV file
+csv_file = '/home/smilax/trillium_api/data/temp/stakewiz_age.csv'  # Path to the correct CSV file
 
 # Debug: Read the first few lines of the CSV file as text to inspect raw content
 try:

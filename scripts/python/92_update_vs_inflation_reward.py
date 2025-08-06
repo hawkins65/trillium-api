@@ -1,13 +1,21 @@
 import psycopg2
 import requests
-import logging
 import sys
 import os
 import time
+import importlib.util
 from typing import List, Dict, Tuple, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from db_config import db_params
 from rpc_config import RPC_ENDPOINT  # Default Alchemy RPC endpoint
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 
 # Define RPC endpoints
 DEFAULT_RPC_URL = RPC_ENDPOINT  # e.g., https://solana-mainnet.g.alchemy.com/v2/97zE6cvElUYwOp_zVSqMXt5H7dYSYxtW
@@ -19,19 +27,7 @@ RATE_LIMIT_SLEEP = 1
 
 conn = psycopg2.connect(**db_params)
 
-# Logging configuration
-def configure_logging(epoch: int):
-    script_name = os.path.basename(sys.argv[0]).replace('.py', '')
-    log_dir = os.path.expanduser('~/log')
-    log_file = os.path.join(log_dir, f"{script_name}.log")    
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler()
-        ]
-    )
+# Old logging configuration removed - now using unified logging
 
 def get_epoch(provided_epoch: int = None) -> int:
     if provided_epoch is not None:
@@ -53,7 +49,7 @@ def get_available_stake_epochs() -> Set[int]:
         cur.close()
         return epochs
     except Exception as e:
-        logging.error(f"Failed to fetch available stake epochs: {e}")
+        logger.error(f"❌ Failed to fetch available stake epochs: {e}")
         return set()
 
 def get_vote_accounts_and_data(epoch: int) -> Dict[str, int]:
@@ -70,10 +66,10 @@ def get_vote_accounts_and_data(epoch: int) -> Dict[str, int]:
         )
         vote_data = {row[0]: row[1] if row[1] is not None else 0 for row in cur.fetchall()}
         cur.close()
-        logging.info(f"Fetched {len(vote_data)} vote accounts with data for epoch {epoch}")
+        logger.info(f"📊 Fetched {len(vote_data)} vote accounts with data for epoch {epoch}")
         return vote_data
     except Exception as e:
-        logging.error(f"Failed to fetch vote accounts and data: {e}")
+        logger.error(f"❌ Failed to fetch vote accounts and data: {e}")
         return {}
 
 def get_all_top_stake_accounts(epoch: int, vote_pubkeys: List[str]) -> Dict[str, List[Tuple[str, int]]]:

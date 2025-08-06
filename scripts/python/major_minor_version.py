@@ -1,30 +1,20 @@
 import json
 import subprocess
-import logging
+import importlib.util
 import datetime
 import os
 import sys
+import logging
 from collections import defaultdict
+
+# Setup unified logging
+spec = importlib.util.spec_from_file_location("logging_config", "/home/smilax/trillium_api/scripts/python/999_logging_config.py")
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
+
 from db_config import db_params
 
-# ---------------------------
-# Logging Setup
-# ---------------------------
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
-
-script_name = os.path.basename(sys.argv[0]).replace('.py', '')
-log_dir = os.path.expanduser('~/log')
-os.makedirs(log_dir, exist_ok=True)  # Ensure log directory exists
-log_file = os.path.join(log_dir, f"{script_name}.log")
-file_handler = logging.FileHandler(log_file)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
 
 # ---------------------------
 # Functions
@@ -61,7 +51,7 @@ def get_solana_epoch(solana_flag):
     """Run 'solana epoch-info' command with the given flag and return the epoch number."""
     logger.info("Running 'solana epoch-info' command to retrieve epoch info.")
     cmd = [
-        "/home/smilax/.local/share/solana/install/active_release/bin/solana",
+        "/home/smilax/agave/bin/solana",
         "epoch-info",
         "--url",
         solana_flag.split()[1],
@@ -86,7 +76,7 @@ def get_solana_validators(solana_flag):
     """Run 'solana validators' command with the given flag and return parsed JSON output."""
     logger.info("Running 'solana validators' command to retrieve validators data.")
     cmd = [
-        "/home/smilax/.local/share/solana/install/active_release/bin/solana",
+        "/home/smilax/agave/bin/solana",
         "validators",
         "--url",
         solana_flag.split()[1],

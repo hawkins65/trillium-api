@@ -2,7 +2,16 @@ import matplotlib.pyplot as plt
 import json
 import psycopg2
 import sys
-import logging
+import importlib.util
+import os
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 from time import perf_counter
 from typing import Dict, List, Tuple
 from collections import defaultdict
@@ -44,17 +53,15 @@ def execute_query(cur, query: str, params: tuple = None) -> List[tuple]:
             cur.execute(query)
         result = cur.fetchall()
         end_time = perf_counter()
-        logging.info(f"Query completed in {end_time - start_time:.4f} seconds")
+        logger.info(f"Query completed in {end_time - start_time:.4f} seconds")
         return result
     except Exception as e:
-        logging.error(f"Error executing query: {str(e)}")
-        logging.error(f"Query: {query}")
-        logging.error(f"Params: {params}")
+        logger.error(f"Error executing query: {str(e)}")
+        logger.error(f"Query: {query}")
+        logger.error(f"Params: {params}")
         raise
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+# Logging config moved to unified configurations - %(levelname)s - %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)]
 )
 
@@ -70,7 +77,7 @@ class SkipBlameCalculator:
         self.slot_four_counts = defaultdict(int)
         
     def load_and_analyze_data(self, cur) -> None:
-        logging.info("Loading leader schedule data...")
+        logger.info("Loading leader schedule data...")
         start_time = perf_counter()
         
         query = """
@@ -98,17 +105,17 @@ class SkipBlameCalculator:
         verify_query = "SELECT COUNT(*) FROM leader_schedule WHERE epoch = %s"
         count_result = execute_query(cur, verify_query, (self.epoch,))
         if not count_result or count_result[0][0] == 0:
-            logging.error(f"No data found for epoch {self.epoch}")
+            logger.error(f"No data found for epoch {self.epoch}")
             return
             
-        logging.info(f"Found {count_result[0][0]} slots for epoch {self.epoch}")
+        logger.info(f"Found {count_result[0][0]} slots for epoch {self.epoch}")
         
         results = execute_query(cur, query, (self.epoch, self.epoch))
         if not results:
-            logging.error("No results returned from main query")
+            logger.error("No results returned from main query")
             return
             
-        logging.info(f"Processing {len(results)} slots...")
+        logger.info(f"Processing {len(results)} slots...")
         
         validator_set = set()
 
@@ -146,7 +153,7 @@ class SkipBlameCalculator:
                 self.validators_with_blame = len([v for v in self.blame_scores if self.blame_scores[v] > 0])
         
         end_time = perf_counter()
-        logging.info(f"Analysis completed in {end_time - start_time:.4f} seconds")
+        logger.info(f"Analysis completed in {end_time - start_time:.4f} seconds")
     
     def get_results(self) -> List[Dict]:
         results = []
@@ -166,7 +173,7 @@ class SkipBlameCalculator:
     def plot_top_validators(self) -> None:
         results = [r for r in self.get_results() if r["skip_blame_score"] > SKIP_BLAME_TOP]
         if not results:
-            logging.info(f"No validators with skip blame score greater than {SKIP_BLAME_TOP}.")
+            logger.info(f"No validators with skip blame score greater than {SKIP_BLAME_TOP}.")
             return
 
         top_validators = results
@@ -189,7 +196,7 @@ class SkipBlameCalculator:
         plt.close()
 
         print("")
-        logging.info(f"Chart saved as 'stake_weighted_skip_blame_top_validators_epoch_{self.epoch}.png'")
+        logger.info(f"Chart saved as 'stake_weighted_skip_blame_top_validators_epoch_{self.epoch}.png'")
 
     def plot_blame_distributions(self) -> None:
         lower_scores = [r["stake_weighted_skip_blame_score"] for r in self.get_results() if MIN_BLAME_SCORE <= r["stake_weighted_skip_blame_score"] <= DISTRIBUTION_SPLIT]
@@ -216,15 +223,15 @@ class SkipBlameCalculator:
             plt.savefig(f'stake_weighted_skip_blame_distribution_high_epoch_{self.epoch}.png')
             plt.close()
 
-        logging.info(f"Stake Weighted Blame score distribution charts saved as 'stake_weighted_skip_blame_distribution_low_epoch_{self.epoch}.png' and 'stake_weighted_skip_blame_distribution_high_epoch_{self.epoch}.png'")
+        logger.info(f"Stake Weighted Blame score distribution charts saved as 'stake_weighted_skip_blame_distribution_low_epoch_{self.epoch}.png' and 'stake_weighted_skip_blame_distribution_high_epoch_{self.epoch}.png'")
 
 def save_json_file(filename: str, data: Dict) -> None:
     try:
         with open(filename, 'w') as f:
             json.dump(data, f, indent=2)
-        logging.info(f"Data saved to '{filename}'")
+        logger.info(f"Data saved to '{filename}'")
     except Exception as e:
-        logging.error(f"Failed to save data to {filename}: {str(e)}")
+        logger.error(f"Failed to save data to {filename}: {str(e)}")
 
 def main():
     from db_config import db_params
@@ -418,7 +425,7 @@ def main():
         calculator.plot_blame_distributions()
 
     except Exception as e:
-        logging.error(f"An error occurred: {str(e)}")
+        logger.error(f"An error occurred: {str(e)}")
         sys.exit(1)
     finally:
         if 'cur' in locals():

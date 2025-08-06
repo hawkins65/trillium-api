@@ -1,0 +1,32 @@
+[Unit]
+Description=WebSocket Slot Duration Parser (Group 1)
+After=network.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=smilax
+Group=smilax
+WorkingDirectory=/home/smilax/api
+ExecStart=/home/smilax/.python_env/bin/python /home/smilax/api/92_wss_parse_slot_duration.py --group 1
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+Environment=PYTHONUNBUFFERED=1
+
+# Resource limits
+LimitNOFILE=65536
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=false
+ReadWritePaths=/home/smilax/log /home/smilax/api/wss_slot_duration
+
+[Install]
+WantedBy=multi-user.target

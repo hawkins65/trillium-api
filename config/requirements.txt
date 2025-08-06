@@ -5,10 +5,8 @@ plotly
 Pillow
 requests
 matplotlib
-geoip2
 python-magic
 urllib3
-cloudinary
 seaborn
 tqdm
 discord.py

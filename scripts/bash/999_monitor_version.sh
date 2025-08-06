@@ -1,6 +1,12 @@
 #!/bin/bash
 
-source $HOME/api/999_common_log.sh
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
+source $HOME/trillium_api/scripts/bash/999_common_log.sh
 
 # Configuration
 DEBUG="${DEBUG:-false}"
@@ -10,15 +16,15 @@ ENABLE_PERFORMANCE_MONITORING=true
 ENABLE_DETAILED_LOGGING=true
 
 # Define paths for Solana CLI and constants
-SOLANA_CLI="/home/smilax/.local/share/solana/install/active_release/bin/solana"
+SOLANA_CLI="/home/smilax/agave/bin/solana"
 MAINNET_RPC_URL="https://wiser-young-star.solana-mainnet.quiknode.pro/887452d66f8b645b8824eab20011dbd3c315d84f/"
 TESTNET_RPC_URL="https://wiser-thrilling-reel.solana-testnet.quiknode.pro/d05bbe3aa7a9377d63a89a869a3fba1093555029/"
-MAINNET_GOSSIP_FILE="/home/smilax/api/gossip-mainnet.json"
-TESTNET_GOSSIP_FILE="/home/smilax/api/gossip-testnet.json"
+MAINNET_GOSSIP_FILE="/home/smilax/trillium_api/data/monitoring/gossip-mainnet.json"
+TESTNET_GOSSIP_FILE="/home/smilax/trillium_api/data/monitoring/gossip-testnet.json"
 MAINNET_SFDP_API_URL="https://api.solana.org/api/epoch/required_versions?cluster=mainnet-beta"
 TESTNET_SFDP_API_URL="https://api.solana.org/api/epoch/required_versions?cluster=testnet"
 DISCORD_WEBHOOK="https://discord.com/api/webhooks/1386672713606627348/YmHyp_2_Mr263q-g0DgBfV7ef6845udRccX8pl_E4eNbAQFT1UT6Nqitkkc2Lu0QGhfN"
-MESSAGE_FILE="/home/smilax/api/gossip_message.txt"
+MESSAGE_FILE="/home/smilax/trillium_api/data/monitoring/gossip_message.txt"
 
 # Performance monitoring variables
 SCRIPT_START_TIME=$(date +%s)
@@ -41,7 +47,7 @@ TESTNET_UPCOMING_CHANGES=""
 
 # Enhanced logging functions
 setup_logging() {
-    local log_dir="/home/smilax/api/logs"
+    local log_dir="/home/smilax/trillium_api/logs"
     local timestamp=$(date +%Y%m%d_%H%M%S)
     
     mkdir -p "$log_dir"
@@ -352,7 +358,7 @@ map_pubkey() {
             echo "pENgUh4K9zNacyU3PXVE9KugW98XCqZsWpEvA8d8wzX|https://trillium.so/images/pengu.jpeg|vote|mainnet"
             ;;
         pengu_standby)
-            echo "4GarcRwXL2F9jdx52Wi8ukj5ZTsP8xWYtsqQwfgPTxMM|https://trillium.so/images/pengu.jpeg|identity|mainnet"
+            echo "Bu74cG8Baxa3m4Etc7iEmEQ9jBxWdqUtji5SDxAbd1nZ|https://trillium.so/images/pengu.jpeg|identity|mainnet"
             ;;
         pengu_testnet)
             echo "FN1YjxJZAFjKsixZWfTc4bYaEQEXjJBLy1TFkWGV2aM9|https://trillium.so/images/pengu.jpeg|identity|testnet"

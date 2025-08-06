@@ -58,9 +58,7 @@ Thumbs.db
 *~
 
 # Data files
-data/epochs/
-data/raw/
-data/processed/
+data/
 *.tar.zst
 *.tar.gz
 *.csv
@@ -83,6 +81,11 @@ config/secrets.py
 config/api_keys.json
 *.pem
 *.key
+
+# Config files (but include templates)
+config/db_config.py
+data/configs/92_slot_duration_server_list.json
+!*.template
 
 # Backup files
 *.bak

@@ -75,11 +75,11 @@ def main():
     msg_len = len(missing_slots)
     print(f"len(missing_slots) {msg_len}")
     
-    with open(f"_missing_slots_epoch_{epoch_number}.log", 'w') as f:
+    with open(f"/home/smilax/trillium_api/data/logs/_missing_slots_epoch_{epoch_number}.log", 'w') as f:
         for slot in missing_slots:
             f.write(str(slot) + "\n")
 
-    print(f"\nMissing slots for epoch {epoch_number} logged to _missing_slots_epoch_{epoch_number}.log")
+    print(f"\nMissing slots for epoch {epoch_number} logged to /home/smilax/trillium_api/data/logs/_missing_slots_epoch_{epoch_number}.log")
 
 if __name__ == "__main__":
     main()

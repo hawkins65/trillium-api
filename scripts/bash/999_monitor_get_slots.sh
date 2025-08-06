@@ -1,6 +1,12 @@
 #!/bin/bash
 
-source $HOME/api/999_common_log.sh
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
+source $HOME/trillium_api/scripts/bash/999_common_log.sh
 
 # Parse command line arguments
 if [[ "$#" -ne 1 ]]; then
@@ -17,7 +23,7 @@ log_message "INFO" "Epoch number: $epoch_number"
 ORIGINAL_DIR=$(pwd)
 
 # Switch to the directory to run the script
-target_dir="/home/smilax/block-production/get_slots/epoch$epoch_number"
+target_dir="$TRILLIUM_DATA_EPOCHS/epoch$epoch_number"
 log_message "INFO" "Switching to $target_dir"
 
 if ! cd "$target_dir"; then

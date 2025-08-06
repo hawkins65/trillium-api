@@ -1,0 +1,13 @@
+[Unit]
+Description=Trillium API Updates Telegram Bot
+After=network.target
+
+[Service]
+ExecStart=/home/smilax/.python_env/bin/python /home/smilax/trillium_api/scripts/python/telegram_bot.py
+WorkingDirectory=/home/smilax/trillium_api/scripts/python
+Restart=always
+User=smilax
+Environment=PYTHONPATH=/home/smilax/trillium_api/scripts/python
+
+[Install]
+WantedBy=multi-user.target

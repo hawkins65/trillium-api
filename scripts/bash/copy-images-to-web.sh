@@ -1,9 +1,22 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
+# Source common logging
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/999_common_log.sh"
+
+# Initialize logging
+init_logging
+
 # Function to check if a file exists
 file_exists() {
     if [ ! -f "$1" ]; then
-        echo "Error: File '$1' does not exist."
+        log_error "❌ File '$1' does not exist"
         exit 1
     fi
 }
@@ -29,16 +42,18 @@ sudo chown www-data:www-data "/var/www/html/images/$filename"
 # Set the permissions of the copied file
 sudo chmod 644 "/var/www/html/images/$filename"
 
-echo "File '$filename' has been successfully copied to /var/www/html/images/"
-echo "You can access it as: https://trillium.so/images/$filename"
+log_info "✅ File '$filename' copied to /var/www/html/images/"
+log_info "🌐 Access at: https://trillium.so/images/$filename"
 
 bash cloudflare-purge-cache.sh https://trillium.so/images/$filename
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 0 ]; then
-    echo "Cloudflare cache purged successfully"
+    log_info "✅ Cloudflare cache purged successfully"
 else
-    echo "Cloudflare cache purge failed with exit code $EXIT_CODE"
+    log_error "❌ Cloudflare cache purge failed with exit code $EXIT_CODE"
 fi
 
+# Cleanup logging
+cleanup_logging
 exit 0

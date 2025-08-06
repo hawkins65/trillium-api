@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -22,14 +28,14 @@ fi
 log "INFO" "🔄 Executing Python script to load consolidated CSV for epoch $epoch_number"
 
 # Execute the Python script with the epoch number
-if echo $epoch_number | python3 91_load_consolidated_csv.py; then
+if echo $epoch_number | python3 ../python/91_load_consolidated_csv.py; then
     log "INFO" "✅ Successfully completed consolidated CSV loading for epoch $epoch_number"
 else
     exit_code=$?
     log "ERROR" "❌ Failed to load consolidated CSV for epoch $epoch_number (exit code: $exit_code)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Consolidated CSV loading" "echo $epoch_number | python3 91_load_consolidated_csv.py" "$exit_code" "$epoch_number"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Consolidated CSV loading" "echo $epoch_number | python3 ../python/91_load_consolidated_csv.py" "$exit_code" "$epoch_number"
     
     exit $exit_code
 fi

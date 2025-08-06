@@ -4,7 +4,15 @@ import csv
 import filetype
 import ipaddress
 import json
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 import mimetypes
 import os
 import re
@@ -22,8 +30,6 @@ from io import StringIO
 from urllib.parse import unquote, urlparse
 
 # Third-Party Library Imports
-import geoip2.database
-import geoip2.errors
 import magic
 import psycopg2
 import requests
@@ -47,7 +53,7 @@ asn_reader = None
 country_region_map = {}
 thread_local = threading.local()
 
-SOLANA_CMD = "/home/smilax/.local/share/solana/install/active_release/bin/solana"
+SOLANA_CMD = "/home/smilax/agave/bin/solana"
 PSQL_CMD = '/usr/bin/psql'
 CURL_CMD = '/usr/bin/curl'
 VALIDATOR_HISTORY_CLI = '/home/smilax/stakenet/target/release/validator-history-cli'
@@ -68,7 +74,7 @@ def get_db_connection(db_params):
     return conn
 
 def setup_logging():
-    logger = logging.getLogger()
+    # Logger setup moved to unified configuration
     logger.setLevel(logging.DEBUG)  # Set the root logger level to the lowest level you want to capture
 
     now = datetime.now()
@@ -308,7 +314,7 @@ def fetch_icon_url_from_keybase(keybase_username):
         return None
 
 def fetch_and_store_icons(conn, cur):
-    icon_dir = "/home/smilax/block-production/api/static/images"
+    icon_dir = "/home/smilax/trillium_api/static/images"
     os.makedirs(icon_dir, exist_ok=True)
 
     # Read existing 92_icon_url_errors.list to create a set of identity_pubkeys to skip
@@ -579,7 +585,7 @@ def check_kobe_api_mev_data(epoch):
         logger.error(f"Error checking Kobe API: {str(e)}")
         return False
 
-def fetch_and_store_data(start_epoch, end_epoch, process_validator_icons, process_stakenet, update_geoip, process_leader_schedule, aggregate_epoch_info):
+def fetch_and_store_data(start_epoch, end_epoch, process_validator_icons, process_stakenet, process_leader_schedule, aggregate_epoch_info):
     print("Starting fetch_and_store_data")
     logger.info(
         f"Starting fetch_and_store_data with args: "
@@ -587,7 +593,6 @@ def fetch_and_store_data(start_epoch, end_epoch, process_validator_icons, proces
         f"end_epoch={end_epoch}, "
         f"process_validator_icons={process_validator_icons}, "
         f"process_stakenet={process_stakenet}, "
-        f"update_geoip={update_geoip}, "
         f"process_leader_schedule={process_leader_schedule}, "
         f"aggregate_epoch_info={aggregate_epoch_info}"
     )
@@ -1236,18 +1241,8 @@ def fetch_and_store_data(start_epoch, end_epoch, process_validator_icons, proces
     else:
         logger.info("Skipping epoch info aggregation.")
 
-    if update_geoip == 'y':
-        logger.info("Starting update_geoip_info")
-        load_geoip_data()
-        get_country_region_map()
-        update_geoip_info(db_params, start_epoch, start_epoch)
-        cur.execute(open('92_set-country.sql', 'r').read())
-        cur.execute(open('92_set-continent-from-unknown.sql', 'r').read())
-        conn.commit()
-        logger.info("End update_geoip_info")
-        geoip_export_failures_to_csv()
-    else:
-        logger.info("Skipping geoip info update because update_geoip is not 'y'")
+    # GeoIP processing is now handled separately by 92_ip_api.py
+    logger.info("Skipping geoip info update - now handled by 92_ip_api.py")
 
     cur.close()
     conn.close()
@@ -1276,7 +1271,7 @@ def update_elapsed_time_per_epoch():
         logger.info("Updated elapsed_time_per_epoch for all rows successfully.")
     
     except Exception as error:
-        logging.error(f"Error updating elapsed_time_per_epoch: {error}")
+        logger.error(f"Error updating elapsed_time_per_epoch: {error}")
         if conn:
             conn.close()
 
@@ -1333,22 +1328,10 @@ def calculate_and_update_epochs_per_year():
         logger.info("Calculated and updated epochs_per_year for all rows successfully.")
     
     except Exception as error:
-        logging.error(f"Error calculating and updating epochs_per_year: {error}")
+        logger.error(f"Error calculating and updating epochs_per_year: {error}")
         if conn:
             conn.close()
 
-# Failure tracking dictionary
-lookup_failures = {}
-
-def load_geoip_data():
-    global city_reader, asn_reader
-    try:
-        logger.info("Loading GeoIP2 databases for City and ASN...")
-        city_reader = geoip2.database.Reader('/home/smilax/block-production/api/geolite2/GeoLite2-City.mmdb')
-        asn_reader = geoip2.database.Reader('/home/smilax/block-production/api/geolite2/GeoLite2-ASN.mmdb')
-        logger.info("GeoIP2 databases loaded successfully.")
-    except Exception as e:
-        logger.error(f"Error loading GeoIP2 databases: {str(e)}")
 
 def get_country_region_map():
     global country_region_map
@@ -1376,338 +1359,6 @@ def requests_retry_session(retries=3, backoff_factor=1, status_forcelist=(429, 5
     session.mount('https://', adapter)
     return session
 
-# Check if IP is private
-def geoip_is_private_ip(ip):
-    try:
-        ip_obj = ipaddress.ip_address(ip)
-        return ip_obj.is_private
-    except ValueError:
-        logger.error(f"Invalid IP address: {ip}")
-        return False
-
-# Lookup functions (unchanged logic, renamed)
-def geoip_lookup_geoip2(ip):
-    try:
-        city_response = city_reader.city(ip)
-        asn_response = asn_reader.asn(ip)
-        result = (city_response.city.name, city_response.country.name, city_response.continent.name,
-                  asn_response.autonomous_system_number, asn_response.autonomous_system_organization,
-                  country_region_map.get(city_response.country.name, 'UNKNOWN'))
-        if not result[0]:
-            geoip_log_failure(ip, "geoip_lookup_geoip2", "No city data in GeoIP2 response")
-        return result
-    except geoip2.errors.AddressNotFoundError:
-        geoip_log_failure(ip, "geoip_lookup_geoip2", "Address not found in GeoIP2 database")
-        return None, None, None, None, None, None
-    except Exception as e:
-        geoip_log_failure(ip, "geoip_lookup_geoip2", f"Unexpected error: {str(e)}")
-        return None, None, None, None, None, None
-
-def geoip_lookup_ipwho_is(ip):
-    try:
-        result = subprocess.run([CURL_CMD, f"http://ipwho.is/{ip}"], capture_output=True, text=True, timeout=10)
-        if result.returncode == 0 and result.stdout.strip():
-            data = json.loads(result.stdout)
-            if data.get("success"):
-                result = (data.get("city"), data.get("country"), data.get("continent"),
-                          geoip_clean_asn(data["connection"].get("asn")), data["connection"].get("org"), data.get("region"))
-                if not result[0]:
-                    geoip_log_failure(ip, "geoip_lookup_ipwho_is", "No city data in response")
-                return result
-            else:
-                geoip_log_failure(ip, "geoip_lookup_ipwho_is", f"API error: {data.get('message', 'Unknown error')}")
-        else:
-            geoip_log_failure(ip, "geoip_lookup_ipwho_is", "Empty or invalid response")
-        return None, None, None, None, None, None
-    except subprocess.TimeoutExpired:
-        geoip_log_failure(ip, "geoip_lookup_ipwho_is", "Timeout after 10 seconds")
-        return None, None, None, None, None, None
-    except Exception as e:
-        geoip_log_failure(ip, "geoip_lookup_ipwho_is", f"Unexpected error: {str(e)}")
-        return None, None, None, None, None, None
-
-def geoip_lookup_ipinfo(ip):
-    token = "a0e88e8e79d3bc"
-    try:
-        response = requests_retry_session().get(f"https://ipinfo.io/{ip}?token={token}", timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        asn_info = data.get("org", "")
-        asn_parts = asn_info.split(" ", 1)
-        asn = geoip_clean_asn(asn_parts[0]) if len(asn_parts) > 1 else None
-        asn_org = asn_parts[1] if len(asn_parts) > 1 else asn_info
-        result = (data.get("city"), data.get("country"), "UNKNOWN", asn, asn_org, data.get("region"))
-        if not result[0]:
-            geoip_log_failure(ip, "geoip_lookup_ipinfo", "No city data in response")
-        return result
-    except requests.exceptions.Timeout:
-        geoip_log_failure(ip, "geoip_lookup_ipinfo", "Timeout after 10 seconds")
-        return None, None, None, None, None, None
-    except requests.exceptions.HTTPError as e:
-        geoip_log_failure(ip, "geoip_lookup_ipinfo", f"HTTP error: {str(e)}")
-        return None, None, None, None, None, None
-    except Exception as e:
-        geoip_log_failure(ip, "geoip_lookup_ipinfo", f"Unexpected error: {str(e)}")
-        return None, None, None, None, None, None
-
-def geoip_lookup_ipgeolocation(ip):
-    token = "f3e8cad1a82c465db446e69ca35210f7"
-    try:
-        response = requests_retry_session().get(f"https://api.ipgeolocation.io/ipgeo?apiKey={token}&ip={ip}", timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        result = (data.get("city"), data.get("country_name"), data.get("continent_name"),
-                  geoip_clean_asn(data.get("asn")), data.get("organization"), data.get("state_prov"))
-        if not result[0]:
-            geoip_log_failure(ip, "geoip_lookup_ipgeolocation", "No city data in response")
-        return result
-    except requests.exceptions.Timeout:
-        geoip_log_failure(ip, "geoip_lookup_ipgeolocation", "Timeout after 10 seconds")
-        return None, None, None, None, None, None
-    except requests.exceptions.HTTPError as e:
-        geoip_log_failure(ip, "geoip_lookup_ipgeolocation", f"HTTP error: {str(e)}")
-        return None, None, None, None, None, None
-    except Exception as e:
-        geoip_log_failure(ip, "geoip_lookup_ipgeolocation", f"Unexpected error: {str(e)}")
-        return None, None, None, None, None, None
-
-def geoip_lookup_ip_api(ip):
-    try:
-        response = requests_retry_session().get(f"http://ip-api.com/json/{ip}", timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        if data.get("status") == "success":
-            result = (data.get("city"), data.get("country"), "UNKNOWN", None, data.get("isp"), data.get("regionName"))
-            if not result[0]:
-                geoip_log_failure(ip, "geoip_lookup_ip_api", "No city data in response")
-            return result
-        else:
-            geoip_log_failure(ip, "geoip_lookup_ip_api", f"API error: {data.get('message', 'Unknown error')}")
-        return None, None, None, None, None, None
-    except requests.exceptions.Timeout:
-        geoip_log_failure(ip, "geoip_lookup_ip_api", "Timeout after 10 seconds")
-        return None, None, None, None, None, None
-    except requests.exceptions.HTTPError as e:
-        geoip_log_failure(ip, "geoip_lookup_ip_api", f"HTTP error: {str(e)}")
-        return None, None, None, None, None, None
-    except Exception as e:
-        geoip_log_failure(ip, "geoip_lookup_ip_api", f"Unexpected error: {str(e)}")
-        return None, None, None, None, None, None
-
-def geoip_lookup_freegeoip(ip):
-    try:
-        response = requests_retry_session().get(f"https://freegeoip.app/json/{ip}", timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        result = (data.get("city"), data.get("country_name"), "UNKNOWN", None, None, data.get("region_name"))
-        if not result[0]:
-            geoip_log_failure(ip, "geoip_lookup_freegeoip", "No city data in response")
-        return result
-    except requests.exceptions.Timeout:
-        geoip_log_failure(ip, "geoip_lookup_freegeoip", "Timeout after 10 seconds")
-        return None, None, None, None, None, None
-    except requests.exceptions.HTTPError as e:
-        geoip_log_failure(ip, "geoip_lookup_freegeoip", f"HTTP error: {str(e)}")
-        return None, None, None, None, None, None
-    except Exception as e:
-        geoip_log_failure(ip, "geoip_lookup_freegeoip", f"Unexpected error: {str(e)}")
-        return None, None, None, None, None, None
-
-def geoip_clean_asn(asn):
-    if asn and isinstance(asn, str) and asn.startswith("AS"):
-        try:
-            return int(asn[2:])
-        except ValueError:
-            return None
-    elif isinstance(asn, int):
-        return asn
-    return None
-
-# Log failure details
-def geoip_log_failure(ip, service, reason):
-    logger.error(f"Failure for IP {ip} in {service}: {reason}")
-    if ip not in lookup_failures:
-        lookup_failures[ip] = {}
-    if service not in lookup_failures[ip]:
-        lookup_failures[ip][service] = []
-    lookup_failures[ip][service].append(reason)
-
-# Export failures to CSV
-def geoip_export_failures_to_csv(filename="92_lookup_failures.csv"):
-    with open(filename, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["IP", "Service", "Failure Reason"])
-        for ip, services in lookup_failures.items():
-            for service, reasons in services.items():
-                for reason in reasons:
-                    writer.writerow([ip, service, reason])
-    logger.info(f"Exported failure details to {filename}")
-
-# Fetch data from validator_stats for current and previous epochs
-def geoip_fetch_epoch_data(epoch, conn):
-    current_epoch_query = """
-    SELECT identity_pubkey, ip, city, country, continent, asn, asn_org, region
-    FROM validator_stats
-    WHERE epoch = %s
-    """
-    previous_epoch_query = """
-    SELECT identity_pubkey, ip, city, country, continent, asn, asn_org, region
-    FROM validator_stats
-    WHERE epoch = %s
-    """
-    
-    with conn.cursor() as cur:
-        cur.execute(current_epoch_query, (epoch,))
-        current_data = {row[0]: (row[1], row[2], row[3], row[4], row[5], row[6], row[7]) for row in cur.fetchall()}
-        
-        cur.execute(previous_epoch_query, (epoch - 1,))
-        previous_data = {row[0]: (row[1], row[2], row[3], row[4], row[5], row[6], row[7]) for row in cur.fetchall()}
-    
-    return current_data, previous_data
-
-# Compare epochs and determine IPs needing lookups
-def geoip_compare_epochs(current_data, previous_data):
-    ip_to_lookup = set()
-    results = {}
-    
-    for pubkey, (current_ip, curr_city, curr_country, curr_continent, curr_asn, curr_asn_org, curr_region) in current_data.items():
-        prev_data = previous_data.get(pubkey)
-        if prev_data:
-            prev_ip, prev_city, prev_country, prev_continent, prev_asn, prev_asn_org, prev_region = prev_data
-            if current_ip == prev_ip and prev_city:  # IP unchanged and previous city exists
-                logger.info(f"Reusing previous data for {pubkey}: IP {current_ip}, City {prev_city}")
-                results[pubkey] = (prev_city, prev_country, prev_continent, prev_asn, prev_asn_org, prev_region)
-            else:
-                logger.info(f"IP changed or no previous city for {pubkey}: {current_ip}")
-                ip_to_lookup.add((current_ip, pubkey))
-        else:
-            logger.info(f"No previous data for {pubkey}: {current_ip}")
-            ip_to_lookup.add((current_ip, pubkey))
-    
-    return ip_to_lookup, results
-
-# Process IP with parallel lookups
-def geoip_process_ip(ip, pubkey):
-    logger.info(f"Processing IP: {ip} for identity_pubkey: {pubkey}")
-
-    if geoip_is_private_ip(ip):
-        logger.warning(f"Skipping private IP: {ip}")
-        return None, None, None, None, None, None
-
-    lookup_functions = [
-        geoip_lookup_geoip2,
-        geoip_lookup_ipwho_is,
-        geoip_lookup_ipinfo,
-        geoip_lookup_ipgeolocation,
-        geoip_lookup_ip_api,
-        geoip_lookup_freegeoip
-    ]
-
-    results = {}
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        future_to_service = {executor.submit(func, ip): func.__name__ for func in lookup_functions}
-        for future in as_completed(future_to_service):
-            service_name = future_to_service[future]
-            try:
-                result = future.result()
-                if result[0]:  # If city is found
-                    results[service_name] = result
-            except Exception as e:
-                geoip_log_failure(ip, service_name, f"Thread execution error: {str(e)}")
-
-    if not results:
-        logger.warning(f"No service returned city data for IP: {ip}")
-        return None, None, None, None, None, None
-
-    priority_order = ['geoip_lookup_geoip2', 'geoip_lookup_ipgeolocation', 'geoip_lookup_ipinfo', 
-                      'geoip_lookup_ipwho_is', 'geoip_lookup_ip_api', 'geoip_lookup_freegeoip']
-    for service in priority_order:
-        if service in results:
-            city, country, continent, asn, asn_org, region = results[service]
-            logger.info(f"Using {service} result for IP {ip}: {city}, {country}")
-            return city, country, continent, asn, asn_org, region
-
-    return None, None, None, None, None, None
-
-# Main geolocation processing function
-def geoip_process_epoch(epoch):
-    logger.info(f"Processing epoch: {epoch}")
-    
-    conn = get_db_connection(db_params)
-    
-    try:
-        current_data, previous_data = geoip_fetch_epoch_data(epoch, conn)
-        ip_to_lookup, results = geoip_compare_epochs(current_data, previous_data)
-        
-        lookup_tasks = [(ip, pubkey) for ip, pubkey in ip_to_lookup]
-        lookup_results = {}
-        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            future_to_ip = {executor.submit(geoip_process_ip, ip, pubkey): (ip, pubkey) for ip, pubkey in lookup_tasks}
-            for future in as_completed(future_to_ip):
-                ip, pubkey = future_to_ip[future]
-                try:
-                    result = future.result()
-                    lookup_results[pubkey] = result
-                except Exception as e:
-                    logger.error(f"Error processing IP {ip} for {pubkey}: {str(e)}")
-        
-        final_results = {}
-        for pubkey in current_data:
-            if pubkey in results:
-                final_results[pubkey] = (pubkey, epoch, *results[pubkey])
-            elif pubkey in lookup_results:
-                final_results[pubkey] = (pubkey, epoch, *lookup_results[pubkey])
-            else:
-                final_results[pubkey] = (pubkey, epoch, None, None, None, None, None, None)
-        
-        geoip_export_failures_to_csv()
-        
-        return list(final_results.values())
-    
-    finally:
-        conn.close()
-
-# Updated update_geoip_info
-def update_geoip_info(db_params, start_epoch, end_epoch):
-    logger.info(f"Starting GeoIP updates for epochs {start_epoch} to {end_epoch}")
-
-    try:
-        for current_epoch in range(start_epoch, end_epoch + 1):
-            logger.info(f"Processing GeoIP updates for epoch {current_epoch}")
-            
-            # Process the epoch using geoip_process_epoch
-            update_data = geoip_process_epoch(current_epoch)
-            
-            # Perform batch update if there are results
-            if update_data:
-                with get_db_connection(db_params) as conn:
-                    with conn.cursor() as cur:
-                        execute_batch(cur, """
-                            UPDATE validator_stats
-                            SET city = COALESCE(%s, city),
-                                country = COALESCE(%s, country),
-                                continent = COALESCE(%s, continent),
-                                asn = COALESCE(%s, asn),
-                                asn_org = COALESCE(%s, asn_org),
-                                region = COALESCE(%s, region)
-                            WHERE identity_pubkey = %s AND epoch = %s
-                        """, [
-                            (city, country, continent, asn, asn_org, region, identity_pubkey, epoch)
-                            for identity_pubkey, epoch, city, country, continent, asn, asn_org, region in update_data
-                        ])
-                        conn.commit()
-                        logger.info(f"Updated GeoIP information for {len(update_data)} rows in epoch {current_epoch}")
-            else:
-                logger.info(f"No GeoIP updates for epoch {current_epoch}")
-
-    except Exception as e:
-        logger.error(f"Error updating GeoIP information: {str(e)}")
-
-    finally:
-        if city_reader:
-            city_reader.close()
-        if asn_reader:
-            asn_reader.close()
 
 def run_full_script(process_validator_icons):
     print()
@@ -1757,15 +1408,14 @@ def run_full_script(process_validator_icons):
     print()
     print(f"{current_time} - STARTING - {script_filename}")
 
-    # jrh -- we handle geoip separately now
-    update_geoip = 'n'
+    # jrh -- geoip processing is now handled separately by 92_ip_api.py
 
     if process_leader_schedule == 'y':
         # Process leader schedules before other data processing
-        leader_schedule_directory = "/home/smilax/block-production/leaderboard/leader_schedules"
+        leader_schedule_directory = "/home/smilax/trillium_api/data/leader_schedules"
         process_leader_schedules(db_params, leader_schedule_directory, start_epoch, end_epoch)
 
-    fetch_and_store_data(start_epoch, end_epoch, process_validator_icons, process_stakenet, update_geoip, process_leader_schedule, aggregate_epoch_info)
+    fetch_and_store_data(start_epoch, end_epoch, process_validator_icons, process_stakenet, process_leader_schedule, aggregate_epoch_info)
 
     # Update elapsed time per epoch
     update_elapsed_time_per_epoch()

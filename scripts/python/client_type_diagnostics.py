@@ -1,3 +1,4 @@
+import os
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -7,14 +8,21 @@ Run this to see what changed between the epochs
 
 import psycopg2
 import pandas as pd
-import logging
+import importlib.util
 
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 # Import your database configuration
 from db_config import db_params
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Logging config moved to unified configuration
+# Logger setup moved to unified configuration
 
 def get_db_connection(db_params):
     conn = psycopg2.connect(**db_params)

@@ -2,7 +2,15 @@
 import base64
 import io
 import json
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 import os
 import random
 import sys
@@ -167,7 +175,7 @@ def calculate_validator_counts(epoch, rank_range):
                 mev_apy_stake_products.append(mev_apy_decimal * stake)
                 mev_apy_values.append(mev_apy_decimal)
                 if mev_apy_decimal > 0.1:  # Log APYs > 10% after conversion
-                    logging.info(f"High MEV APY: {mev_apy_decimal * 100:.2f}% for validator {vote_account_pubkey}, stake: {format_lamports_to_sol(stake, 2)} SOL, city: {city}")
+                    logger.info(f"High MEV APY: {mev_apy_decimal * 100:.2f}% for validator {vote_account_pubkey}, stake: {format_lamports_to_sol(stake, 2)} SOL, city: {city}")
             if total_apy is not None and stake is not None and stake > 0:
                 total_apy_decimal = total_apy / 100  # Convert from percentage to decimal
                 total_apy_stake_products.append(total_apy_decimal * stake)
@@ -379,7 +387,7 @@ def main(epoch=None):
             country_df.to_csv(f'epoch{epoch}_country_counts-jito{rank_range.replace("-", "_")}.csv', index=True)
             continent_df.to_csv(f'epoch{epoch}_continent_counts-jito{rank_range.replace("-", "_")}.csv', index=True)
         except Exception as e:
-            logging.error(f"Failed to process epoch {epoch} for rank {rank_range}: {str(e)}")
+            logger.error(f"Failed to process epoch {epoch} for rank {rank_range}: {str(e)}")
     print("Processing complete.")
 
 if __name__ == '__main__':

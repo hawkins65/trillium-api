@@ -1,10 +1,16 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Enable strict mode for safer scripting
 set -euo pipefail
 
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -35,7 +41,7 @@ execute_and_check() {
         log "ERROR" "❌ Command failed with exit code $exit_code: $cmd"
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "Command execution failed" "$cmd" "$exit_code" "$epoch_number"
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Command execution failed" "$cmd" "$exit_code" "$epoch_number"
         
         # Exit the script to avoid continuing on error
         exit $exit_code
@@ -67,16 +73,16 @@ log "INFO" "🔄 Starting validator aggregate info update ($processing_mode)..."
 execute_and_check "bash 2_update_validator_aggregate_info.sh $epoch_number $skip_flag"
 
 log "INFO" "📊 Collecting Jito steward data..."
-execute_and_check "python3 92-jito-steward-data-collection.py $epoch_number"
+execute_and_check "python3 ../python/92-jito-steward-data-collection.py $epoch_number"
 
 log "INFO" "🏗️ Building leaderboard JSON..."
 execute_and_check "bash 3_build_leaderboard_json.sh $epoch_number"
 
 # jrh not using this yet and files are HUGE
-# execute_and_check "python3 93_solana_stakes_export.py"
+# execute_and_check "python3 ../python/93_solana_stakes_export.py"
 
 log "INFO" "📈 Running skip analysis..."
-execute_and_check "python3 93_skip_analysis.py $epoch_number"
+execute_and_check "python3 ../python/93_skip_analysis.py $epoch_number"
 
 log "INFO" "📁 Moving JSON files to production..."
 execute_and_check "bash 4_move_json_to_production.sh"
@@ -91,7 +97,7 @@ log "INFO" "🧹 Running cleanup operations..."
 execute_and_check "bash 7_cleanup.sh"
 
 log "INFO" "💾 Copying archive to Google Drive..."
-execute_and_check "bash 999_copy_tar_gdrive_disk3.sh $epoch_number"
+execute_and_check "bash 999_copy_tar_gdrive.sh $epoch_number"
 
 log "INFO" "✅ All steps completed successfully for epoch $epoch_number"
 
@@ -107,7 +113,7 @@ components_processed="   • Jito Kobe epoch data retrieval
    • Cleanup operations
    • Archive copying to Google Drive"
 
-bash 999_discord_notify.sh success "$script_name" "$epoch_number" "Jito Wait Processing Completed Successfully" "$components_processed"
+bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "$epoch_number" "Jito Wait Processing Completed Successfully" "$components_processed"
 cleanup_logging
 
 # Kill the current tmux session

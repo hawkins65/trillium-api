@@ -1,6 +1,14 @@
 import sys
 import json
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 import requests
 import psycopg2
 from psycopg2.extras import execute_batch
@@ -32,7 +40,7 @@ FIELD_MAPPING = {
 }
 
 def setup_logging():
-    logger = logging.getLogger()
+    # Logger setup moved to unified configuration
     logger.setLevel(logging.INFO)
     now = datetime.now()
     formatted_time = now.strftime('%Y-%m-%d_%H-%M')
@@ -121,7 +129,7 @@ def fetch_epoch_ips(epoch, conn):
         logger.info(f"Total distinct IPs for epoch {epoch}: {len(ip_dict)}")
         return ip_dict
 
-def fetch_previous_geoip(epoch, conn):
+def fetch_previous_geographic_data(epoch, conn):
     query = """
         SELECT ip, city, country, continent, region, asn_org, asn, lat, lon
         FROM validator_stats
@@ -131,7 +139,7 @@ def fetch_previous_geoip(epoch, conn):
         cur.execute(query, (epoch - 1,))
         return {row[0]: row[1:] for row in cur.fetchall()}
 
-def update_epoch_geoip(epoch, conn, previous_geoip=None, session=None):
+def update_epoch_geographic_data(epoch, conn, previous_geographic_data=None, session=None):
     logger.info(f"Processing epoch {epoch}")
     current_ips = fetch_epoch_ips(epoch, conn)
     
@@ -141,21 +149,21 @@ def update_epoch_geoip(epoch, conn, previous_geoip=None, session=None):
 
     ips_to_lookup = set()
     results = {}
-    if previous_geoip:
+    if previous_geographic_data:
         reused_count = 0
         for ip, pubkey in current_ips.items():
-            if ip in previous_geoip and any(previous_geoip[ip]):  # Reuse if any field is non-null
+            if ip in previous_geographic_data and any(previous_geographic_data[ip]):  # Reuse if any field is non-null
                 reused_count += 1
-                logger.debug(f"Reusing previous GeoIP data for IP {ip} in epoch {epoch}")
+                logger.debug(f"Reusing previous geographic data for IP {ip} in epoch {epoch}")
                 results[pubkey] = {
-                    "city": previous_geoip[ip][0],
-                    "country": previous_geoip[ip][1],
-                    "continent": previous_geoip[ip][2],
-                    "region": previous_geoip[ip][3],
-                    "asn_org": previous_geoip[ip][4],
-                    "asn": previous_geoip[ip][5],
-                    "lat": previous_geoip[ip][6],
-                    "lon": previous_geoip[ip][7],
+                    "city": previous_geographic_data[ip][0],
+                    "country": previous_geographic_data[ip][1],
+                    "continent": previous_geographic_data[ip][2],
+                    "region": previous_geographic_data[ip][3],
+                    "asn_org": previous_geographic_data[ip][4],
+                    "asn": previous_geographic_data[ip][5],
+                    "lat": previous_geographic_data[ip][6],
+                    "lon": previous_geographic_data[ip][7],
                     "ip": ip,
                     "identity_pubkey": pubkey,
                     "epoch": epoch
@@ -218,7 +226,7 @@ def update_epoch_geoip(epoch, conn, previous_geoip=None, session=None):
             conn.commit()
             logger.info(f"Updated {len(results)} rows for epoch {epoch}")
     else:
-        logger.info(f"No GeoIP data to update for epoch {epoch}")
+        logger.info(f"No geographic data to update for epoch {epoch}")
 
     return {ip: (results[pubkey]["city"], results[pubkey]["country"], results[pubkey]["continent"],
                  results[pubkey]["region"], results[pubkey]["asn_org"], results[pubkey]["asn"],
@@ -277,15 +285,15 @@ def main():
                 return
 
     try:
-        previous_geoip = None
+        previous_geographic_data = None
         if len(epochs) == 1:
             target_epoch = epochs[0]
             if target_epoch > min_epoch:
-                previous_geoip = fetch_previous_geoip(target_epoch, conn)
-            update_epoch_geoip(target_epoch, conn, previous_geoip, session)
+                previous_geographic_data = fetch_previous_geographic_data(target_epoch, conn)
+            update_epoch_geographic_data(target_epoch, conn, previous_geographic_data, session)
         else:
             for epoch in epochs:
-                previous_geoip = update_epoch_geoip(epoch, conn, previous_geoip, session)
+                previous_geographic_data = update_epoch_geographic_data(epoch, conn, previous_geographic_data, session)
     finally:
         conn.close()
         logger.info("Database connection closed")

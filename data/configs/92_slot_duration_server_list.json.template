@@ -1,0 +1,51 @@
+{
+  "servers": [
+    {
+      "name": "solanahub_luxembourg",
+      "endpoint": "wss://fd.solanahub.app/websocket",
+      "location": "Luxembourg",
+      "group": 1,
+      "continent": "Europe"
+    },
+    {
+      "name": "decentra_port_elizabeth",
+      "endpoint": "ws://102.211.135.162:9600/websocket",
+      "location": "South Africa",
+      "group": 1,
+      "continent": "Africa"
+    },
+    {
+      "name": "prostaking_neworleans",
+      "endpoint": "wss://fd.prostaking.com/websocket",
+      "location": "New Orleans",
+      "group": 1,
+      "continent": "North America"
+    },
+    {
+      "name": "paragon_quarrybay",
+      "endpoint": "wss://fd.paragon.gdn/websocket",
+      "location": "Quarry Bay, Hong Kong",
+      "group": 1,
+      "continent": "Asia"
+    },
+    {
+      "name": "xlabs_buenosaires",
+      "endpoint": "wss://fd.mainnet.xlabs.xyz/websocket",
+      "location": "Buenos Aires",
+      "group": 1,
+      "continent": "South America"
+    }
+  ],
+  "_comments": {
+    "usage": "Copy this file to '92_slot_duration_server_list.json' and modify as needed",
+    "description": "Production WebSocket endpoints for Solana Firedancer nodes across different continents",
+    "fields": {
+      "name": "Unique identifier for the server (used in logs and monitoring)",
+      "endpoint": "WebSocket URL (ws:// or wss://)",
+      "location": "Human-readable location description",
+      "group": "Server group number for load balancing/organization",
+      "continent": "Continent name for geographic analysis"
+    },
+    "setup": "1. Copy this template to '92_slot_duration_server_list.json' 2. Modify endpoints as needed for your deployment 3. Update location information if using different RPC providers"
+  }
+}

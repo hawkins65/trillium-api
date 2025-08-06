@@ -2,7 +2,16 @@ import websocket
 import json
 import threading
 import time
-import logging
+import importlib.util
+import os
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 from collections import defaultdict
 
 # WebSocket endpoint
@@ -12,19 +21,19 @@ WSS_ENDPOINT = "wss://fd.trillium.so/websocket"
 metric_counts = defaultdict(int)
 
 # Configure logging
-logging.basicConfig(filename="metrics_log.jsonl", level=logging.INFO, format="%(asctime)s %(message)s")
+# Logging config moved to unified configurations %(message)s")
 
 # Handle WebSocket connection open
 def on_open(ws):
     print("Connected to WebSocket stream")
-    logging.info("Connected to WebSocket stream")
+    logger.info("Connected to WebSocket stream")
 
 # Handle incoming messages
 def on_message(ws, message):
     try:
         # Parse JSON message
         data = json.loads(message)
-        logging.info(json.dumps(data))
+        logger.info(json.dumps(data))
 
         # Extract top-level topic and key
         topic = data.get("topic", "unknown")
@@ -43,24 +52,24 @@ def on_message(ws, message):
         print(f"Metric counts so far: {dict(sorted(metric_counts.items(), key=lambda x: x[1], reverse=True))}")
     except json.JSONDecodeError as e:
         print(f"Error parsing message: {e}")
-        logging.error(f"Error parsing message: {e}")
+        logger.error(f"Error parsing message: {e}")
     except Exception as e:
         print(f"Unexpected error: {e}")
-        logging.error(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error: {e}")
 
 # Handle errors
 def on_error(ws, error):
     print(f"WebSocket error: {error}")
-    logging.error(f"WebSocket error: {error}")
+    logger.error(f"WebSocket error: {error}")
 
 # Handle connection close
 def on_close(ws, close_status_code, close_msg):
     print(f"WebSocket connection closed: {close_status_code}, {close_msg}")
-    logging.info(f"WebSocket connection closed: {close_status_code}, {close_msg}")
+    logger.info(f"WebSocket connection closed: {close_status_code}, {close_msg}")
     # Save metric counts to JSON
-    with open("metric_counts.json", "w") as f:
+    with open("/home/smilax/trillium_api/data/analysis/metric_counts.json", "w") as f:
         json.dump(dict(metric_counts), f, indent=2)
-    print(f"Final metric counts saved to metric_counts.json")
+    print(f"Final metric counts saved to /home/smilax/trillium_api/data/analysis/metric_counts.json")
     # Attempt to reconnect
     print("Attempting to reconnect in 5 seconds...")
     time.sleep(5)
@@ -93,9 +102,9 @@ if __name__ == "__main__":
         run_websocket()
     except KeyboardInterrupt:
         print("Script interrupted by user")
-        logging.info("Script interrupted by user")
-        with open("metric_counts.json", "w") as f:
+        logger.info("Script interrupted by user")
+        with open("/home/smilax/trillium_api/data/analysis/metric_counts.json", "w") as f:
             json.dump(dict(metric_counts), f, indent=2)
     except Exception as e:
         print(f"Error running script: {e}")
-        logging.error(f"Error running script: {e}")
+        logger.error(f"Error running script: {e}")

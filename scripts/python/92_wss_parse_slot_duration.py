@@ -5,7 +5,16 @@ import csv
 import time
 import os
 import threading
+import importlib.util
 import logging
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 import requests
 import subprocess
 import sys
@@ -15,12 +24,12 @@ from concurrent.futures import ThreadPoolExecutor
 import signal
 
 # Global settings
-CONFIG_FILE = "/home/smilax/api/92_slot_duration_server_list.json"
-LEADER_SCHEDULE_DIR = "/home/smilax/block-production/leaderboard/leader_schedules"
+CONFIG_FILE = "/home/smilax/trillium_api/data/configs/92_slot_duration_server_list.json"
+LEADER_SCHEDULE_DIR = "/home/smilax/trillium_api/data/leader_schedules"
 VALIDATOR_REWARDS_URL = "https://api.trillium.so/validator_rewards/"
 LOG_DIR = os.path.expanduser("~/log")
-OUTPUT_DIR = "/home/smilax/api/wss_slot_duration"
-SOLANA_CMD = "/home/smilax/.local/share/solana/install/active_release/bin/solana"
+OUTPUT_DIR = "/home/smilax/trillium_api/data/monitoring/wss_slot_duration"
+SOLANA_CMD = "/home/smilax/agave/bin/solana"
 
 # Global shared data
 validator_mapping = {}
@@ -58,27 +67,14 @@ class ServerWorker:
         self.keep_alive_thread = None
         self.connection_lock = threading.Lock()
         
-        # Logging
-        self.logger = logging.getLogger(f"server_{server_name}")
-        self.logger.setLevel(logging.INFO)
+        # Logging - use the global logger
         self.log_handler = None
 
     def initialize_log(self, epoch):
         """Initialize log file for the current epoch"""
-        log_file = os.path.join(LOG_DIR, f"{self.server_name}_wss_epoch{epoch}.log")
-        
-        # Remove existing handler if present
-        if self.log_handler:
-            self.logger.removeHandler(self.log_handler)
-        
-        # Set up new file handler
-        self.log_handler = logging.FileHandler(log_file)
-        self.log_handler.setLevel(logging.INFO)
-        self.log_handler.setFormatter(logging.Formatter(f"[{self.server_name}] %(asctime)s - %(message)s"))
-        self.logger.addHandler(self.log_handler)
-        
-        self.log(f"Logging to: {log_file}")
-        return log_file
+        # The global logger already handles file logging, so we just log epoch info
+        self.log(f"Starting epoch {epoch} processing")
+        return None
 
     def initialize_csv(self, epoch, hour):
         """Initialize CSV file for the current hour"""
@@ -98,11 +94,8 @@ class ServerWorker:
 
     def log(self, message):
         """Log message with server identification"""
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        formatted_msg = f"[{self.server_name}] {timestamp} - {message}"
-        print(formatted_msg)
-        if self.logger and self.log_handler:
-            self.logger.info(message)
+        # Use the global logger with server identification
+        logger.info(f"[{self.server_name}] {message}")
 
     def keep_alive(self, ws):
         """Keep-alive function with health monitoring"""
@@ -298,9 +291,9 @@ def load_servers(group_id):
         with open(CONFIG_FILE, "r") as f:
             data = json.load(f)
         SERVERS = {server["name"]: server for server in data["servers"] if server["group"] == group_id}
-        print(f"Loaded {len(SERVERS)} servers for group {group_id}")
+        logger.info(f"Loaded {len(SERVERS)} servers for group {group_id}")
     except Exception as e:
-        print(f"Error loading servers from {CONFIG_FILE}: {e}")
+        logger.error(f"Error loading servers from {CONFIG_FILE}: {e}")
         sys.exit(1)
 
 def get_current_epoch():
@@ -308,7 +301,7 @@ def get_current_epoch():
         result = subprocess.run([SOLANA_CMD, "epoch"], capture_output=True, text=True, check=True)
         return int(result.stdout.strip())
     except Exception as e:
-        print(f"Error getting current epoch: {e}")
+        logger.error(f"Error getting current epoch: {e}")
         return None
 
 def fetch_validator_rewards():
@@ -318,7 +311,7 @@ def fetch_validator_rewards():
         data = response.json()
         return {item["identity_pubkey"]: {"name": item["name"], "vote_account_pubkey": item["vote_account_pubkey"]} for item in data}
     except Exception as e:
-        print(f"Error fetching validator rewards: {e}")
+        logger.error(f"Error fetching validator rewards: {e}")
         return {}
 
 def load_leader_schedule(epoch):
@@ -328,31 +321,31 @@ def load_leader_schedule(epoch):
             data = json.load(f)
         return {entry["slot"]: entry["leader"] for entry in data["leaderScheduleEntries"]}
     except Exception as e:
-        print(f"Error loading leader schedule for epoch {epoch}: {e}")
+        logger.error(f"Error loading leader schedule for epoch {epoch}: {e}")
         return {}
 
 def initialize_global_data():
     global validator_mapping, current_epoch, leader_schedule, next_leader_schedule
     
-    print("Initializing global data...")
+    logger.info("Initializing global data...")
     
     validator_mapping = fetch_validator_rewards()
-    print(f"Loaded validator mapping for {len(validator_mapping)} validators")
+    logger.info(f"Loaded validator mapping for {len(validator_mapping)} validators")
     
     current_epoch = get_current_epoch()
     if current_epoch:
         leader_schedule = load_leader_schedule(current_epoch)
         next_leader_schedule = load_leader_schedule(current_epoch + 1)
-        print(f"Loaded leader schedule for epoch {current_epoch} with {len(leader_schedule)} slots")
-        print(f"Pre-loaded leader schedule for epoch {current_epoch + 1} with {len(next_leader_schedule)} slots")
+        logger.info(f"Loaded leader schedule for epoch {current_epoch} with {len(leader_schedule)} slots")
+        logger.info(f"Pre-loaded leader schedule for epoch {current_epoch + 1} with {len(next_leader_schedule)} slots")
         return True
     else:
-        print("Warning: Could not determine current epoch")
+        logger.warning("Could not determine current epoch")
         return False
 
 def signal_handler(signum, frame):
     global should_run
-    print(f"\nReceived signal {signum}. Shutting down Group {args.group}...")
+    logger.info(f"Received signal {signum}. Shutting down Group {args.group}...")
     should_run = False
     shutdown_event.set()
     
@@ -371,20 +364,20 @@ def main():
     # Load servers for the specified group
     load_servers(args.group)
     if not SERVERS:
-        print(f"No servers found for group {args.group}. Exiting.")
+        logger.error(f"No servers found for group {args.group}. Exiting.")
         return
     
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     
     if not initialize_global_data():
-        print("Failed to initialize global data. Exiting.")
+        logger.error("Failed to initialize global data. Exiting.")
         return
     
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(LOG_DIR, exist_ok=True)
     
-    print(f"Starting WebSocket Group {args.group} - {len(SERVERS)} servers...")
+    logger.info(f"Starting WebSocket Group {args.group} - {len(SERVERS)} servers...")
     
     with ThreadPoolExecutor(max_workers=len(SERVERS)) as executor:
         futures = {}
@@ -394,15 +387,15 @@ def main():
             server_threads[server_name] = worker
             future = executor.submit(worker.run)
             futures[future] = server_name
-            print(f"Started {server_name} ({server_config['location']})")
+            logger.info(f"Started {server_name} ({server_config['location']})")
         
         try:
             while should_run and not shutdown_event.is_set():
                 time.sleep(1)
         except KeyboardInterrupt:
-            print("\nShutdown requested")
+            logger.info("Shutdown requested")
         finally:
-            print(f"Shutting down Group {args.group} workers...")
+            logger.info(f"Shutting down Group {args.group} workers...")
             should_run = False
             shutdown_event.set()
             
@@ -410,9 +403,9 @@ def main():
                 try:
                     future.result(timeout=5)
                 except Exception as e:
-                    print(f"Worker {futures[future]} shutdown error: {e}")
+                    logger.error(f"Worker {futures[future]} shutdown error: {e}")
     
-    print(f"Group {args.group} workers shut down.")
+    logger.info(f"Group {args.group} workers shut down.")
 
 if __name__ == "__main__":
     main()

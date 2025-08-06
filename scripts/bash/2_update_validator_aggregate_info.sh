@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -26,7 +32,7 @@ execute_with_logging() {
         local exit_code=$?
         local error_msg="❌ Failed to execute $description (exit code: $exit_code)"
         log "ERROR" "$error_msg"
-        bash 999_discord_notify.sh error "$script_name" "$description" "$command" "$exit_code" "$epoch_number"
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "$description" "$command" "$exit_code" "$epoch_number"
         return $exit_code
     fi
 }
@@ -60,7 +66,7 @@ if [ "$skip_previous" = false ]; then
     log "INFO" "📈 Configuring for full processing mode"
     
     # Load the vote latency table for this epoch
-    execute_with_logging "python3 92_vx-call.py $epoch_number" "vote latency table loading" "📊"
+    execute_with_logging "python3 ../python/92_vx-call.py $epoch_number" "vote latency table loading" "📊"
 
     # Write responses to the temporary file for full processing
     {
@@ -106,12 +112,12 @@ fi
 
 # Pipe the responses to the Python script to update validator aggregate info
 log "INFO" "🔄 Starting validator aggregate info update"
-if cat "$response_file" | python3 92_update_validator_aggregate_info.py; then
+if cat "$response_file" | python3 ../python/92_update_validator_aggregate_info.py; then
     log "INFO" "✅ Successfully completed validator aggregate info update"
 else
     exit_code=$?
     log "ERROR" "❌ Failed to update validator aggregate info (exit code: $exit_code)"
-    bash 999_discord_notify.sh error "$script_name" "Validator aggregate info update" "cat \"$response_file\" | python3 92_update_validator_aggregate_info.py" "$exit_code" "$epoch_number"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Validator aggregate info update" "cat \"$response_file\" | python3 ../python/92_update_validator_aggregate_info.py" "$exit_code" "$epoch_number"
     exit $exit_code
 fi
 
@@ -122,7 +128,7 @@ LATEST_FILE=$(ls -t $FILE_PATTERN | head -n 1)
 
 if [ -z "$LATEST_FILE" ]; then
     log "ERROR" "❌ No log files found matching pattern: $FILE_PATTERN"
-    bash 999_discord_notify.sh error "$script_name" "Log file check" "ls -t $FILE_PATTERN | head -n 1" "1" "$epoch_number" "No log files found matching pattern: $FILE_PATTERN"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Log file check" "ls -t $FILE_PATTERN | head -n 1" "1" "$epoch_number" "No log files found matching pattern: $FILE_PATTERN"
     exit 1
 fi
 
@@ -136,21 +142,21 @@ fi
 # Execute remaining steps with logging and error handling
 execute_with_logging "bash 92_vote_latency_update_ead.sh $epoch_number" "vote latency epoch aggregate update" "⏱️"
 
-execute_with_logging "python3 92_block_time_calculation.py $epoch_number" "average slot time calculation" "⏰"
+execute_with_logging "python3 ../python/92_block_time_calculation.py $epoch_number" "average slot time calculation" "⏰"
 
-execute_with_logging "python3 92_update_vs_inflation_reward.py $epoch_number" "validator inflation rewards update" "💰"
+execute_with_logging "python3 ../python/92_update_vs_inflation_reward.py $epoch_number" "validator inflation rewards update" "💰"
 
-execute_with_logging "python3 92_update_ead_inflation_reward.py $epoch_number" "epoch aggregate inflation rewards update" "💵"
+execute_with_logging "python3 ../python/92_update_ead_inflation_reward.py $epoch_number" "epoch aggregate inflation rewards update" "💵"
 
-execute_with_logging "python3 92_calculate_apy.py $epoch_number" "APY calculations" "📈"
+execute_with_logging "python3 ../python/92_calculate_apy.py $epoch_number" "APY calculations" "📈"
 
-execute_with_logging "python3 92_ip_api.py $epoch_number" "geographic IP information gathering" "🌍"
+execute_with_logging "python3 ../python/92_ip_api.py $epoch_number" "geographic IP information gathering" "🌍"
 
 execute_with_logging "bash 92_run_sql_updates.sh" "SQL post-processing updates" "🗄️"
 
 execute_with_logging "bash 92_slot_duration.sh $epoch_number" "slot duration analysis" "⏱️"
 
-execute_with_logging "python3 92_solana_block_laggards.py $epoch_number" "slot duration laggards analysis" "⏱️"
+execute_with_logging "python3 ../python/92_solana_block_laggards.py $epoch_number" "slot duration laggards analysis" "⏱️"
 
 log "INFO" "🎉 Validator aggregate info update process completed successfully for epoch $epoch_number"
 
@@ -174,5 +180,5 @@ components_processed="   • Vote latency data loading
 
 additional_notes="Processing Mode: $processing_mode"
 
-bash 999_discord_notify.sh success "$script_name" "$epoch_number" "Validator Aggregate Info Update Completed Successfully" "$components_processed" "$additional_notes"
+bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "$epoch_number" "Validator Aggregate Info Update Completed Successfully" "$components_processed" "$additional_notes"
 cleanup_logging

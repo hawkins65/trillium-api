@@ -1,0 +1,57 @@
+# db_config.py.template
+# 
+# Database configuration for Trillium Solana Data Processing Pipeline
+# This template contains production-ready settings for PostgreSQL connection
+#
+# SETUP INSTRUCTIONS:
+# 1. Copy this file to 'db_config.py' in the same directory
+# 2. Update the 'user' field to match your PostgreSQL username
+# 3. Update the 'database' field if using a different database name
+# 4. Ensure you have a ~/.pgpass file configured (see INSTALLATION.md)
+#
+# SECURITY NOTE: 
+# - No password is included here because it's read from ~/.pgpass
+# - The actual db_config.py file is excluded from git via .gitignore
+#
+
+db_params = {
+    # PostgreSQL server hostname or IP address
+    "host": "localhost",
+    
+    # PostgreSQL server port (default is 5432)
+    "port": "5432",
+    
+    # Database name for Solana blocks data
+    # This is the standard database name used in production
+    "database": "sol_blocks",
+    
+    # PostgreSQL username - UPDATE THIS to match your database user
+    # Common usernames: "smilax", "trillium", "postgres", or your system username
+    "user": "smilax",
+    
+    # SSL mode for database connections
+    # "disable" is used for local connections
+    # Use "require" for remote/production connections
+    "sslmode": "disable"
+    
+    # Note: Password is automatically read from ~/.pgpass file
+    # Format: hostname:port:database:username:password
+    # Example: localhost:5432:sol_blocks:smilax:your_password
+}
+
+# Database connection verification
+# Uncomment the following code to test your database connection:
+#
+# import psycopg2
+# try:
+#     conn = psycopg2.connect(**db_params)
+#     print("✅ Database connection successful!")
+#     conn.close()
+# except Exception as e:
+#     print(f"❌ Database connection failed: {e}")
+#     print("Check your db_config.py settings and ~/.pgpass file")
+
+# Production Notes:
+# - Database "sol_blocks" contains validator data, epoch information, and blockchain metrics
+# - Tables include: validator_stats, validator_data, epoch_aggregate_data, stake_accounts
+# - This configuration is optimized for the Trillium Solana data processing pipeline

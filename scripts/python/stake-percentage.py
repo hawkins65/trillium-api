@@ -1,22 +1,20 @@
 import json
 import subprocess
 import os
-import logging
-import datetime
+import importlib.util
 import sys
+
+# Add the scripts/python directory to Python path
+script_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, script_dir)
+
+# Setup unified logging
+spec = importlib.util.spec_from_file_location("logging_config", os.path.join(script_dir, "999_logging_config.py"))
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
+import datetime
 import argparse
-
-# ---------------------------
-# Logging Setup: Log to both console and a file.
-# ---------------------------
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-
-# Console handler
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
 
 # Parse Command-Line Argument (positional, defaults to mainnet)
 parser = argparse.ArgumentParser(
@@ -32,20 +30,6 @@ parser.add_argument(
 args = parser.parse_args()
 network = args.network
 
-# Get the basename of the script (without path or extension)
-script_basename = os.path.splitext(os.path.basename(__file__))[0]
-
-# Set up logging
-# Get the basename of the current script
-script_name = os.path.basename(sys.argv[0]).replace('.py', '')
-# Set log directory in home folder
-log_dir = os.path.expanduser('~/log')
-# Construct the full log file path
-log_file = os.path.join(log_dir, f"{script_name}.log")
-file_handler = logging.FileHandler(log_file)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
 logger.info(f"Network selected: {network}")
 
 # Set the Solana flag and file prefix based on the network.
@@ -56,7 +40,7 @@ else:
     solana_flag = "--url https://shy-yolo-sheet.solana-testnet.quiknode.pro/696dfc16996feaa4bc5f97cf207aafa02bcbdb9c/"
     file_prefix = "testnet"
 
-SOLANA_CMD = "/home/smilax/.local/share/solana/install/active_release/bin/solana"
+SOLANA_CMD = "/home/smilax/agave/bin/solana"
 LAMPORTS_PER_SOL = 1_000_000_000
 
 # ---------------------------

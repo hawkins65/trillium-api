@@ -2,7 +2,15 @@ import psycopg2
 import sys
 import json
 from db_config import db_params
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 from time import perf_counter
 from collections import defaultdict, deque
 from decimal import Decimal
@@ -12,9 +20,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import os
 
 # Logging setup
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+# Logging config moved to unified configurations - %(levelname)s - %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)]
 )
 
@@ -32,10 +38,10 @@ def execute_query(cur, query: str, params: tuple = None) -> List[tuple]:
         cur.execute(query, params or ())
         result = cur.fetchall()
         end_time = perf_counter()
-        logging.info(f"Query completed in {end_time - start_time:.4f} seconds")
+        logger.info(f"Query completed in {end_time - start_time:.4f} seconds")
         return result
     except Exception as e:
-        logging.error(f"Error executing query: {str(e)}")
+        logger.error(f"Error executing query: {str(e)}")
         return []
 
 class DecimalEncoder(json.JSONEncoder):
@@ -60,7 +66,7 @@ class LeaderScheduleData:
 
     def load_data(self, cur) -> None:
         """Load data efficiently and precompute aggregates to minimize per-validator work"""
-        logging.info("Loading leader schedule data...")
+        logger.info("Loading leader schedule data...")
         start_time = perf_counter()
 
         # Query 1: Get only skipped slots
@@ -113,7 +119,7 @@ class LeaderScheduleData:
             self.validator_prior_stats[pubkey] = self._calculate_prior_skip_stats(pubkey, slots)
 
         end_time = perf_counter()
-        logging.info(f"Data loading completed in {end_time - start_time:.4f} seconds")
+        logger.info(f"Data loading completed in {end_time - start_time:.4f} seconds")
 
     def analyze_validator(self, pubkey: str) -> dict:
         """Analyze a validator's performance using precomputed data, minimizing computation"""

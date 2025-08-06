@@ -1,9 +1,16 @@
 #!/bin/bash
 
+# Source common logging
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../bash/999_common_log.sh"
+
+# Initialize logging
+init_logging
+
 # Function to check if the previous command executed successfully
 check_error() {
     if [ $? -ne 0 ]; then
-        echo "Error: Command failed. Exiting script."
+        log_error "❌ Command failed. Exiting script"
         exit 1
     fi
 }
@@ -18,11 +25,12 @@ fi
 # Construct the base filename
 FILE="epoch${epoch_number}.tar.zst"
 
-echo
-echo "Starting Step 1: Copying $FILE to /home/smilax/block-production/api/..."
-cp "$FILE" /home/smilax/block-production/api/
+log_info "🚀 Starting archive: Copying $FILE to /mnt/gdrive/epochs/"
+cp "$FILE" /mnt/gdrive/epochs/
 check_error
-echo "Step 1: $FILE copied to /home/smilax/block-production/api/ successfully."
-echo
+log_info "✅ Archive complete: $FILE copied to /mnt/gdrive/epochs/ successfully"
 
-echo "All steps completed successfully."
+log_info "🎉 All steps completed successfully"
+
+# Cleanup logging
+cleanup_logging

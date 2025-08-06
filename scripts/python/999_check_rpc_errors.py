@@ -8,7 +8,16 @@ import json
 import time
 import sys
 import os
+import importlib.util
 from datetime import datetime
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 
 # Add the directory containing rpc_config.py to sys.path
 sys.path.append("/home/smilax/api")

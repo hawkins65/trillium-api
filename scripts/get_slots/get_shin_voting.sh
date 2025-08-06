@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Source common logging
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../bash/999_common_log.sh"
+
+# Initialize logging
+init_logging
+
 # Create the run0 directory if it doesn't exist
 mkdir -p ./run0
 
@@ -16,19 +23,22 @@ for url in "${urls[@]}"; do
   
   # Check if the file already exists
   if [ -f "./run0/$filename" ]; then
-    echo "File $filename already exists. Skipping download."
+    log_info "⏭️ File $filename already exists. Skipping download"
   else
-    echo "Downloading $filename..."
+    log_info "📥 Downloading $filename..."
     # Download the file using curl
     curl -o "./run0/$filename" "$url"
     
     # Check if the download was successful
     if [ $? -eq 0 ]; then
-      echo "Successfully downloaded $filename"
+      log_info "✅ Successfully downloaded $filename"
     else
-      echo "Failed to download $filename"
+      log_error "❌ Failed to download $filename"
     fi
   fi
 done
 
-echo "Script execution completed."
+log_info "🎉 Script execution completed"
+
+# Cleanup logging
+cleanup_logging

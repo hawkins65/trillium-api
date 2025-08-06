@@ -2,70 +2,19 @@ import os
 import sys
 import csv
 import glob
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 import json
-import getpass
-import time
-from datetime import datetime
 
 # Debug flag
 DEBUG = False
-
-def setup_logging(script_name, log_dir=None, level=logging.DEBUG if DEBUG else logging.INFO):
-    """
-    Sets up a standardized logger for a script.
-
-    Args:
-        script_name (str): The name of the script (e.g., os.path.basename(__file__).replace('.py', '')).
-        log_dir (str, optional): The directory where log files will be stored.
-                                 Defaults to '~/log'.
-        level (int, optional): The logging level (e.g., logging.INFO, logging.DEBUG).
-                               Defaults to logging.DEBUG if DEBUG is True, else logging.INFO.
-    Returns:
-        logging.Logger: The configured logger instance.
-    """
-    if log_dir is None:
-        log_dir = os.path.expanduser('~/log')
-
-    os.makedirs(log_dir, exist_ok=True)
-
-    # Get or create logger
-    logger = logging.getLogger(script_name)
-    
-    # Clear existing handlers to prevent duplicates
-    logger.handlers.clear()
-    
-    # Set logger level
-    logger.setLevel(level)
-
-    # File handler
-    now = datetime.now()
-    formatted_time = now.strftime('%Y-%m-%d_%H-%M-%S')
-    file_handler = logging.FileHandler(os.path.join(log_dir, f"{script_name}_log_{formatted_time}.log"))
-    file_handler.setLevel(level)
-    file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(file_formatter)
-    logger.addHandler(file_handler)
-
-    # Console handler - Set to DEBUG level when DEBUG is True
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(level)  # Changed from logging.INFO to level
-    console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    console_handler.setFormatter(console_formatter)
-    logger.addHandler(console_handler)
-
-    if DEBUG:
-        logger.debug(f"Logging initialized with level {logging.getLevelName(level)}")
-        logger.debug(f"Python version: {sys.version}")
-        logger.debug(f"Running as user: {getpass.getuser()}")
-        logger.debug(f"Script path: {os.path.abspath(__file__)}")
-        logger.debug(f"Script modification time: {datetime.fromtimestamp(os.stat(__file__).st_mtime).strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.debug(f"Logger handlers: {[h.__class__.__name__ for h in logger.handlers]}")
-
-    return logger
-
-# Initialize logger
-logger = setup_logging('999_slots_progressing')
 
 def count_collected_slots(epoch_dir):
     collected_slots = set()
@@ -157,7 +106,7 @@ def main():
         logger.error("Usage: python3 999_slots_progressing.py <epoch_number>")
         sys.exit(1)
     epoch_number = sys.argv[1]
-    epoch_dir = f"/home/smilax/block-production/get_slots/epoch{epoch_number}"
+    epoch_dir = f"/home/smilax/trillium_api/data/epochs/epoch{epoch_number}"
     if not os.path.exists(epoch_dir):
         logger.error(f"Epoch directory {epoch_dir} does not exist.")
         sys.exit(1)

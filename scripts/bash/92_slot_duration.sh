@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
 # Source the common logging functions
-source /home/smilax/api/999_common_log.sh
+source $TRILLIUM_SCRIPTS_BASH/999_common_log.sh
 # Initialize enhanced logging
 init_logging
 
@@ -19,7 +25,7 @@ DB_NAME="sol_blocks"
 log "INFO" "🗄️ Database connection: $DB_USER@$DB_HOST:$DB_PORT/$DB_NAME"
 
 # Path to CSV directory
-CSV_DIR="/home/smilax/api/wss_slot_duration"
+CSV_DIR="/home/smilax/trillium_api/wss_slot_duration"
 
 log "INFO" "📁 CSV directory: $CSV_DIR"
 
@@ -41,7 +47,7 @@ if [[ -z "$EPOCH" ]]; then
     echo "Failed to retrieve or set epoch" >&2
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Epoch retrieval" "Failed to get epoch from database or parameter" "1" ""
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Epoch retrieval" "Failed to get epoch from database or parameter" "1" ""
     
     exit 1
 fi
@@ -59,14 +65,14 @@ if [[ ! -f "$CSV_FILE" ]]; then
     log "INFO" "🐍 Running 92_wss_slot_duration.py to generate the CSV file..."
 
     # Run the Python script to generate the CSV file
-    if python3 92_wss_slot_duration.py "$EPOCH"; then
+    if python3 ../python/92_wss_slot_duration.py "$EPOCH"; then
         log "INFO" "✅ Successfully generated CSV file using Python script"
     else
         PYTHON_EXIT_CODE=$?
         log "ERROR" "❌ Failed to generate CSV file using 92_wss_slot_duration.py (exit code: $PYTHON_EXIT_CODE)"
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "CSV generation" "python3 92_wss_slot_duration.py $EPOCH" "$PYTHON_EXIT_CODE" "$EPOCH"
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "CSV generation" "python3 ../python/92_wss_slot_duration.py $EPOCH" "$PYTHON_EXIT_CODE" "$EPOCH"
         
         echo "Error: Failed to generate CSV file using 92_wss_slot_duration.py" >&2
         exit 1
@@ -77,7 +83,7 @@ if [[ ! -f "$CSV_FILE" ]]; then
         log "ERROR" "❌ CSV file still not found after running Python script: $CSV_FILE"
         
         # Send error notification using centralized script
-        bash 999_discord_notify.sh error "$script_name" "CSV file verification" "CSV file not created despite successful Python script execution" "1" "$EPOCH"
+        bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "CSV file verification" "CSV file not created despite successful Python script execution" "1" "$EPOCH"
         
         echo "Error: CSV file still not found after running 92_wss_slot_duration.py: $CSV_FILE" >&2
         exit 1
@@ -116,7 +122,7 @@ else
     log "ERROR" "❌ Error running $SQL_FILE (exit code: $EXIT_CODE)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "SQL execution" "psql -f $SQL_FILE" "$EXIT_CODE" "$EPOCH"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "SQL execution" "psql -f $SQL_FILE" "$EXIT_CODE" "$EPOCH"
     
     echo "❌ Error running $SQL_FILE" >&2
     exit 1
@@ -135,7 +141,7 @@ if [[ $STATS_EXIT_CODE -ne 0 ]]; then
     log "ERROR" "❌ Error running $SQL_STATS_FILE (exit code: $STATS_EXIT_CODE)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Validator stats SQL" "psql -f $SQL_STATS_FILE" "$STATS_EXIT_CODE" "$EPOCH"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Validator stats SQL" "psql -f $SQL_STATS_FILE" "$STATS_EXIT_CODE" "$EPOCH"
     
     echo "❌ Error running $SQL_STATS_FILE" >&2
     exit 1
@@ -146,14 +152,14 @@ log "INFO" "✅ SQL file $SQL_STATS_FILE successfully executed"
 log "INFO" "🐍 Running validator statistics Python script"
 
 # Call the validator statistics Python script
-if python3 92_slot_duration_statistics.py "$EPOCH"; then
+if python3 ../python/92_slot_duration_statistics.py "$EPOCH"; then
     log "INFO" "✅ Python script 92_slot_duration_statistics.py successfully executed"
 else
     PYTHON_STATS_EXIT_CODE=$?
     log "ERROR" "❌ Error running 92_slot_duration_statistics.py (exit code: $PYTHON_STATS_EXIT_CODE)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "Statistics Python script" "python3 92_slot_duration_statistics.py $EPOCH" "$PYTHON_STATS_EXIT_CODE" "$EPOCH"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Statistics Python script" "python3 ../python/92_slot_duration_statistics.py $EPOCH" "$PYTHON_STATS_EXIT_CODE" "$EPOCH"
     
     echo "❌ Error running 92_slot_duration_statistics.py" >&2
     exit 1
@@ -162,14 +168,14 @@ fi
 log "INFO" "📈 Running epoch aggregate data update"
 
 # Call the epoch aggregate data update script
-if python3 92_update_ead_slot_duration_stats.py "$EPOCH"; then
+if python3 ../python/92_update_ead_slot_duration_stats.py "$EPOCH"; then
     log "INFO" "✅ Python script 92_update_ead_slot_duration_stats.py successfully executed"
 else
     EAD_EXIT_CODE=$?
     log "ERROR" "❌ Error running 92_update_ead_slot_duration_stats.py (exit code: $EAD_EXIT_CODE)"
     
     # Send error notification using centralized script
-    bash 999_discord_notify.sh error "$script_name" "EAD update Python script" "python3 92_update_ead_slot_duration_stats.py $EPOCH" "$EAD_EXIT_CODE" "$EPOCH"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "EAD update Python script" "python3 ../python/92_update_ead_slot_duration_stats.py $EPOCH" "$EAD_EXIT_CODE" "$EPOCH"
     
     echo "❌ Error running 92_update_ead_slot_duration_stats.py" >&2
     exit 1
@@ -184,5 +190,5 @@ components_processed="   • CSV file generation (if needed)
    • Slot duration statistics analysis
    • Epoch aggregate data updates"
 
-bash 999_discord_notify.sh success "$script_name" "$EPOCH" "Slot Duration Processing Completed Successfully" "$components_processed"
+bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "$EPOCH" "Slot Duration Processing Completed Successfully" "$components_processed"
 cleanup_logging

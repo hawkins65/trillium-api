@@ -1,0 +1,14 @@
+[Unit]
+Description=Sui Testnet Validator Dolphin Monitoring
+After=network.target
+
+[Service]
+User=smilax
+WorkingDirectory=/home/smilax/dolphin-configs
+ExecStart=/home/smilax/go/bin/dolphin --config /home/smilax/dolphin-configs/.dolphin-sui-testnet scan
+StandardOutput=append:/home/smilax/dolphin-configs/sui-testnet.out.log
+StandardError=append:append:/home/smilax/dolphin-configs/sui-testnet.err.log
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -9,7 +9,15 @@ import math
 import glob
 import select
 import re
-import logging
+import importlib.util
+
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 import sys
 from datetime import datetime
 
@@ -28,7 +36,7 @@ error_log_file = "solana_rpc_errors.log"
 
 # Setup logging like in 92_ip-api.py
 def setup_logging():
-    logger = logging.getLogger()
+    # Logger setup moved to unified configuration
     logger.setLevel(logging.DEBUG)
     now = datetime.now()
     formatted_time = now.strftime('%Y-%m-%d_%H-%M')

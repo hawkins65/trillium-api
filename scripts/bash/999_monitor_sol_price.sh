@@ -1,6 +1,12 @@
 #!/bin/bash
 
-source $HOME/api/999_common_log.sh
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
+source $HOME/trillium_api/scripts/bash/999_common_log.sh
 
 # Enable strict mode for safer scripting
 set -euo pipefail
@@ -11,11 +17,11 @@ set -euo pipefail
 
 readonly API_KEY="405f0ba7-0177-4c6c-8b2a-f4d5375726a2"
 readonly URL="https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
-readonly PRICE_FILE="/home/smilax/api/sol_price/sol_price.txt"
-readonly FLAG_FILE="/home/smilax/api/sol_price/sol_discord_flag.txt"
-readonly FLAG_FILE_1H="/home/smilax/api/sol_price/sol_discord_1h_flag.txt"
-readonly FLAG_FILE_24H="/home/smilax/api/sol_price/sol_discord_24h_flag.txt"
-readonly BOUNDARY_FLAG_FILE="/home/smilax/api/sol_price/sol_discord_boundary_flag.txt"
+readonly PRICE_FILE="/home/smilax/trillium_api/data/monitoring/sol_price.txt"
+readonly FLAG_FILE="/home/smilax/trillium_api/data/monitoring/sol_discord_flag.txt"
+readonly FLAG_FILE_1H="/home/smilax/trillium_api/data/monitoring/sol_discord_1h_flag.txt"
+readonly FLAG_FILE_24H="/home/smilax/trillium_api/data/monitoring/sol_discord_24h_flag.txt"
+readonly BOUNDARY_FLAG_FILE="/home/smilax/trillium_api/data/monitoring/sol_discord_boundary_flag.txt"
 readonly BOUNDARY_THRESHOLD=5
 readonly DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/1353842448685863014/3bCLiX_VDix5xwMChAOCHj74vQ8OqVKbAQZ62xHu1GdsbbEPVCOzAsGQzxrfhkwcGW4g"
 readonly DISCORD_USERNAME="SOL Price Monitor"

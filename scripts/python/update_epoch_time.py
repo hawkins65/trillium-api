@@ -1,10 +1,18 @@
 import psycopg2
 from decimal import Decimal
-import logging
+import importlib.util
+import os
 
+# Setup unified logging
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging_config_path = os.path.join(script_dir, "999_logging_config.py")
+spec = importlib.util.spec_from_file_location("logging_config", logging_config_path)
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+# Logging config moved to unified configurations - %(levelname)s - %(message)s')
+# Logger setup moved to unified configuration
 
 # PostgreSQL database connection parameters
 db_params = {

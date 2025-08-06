@@ -1,6 +1,12 @@
 #!/bin/bash
 
-source $HOME/api/999_common_log.sh
+# Source path initialization
+source "$(dirname "$0")/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
+source $HOME/trillium_api/scripts/bash/999_common_log.sh
 
 filename="/home/smilax/nginx-configuration/trillium.conf"
 

@@ -1,0 +1,18 @@
+[Unit]
+Description=Vote Credit Logger Service
+After=network.target
+
+[Service]
+User=smilax
+WorkingDirectory=/home/smilax/watchtower/vote-credit-monitor
+ExecStart=/usr/bin/python3 /home/smilax/watchtower/vote-credit-monitor/vote_credit_logger.py
+Restart=always
+RestartSec=5
+Environment="PATH=/home/smilax/.local/share/solana/install/active_release/bin:/usr/bin:/bin"
+
+# Redirect stdout and stderr to the specified log file
+StandardOutput=append:/home/smilax/watchtower/vote-credit-monitor/vote_credit_logger.log
+StandardError=append:/home/smilax/watchtower/vote-credit-monitor/vote_credit_logger.log
+
+[Install]
+WantedBy=multi-user.target

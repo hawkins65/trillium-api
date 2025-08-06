@@ -1,5 +1,11 @@
-import logging
-logger = logging.getLogger(__name__)
+import importlib.util
+
+# Setup unified logging
+spec = importlib.util.spec_from_file_location("logging_config", "999_logging_config.py")
+logging_config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logging_config)
+logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
+# Logger setup moved to unified configuration
 
 def extract_vote_data(slot, block_data, epoch_number):
     vote_data_list = []

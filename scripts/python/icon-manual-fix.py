@@ -4,8 +4,8 @@ import csv
 from pathlib import Path
 
 # Directory paths
-source_dir = '/home/smilax/block-production/api/icon_dir'
-target_dir = '/home/smilax/block-production/api/static/images'
+source_dir = '/home/smilax/trillium_api/icon_dir'
+target_dir = '/home/smilax/trillium_api/static/images'
 
 def process_files():
     # Get list of files
