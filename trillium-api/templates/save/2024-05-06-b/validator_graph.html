@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>
+        Solana Average Validator Rewards<br>
+        Powered by Trillium
+    </title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        a {
+            color: #f4ac07;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #f4b833;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        p {
+            line-height: 1.6;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: #f4ac07;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        header h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            margin: 0;
+            text-align: center;
+        }
+        header h1 br {
+            display: none;
+        }
+        header .logo-container {
+            position: absolute;
+            left: 2rem;
+            display: flex;
+            align-items: center;
+        }
+        header .logo-container.right {
+            left: auto;
+            right: 2rem;
+        }
+        header .logo-container img {
+            height: 1.6em;
+            width: auto;
+            margin: 0 0.5rem;
+        }
+        header small {
+            color: #fff;
+            font-size: 0.8rem;
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: #f4ac07;
+            color: #fff;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        footer p {
+            margin: 0;
+            line-height: 1.6;
+        }
+        footer img {
+            height: 1.6em;
+            width: auto;
+            margin: 0 1rem;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        .legend-table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .legend-table th, .legend-table td {
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .legend-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .legend-table td.validator-avg-rewards,
+        .legend-table td.validator-blocks,
+        .legend-table td.total-blocks,
+        .legend-table td.overall-epoch-avg-rewards {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo">
+        </div>
+        <h1>
+            Solana Average Validator Rewards<br>
+            Powered by Trillium
+        </h1>
+        <div class="logo-container right">
+            <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo">
+        </div>
+    </header>
+    <div>
+        <label for="pubkey-select">Select Pubkey/Name:</label>
+        <input type="text" id="pubkey-select" list="pubkey-options">
+        <datalist id="pubkey-options"></datalist>
+    </div>
+    <canvas id="validator-chart"></canvas>
+    <table class="legend-table">
+        <thead>
+            <tr>
+                <th>Epoch</th>
+                <th>Icon</th>
+                <th>Name</th>
+                <th>Website</th>
+                <th>Pubkey</th>
+                <th>Vote Account Pubkey</th>
+                <th>Validator Average Rewards (SOL)</th>
+                <th>Overall Epoch Average Rewards (SOL)</th>
+                <th>Validator Blocks</th>
+                <th>Total Blocks in Epoch</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <footer>
+        <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo">
+        <p>Trillium is passionate about Solana</p>
+        <p>Your stake helps fuel the Solana ecosystem growth</p>
+        <p>Join the Tri1lium revolution today!</p>
+        <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo">
+    </footer>
+
+    <script>
+        $(document).ready(function() {
+            var currentPubkeys = '{{ pubkeys }}';
+            var currentNames = {};
+
+            function getColor(index) {
+                var colors = [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 159, 64, 0.8)'
+                ];
+                return colors[index % colors.length];
+            }
+
+            // Fetch pubkeys and names from the Flask backend
+            $.getJSON('/api/pubkeys', function(data) {
+                console.log('Debug: Received pubkeys:', data);
+                var pubkeyOptions = $('#pubkey-options');
+                data.forEach(function(item) {
+                    var option = $('<option>').attr('value', item.pubkey).text(item.name || item.pubkey);
+                    pubkeyOptions.append(option);
+                    currentNames[item.pubkey] = item.name;
+                });
+            });
+
+            var chart; // Declare chart variable outside the fetchData function
+
+            // Fetch data from the Flask backend
+            function fetchData(pubkeys) {
+                console.log('Debug: Fetching data for pubkeys:', pubkeys);
+                var pubkeyList = pubkeys.split(',');
+                console.log('Debug: Pubkey List:', pubkeyList);
+                var promises = pubkeyList.map(function(pubkey) {
+                    console.log('Debug: Fetching data for pubkey:', pubkey);
+                    return $.getJSON('/api/validator_data', { pubkey: pubkey });
+                });
+
+                $.when.apply($, promises).done(function() {
+                    var allData = Array.from(arguments);
+                    console.log('Debug: Received data:', allData);
+                    var labels = [];
+                    var avgFeeRewardsDatasets = [];
+                    var epochAverageRewardsDatasets = [];
+
+                    allData.forEach(function(data, index) {
+                        var pubkey = pubkeyList[index];
+                        if (!pubkey) {
+                            console.log('Debug: Skipping undefined pubkey');
+                            return;
+                        }
+                        var name = currentNames[pubkey] || pubkey;
+                        console.log('Debug: Processing data for pubkey:', pubkey);
+                        console.log('Debug: Name:', name);
+
+                        if (!Array.isArray(data)) {
+                            data = [data];
+                        }
+
+                        if (!data[0] || !data[0].epoch) {
+                            console.log('Debug: Skipping entry with missing epoch data');
+                            return;
+                        }
+
+                        labels = data.map(function(item) {
+                            return 'Epoch ' + item.epoch;
+                        }).reverse();
+
+                        var avgFeeRewards = data.map(function(item) {
+                            return item.avg_fee_rewards / 1e9; // Convert lamports to SOL
+                        }).reverse();
+
+                        var epochAverageRewards = data.map(function(item) {
+                            return item.epoch_average_rewards / 1e9; // Convert lamports to SOL
+                        }).reverse();
+
+                        avgFeeRewardsDatasets.push({
+                            type: 'bar',
+                            label: name + ' Average Rewards (SOL)',
+                            data: avgFeeRewards,
+                            backgroundColor: getColor(index),
+                            borderColor: 'rgba(0, 0, 0, 1)',
+                            borderWidth: 1
+                        });
+
+                        epochAverageRewardsDatasets.push({
+                            type: 'line',
+                            label: 'Overall Epoch Average Rewards (SOL)',
+                            data: epochAverageRewards,
+                            borderColor: getColor(index),
+                            borderWidth: 2,
+                            fill: false
+                        });
+                    });
+
+                    updateChart(labels, avgFeeRewardsDatasets, epochAverageRewardsDatasets, pubkeyList, allData);
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    console.log('Debug: Error fetching data:', textStatus, errorThrown);
+                });
+            }
+
+            function updateChart(labels, avgFeeRewardsDatasets, epochAverageRewardsDatasets, pubkeyList, allData) {
+    if (chart) {
+        chart.destroy(); // Destroy the previous chart instance
+    }
+
+    var ctx = document.getElementById('validator-chart').getContext('2d');
+
+    var displayedNames = pubkeyList.map(function(pubkey) {
+        var name = currentNames[pubkey] || pubkey;
+        if (name.length > 20) {
+            return name.substr(0, 20) + '...';
+        }
+        return name;
+    });
+
+    var namesList = displayedNames.join(', ');
+    var maxLength = 100; // Adjust the maximum length as needed
+    if (namesList.length > maxLength) {
+        namesList = namesList.substr(0, maxLength) + '...';
+    }
+
+    chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: avgFeeRewardsDatasets.concat(epochAverageRewardsDatasets)
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    ticks: {
+                        callback: function(value, index, values) {
+                            var label = this.getLabelForValue(value);
+                            if (label.length > 20) {
+                                return label.substr(0, 20) + '...';
+                            }
+                            return label;
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: `Historical Rewards for Validators\n${namesList}`,
+                    font: {
+                        size: 18,
+                        weight: 'bold'
+                    }
+                }
+            }
+        }
+    });
+
+    // Update the legend table
+    var legendTable = $('.legend-table tbody');
+    legendTable.empty();
+    allData.forEach(function(data, index) {
+        var pubkey = pubkeyList[index];
+        if (data && data.length > 0) {
+            data.reverse().forEach(function(item) {
+                var row = $('<tr>');
+                row.append($('<td>').text('Epoch ' + item.epoch));
+                row.append($('<td>').html(item.icon_url ? '<img src="' + item.icon_url + '" alt="Icon" width="32" height="32">' : ''));
+                row.append($('<td>').text(item.name));
+                row.append($('<td>').html(item.website ? '<a href="' + item.website + '">Website</a>' : ''));
+                row.append($('<td>').text(pubkey));
+                row.append($('<td>').text(item.vote_account_pubkey));
+                row.append($('<td>').text((item.avg_fee_rewards / 1e9).toFixed(5)).addClass('validator-avg-rewards'));
+                row.append($('<td>').text((item.epoch_average_rewards / 1e9).toFixed(5)).addClass('overall-epoch-avg-rewards'));
+                row.append($('<td>').text(item.validator_block_count).addClass('validator-blocks'));
+                row.append($('<td>').text(item.epoch_block_count.toLocaleString()).addClass('total-blocks'));
+                legendTable.append(row);
+            });
+        }
+    });
+}
+
+// Check if pubkeys are provided in the URL
+var urlParams = new URLSearchParams(window.location.search);
+var urlPubkeys = urlParams.get('pubkeys');
+
+if (urlPubkeys) {
+    console.log('Debug: Pubkeys provided in URL:', urlPubkeys);
+    currentPubkeys = urlPubkeys;
+    fetchData(currentPubkeys);
+} else {
+    fetchData(currentPubkeys);
+}
+
+// Handle pubkey/name selection
+$('#pubkey-select').on('input', function() {
+    var input = $(this).val().toLowerCase();
+    var options = $('#pubkey-options option');
+    var filteredOptions = options.filter(function() {
+        return $(this).val().toLowerCase().indexOf(input) > -1;
+    });
+
+    if (filteredOptions.length === 1) {
+        $(this).val(filteredOptions.val());
+        currentPubkeys = filteredOptions.val();
+        console.log('Debug: Selected pubkeys:', currentPubkeys);
+        fetchData(currentPubkeys);
+    }
+});
+
+$('#pubkey-select').on('keydown', function(event) {
+    if (event.keyCode === 9 || event.keyCode === 13) {
+        event.preventDefault();
+        var input = $(this).val().toLowerCase();
+        var options = $('#pubkey-options option');
+        var filteredOptions = options.filter(function() {
+            return $(this).val().toLowerCase().indexOf(input) > -1;
+        });
+
+        if (filteredOptions.length === 1) {
+            $(this).val(filteredOptions.val());
+            currentPubkeys = filteredOptions.val();
+            console.log('Debug: Selected pubkeys:', currentPubkeys);
+            fetchData(currentPubkeys);
+        }
+    }
+});

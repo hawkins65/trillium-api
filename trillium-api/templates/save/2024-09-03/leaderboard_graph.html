@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trillium | Solana Leaderboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/css/theme.default.min.css">
+    <link rel="icon" href="https://trillium.so/pages/favicon.ico" type="image/x-icon">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .header, .footer {
+            background-color: rgb(244, 172, 7);
+            padding: 10px 0;
+            color: black;
+        }
+        .header .content-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+        .logo-container img {
+            height: 30px;
+            margin-right: 10px;
+        }
+        .homepage-link {
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            color: black;
+        }
+        .controls-container, .cluster-stats, .table-container {
+            margin-bottom: 20px;
+        }
+        .cluster-stats {
+            display: flex;
+            justify-content: space-between;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .footer {
+            margin-top: auto;
+        }
+        .footer .content-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-content {
+            text-align: center;
+        }
+        .sort-arrow {
+            font-size: 0.8em;
+            margin-left: 5px;
+        }    #leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+        }
+
+        #leaderboard-table th,
+        #leaderboard-table td {
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+
+        #leaderboard-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #leaderboard-table th.tablesorter-headerAsc {
+            color: #00ff00; /* Green for ascending */
+        }
+
+        #leaderboard-table th.tablesorter-headerDesc {
+            color: #ff0000; /* Red for descending */
+        }
+
+        /* Zebra striping for rows */
+        #leaderboard-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Hover effect for rows */
+        #leaderboard-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="content-wrapper">
+            <div class="logo-container">
+                <a href="https://trillium.so/" target="_blank">
+                    <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo">
+                </a>
+                <a href="https://trillium.so/" class="homepage-link" target="_blank">trillium.so</a>
+            </div>
+            <h1>Trillium | Solana Leaderboard</h1>
+            <div></div> <!-- Empty div for flex spacing -->
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="controls-container">
+            View: 
+            <select id="view-select">
+                <option value="top">Top Validators</option>
+                <option value="bottom">Bottom Validators</option>
+            </select>
+            Records to Show: 
+            <input type="number" id="records-input" min="1" value="10">
+            <button id="update-btn">Update</button>
+        </div>
+
+        <div class="cluster-stats">
+            <span>Epoch Range: <span id="epoch-range"></span></span>
+            <span>Overall Epoch Average Rewards (SOL): <span id="overall-epoch-avg-rewards"></span></span>
+            <span>Average Blocks Per Epoch: <span id="total-blocks-in-epoch-range"></span></span>
+        </div>
+
+        <div class="table-container">
+            <table id="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Icon</th>
+                        <th>Name</th>
+                        <th>Identity Pubkey</th>
+                        <th>Vote Account Pubkey</th>
+                        <th>Avg Activated Stake</th>
+                        <th>Avg Blocks Produced</th>
+                        <th>Avg Commission</th>
+                        <th>Avg CU</th>
+                        <th>Avg CU per Block</th>
+                        <th>Avg Epoch Credits</th>
+                        <th>Avg Leader Slots</th>
+                        <th>Avg MEV Commission</th>
+                        <th>Avg MEV Earned</th>
+                        <th>Avg MEV per Block</th>
+                        <th>Avg MEV to Validator</th>
+                        <th>Avg Priority Fees per Block</th>
+                        <th>Avg Rewards</th>
+                        <th>Avg Rewards per Block</th>
+                        <th>Avg Signatures</th>
+                        <th>Avg Signature Fees per Block</th>
+                        <th>Avg Skip Rate</th>
+                        <th>Avg Slot Duration (ms)</th>
+                        <th>Avg Stake per Leader Slot</th>
+                        <th>Avg Stake Percentage</th>
+                        <th>Avg Total Block Rewards After Burn</th>
+                        <th>Avg Total Block Rewards Before Burn</th>
+                        <th>Avg Tx Included in Blocks</th>
+                        <th>Avg Tx per Block</th>
+                        <th>Avg User Tx Included in Blocks</th>
+                        <th>Avg User Tx per Block</th>
+                        <th>Avg Validator Priority Fees</th>
+                        <th>Avg Validator Signature Fees</th>
+                        <th>Avg Vote Cost</th>
+                        <th>Avg Vote Tx Included in Blocks</th>
+                        <th>Avg Vote Tx per Block</th>
+                        <th>Avg Votes Cast</th>
+                        <th>ASN</th>
+                        <th>ASN Org</th>
+                        <th>City</th>
+                        <th>Client Type</th>
+                        <th>Continent</th>
+                        <th>Country</th>
+                        <th>IP</th>
+                        <th>Region</th>
+                        <th>Superminority</th>
+                        <th>Version</th>
+                        <th>Website</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="content-wrapper">
+            <div class="logo-container">
+                <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo">
+            </div>
+            <div class="footer-content">
+                <p>Trillium is passionate about Solana. Your stake helps fuel the Solana ecosystem. Join the Trillium revolution today!</p>
+            </div>
+            <div class="logo-container">
+                <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_VERSION = '111';
+    
+        console.log(`Leaderboard Script Version ${SCRIPT_VERSION} loaded at:`, new Date().toISOString());
+  
+        let allValidators = [];
+        let currentSortColumn = 18; // Default sort column (Avg Rewards per Block)
+        let currentSortOrder = 1; // 1 for descending, 0 for ascending
+
+        const decimalPlaces = {
+            average_activated_stake: 0,
+            average_blocks_produced: 0,
+            average_commission: 0,
+            average_cu: 0,
+            average_epoch_credits: 0,
+            average_leader_slots: 0,
+            average_mev_commission: 0,
+            average_mev_earned: 2,
+            average_mev_to_validator: 2,
+            average_rewards: 2,
+            average_signatures: 0,
+            average_stake_percentage: 2,
+            average_total_block_rewards_after_burn: 2,
+            average_total_block_rewards_before_burn: 2,
+            average_tx_included_in_blocks: 0,
+            average_user_tx_included_in_blocks: 0,
+            average_validator_priority_fees: 5,
+            average_validator_signature_fees: 5,
+            average_vote_cost: 5,
+            average_vote_tx_included_in_blocks: 0,
+            average_votes_cast: 0,
+            avg_cu_per_block: 0,
+            avg_mev_per_block: 5,
+            avg_priority_fees_per_block: 5,
+            avg_rewards_per_block: 5,
+            avg_signature_fees_per_block: 5,
+            avg_skip_rate: 2,
+            avg_slot_duration_ms: 0,
+            avg_stake_per_leader_slot: 0,
+            avg_tx_per_block: 0,
+            avg_user_tx_per_block: 0,
+            avg_vote_tx_per_block: 0
+        };
+    
+        const thousandsSeparatorColumns = [
+            'average_activated_stake',
+            'average_blocks_produced',
+            'average_cu',
+            'average_epoch_credits',
+            'average_leader_slots',
+            'average_signatures',
+            'average_tx_included_in_blocks',
+            'average_user_tx_included_in_blocks',
+            'average_vote_tx_included_in_blocks',
+            'average_votes_cast',
+            'avg_cu_per_block',
+            'avg_slot_duration_ms',
+            'avg_stake_per_leader_slot',
+            'avg_tx_per_block',
+            'avg_user_tx_per_block',
+            'avg_vote_tx_per_block'
+        ];
+    
+        const percentageColumns = [
+            'average_commission',
+            'average_mev_commission',
+            'average_stake_percentage',
+            'avg_skip_rate'
+        ];
+    
+        function formatNumber(value, columnName) {
+            if (value === null || value === undefined || isNaN(value)) {
+                return 'N/A';
+            }
+    
+            let formattedNumber;
+    
+            if (columnName === 'average_mev_commission') {
+                formattedNumber = (Number(value) / 100).toFixed(0) + '%';
+            } else if (percentageColumns.includes(columnName)) {
+                formattedNumber = Number(value).toFixed(decimalPlaces[columnName]) + '%';
+            } else {
+                const decimals = decimalPlaces[columnName] || 2;
+                formattedNumber = Number(value).toFixed(decimals);
+    
+                if (thousandsSeparatorColumns.includes(columnName)) {
+                    formattedNumber = Number(formattedNumber).toLocaleString('en-US');
+                }
+            }
+    
+            return formattedNumber;
+        }
+    
+        function populateTable(data) {
+            const tableBody = document.querySelector('#leaderboard-table tbody');
+            tableBody.innerHTML = '';
+    
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="text-center">${index + 1}</td>
+                    <td class="text-center"><img src="${item.logo || ''}" width="20" height="20"></td>
+                    <td class="text-center">${item.name || ''}</td>
+                    <td class="text-center">${item.identity_pubkey || ''}</td>
+                    <td class="text-center">${item.vote_account_pubkey || ''}</td>
+                    <td class="text-center">${formatNumber(item.average_activated_stake, 'average_activated_stake')}</td>
+                    <td class="text-center">${formatNumber(item.average_blocks_produced, 'average_blocks_produced')}</td>
+                    <td class="text-center">${formatNumber(item.average_commission, 'average_commission')}</td>
+                    <td class="text-center">${formatNumber(item.average_cu, 'average_cu')}</td>
+                    <td class="text-center">${formatNumber(item.avg_cu_per_block, 'avg_cu_per_block')}</td>
+                    <td class="text-center">${formatNumber(item.average_epoch_credits, 'average_epoch_credits')}</td>
+                    <td class="text-center">${formatNumber(item.average_leader_slots, 'average_leader_slots')}</td>
+                    <td class="text-center">${formatNumber(item.average_mev_commission, 'average_mev_commission')}</td>
+                    <td class="text-center">${formatNumber(item.average_mev_earned, 'average_mev_earned')}</td>
+                    <td class="text-center">${formatNumber(item.avg_mev_per_block, 'avg_mev_per_block')}</td>
+                    <td class="text-center">${formatNumber(item.average_mev_to_validator, 'average_mev_to_validator')}</td>
+                    <td class="text-center">${formatNumber(item.avg_priority_fees_per_block, 'avg_priority_fees_per_block')}</td>
+                    <td class="text-center">${formatNumber(item.average_rewards, 'average_rewards')}</td>
+                    <td class="text-center">${formatNumber(item.avg_rewards_per_block, 'avg_rewards_per_block')}</td>
+                    <td class="text-center">${formatNumber(item.average_signatures, 'average_signatures')}</td>
+                    <td class="text-center">${formatNumber(item.avg_signature_fees_per_block, 'avg_signature_fees_per_block')}</td>
+                    <td class="text-center">${formatNumber(item.avg_skip_rate, 'avg_skip_rate')}</td>
+                    <td class="text-center">${formatNumber(item.avg_slot_duration_ms, 'avg_slot_duration_ms')}</td>
+                    <td class="text-center">${formatNumber(item.avg_stake_per_leader_slot, 'avg_stake_per_leader_slot')}</td>
+                    <td class="text-center">${formatNumber(item.average_stake_percentage, 'average_stake_percentage')}</td>
+                    <td class="text-center">${formatNumber(item.average_total_block_rewards_after_burn, 'average_total_block_rewards_after_burn')}</td>
+                    <td class="text-center">${formatNumber(item.average_total_block_rewards_before_burn, 'average_total_block_rewards_before_burn')}</td>
+                    <td class="text-center">${formatNumber(item.average_tx_included_in_blocks, 'average_tx_included_in_blocks')}</td>
+                    <td class="text-center">${formatNumber(item.avg_tx_per_block, 'avg_tx_per_block')}</td>
+                    <td class="text-center">${formatNumber(item.average_user_tx_included_in_blocks, 'average_user_tx_included_in_blocks')}</td>
+                    <td class="text-center">${formatNumber(item.avg_user_tx_per_block, 'avg_user_tx_per_block')}</td>
+                    <td class="text-center">${formatNumber(item.average_validator_priority_fees, 'average_validator_priority_fees')}</td>
+                    <td class="text-center">${formatNumber(item.average_validator_signature_fees, 'average_validator_signature_fees')}</td>
+                    <td class="text-center">${formatNumber(item.average_vote_cost, 'average_vote_cost')}</td>
+                    <td class="text-center">${formatNumber(item.average_vote_tx_included_in_blocks, 'average_vote_tx_included_in_blocks')}</td>
+                    <td class="text-center">${formatNumber(item.avg_vote_tx_per_block, 'avg_vote_tx_per_block')}</td>
+                    <td class="text-center">${formatNumber(item.average_votes_cast, 'average_votes_cast')}</td>
+                    <td class="text-center">${item.asn || ''}</td>
+                    <td class="text-center">${item.asn_org || ''}</td>
+                    <td class="text-center">${item.city || ''}</td>
+                    <td class="text-center">${item.client_type || ''}</td>
+                    <td class="text-center">${item.continent || ''}</td>
+                    <td class="text-center">${item.country || ''}</td>
+                    <td class="text-center">${item.ip || ''}</td>
+                    <td class="text-center">${item.region || ''}</td>
+                    <td class="text-center">${item.superminority || ''}</td>
+                    <td class="text-center">${item.version || ''}</td>
+                    <td class="text-center">${item.website || ''}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateClusterStats(data) {
+            const overallAvgRewards = data.reduce((sum, item) => sum + (item.average_rewards || 0), 0) / data.length;
+            const totalBlocks = data.reduce((sum, item) => sum + (item.average_blocks_produced || 0), 0);
+
+            document.getElementById('overall-epoch-avg-rewards').textContent = formatNumber(overallAvgRewards, 'average_rewards');
+            document.getElementById('total-blocks-in-epoch-range').textContent = formatNumber(totalBlocks, 'average_blocks_produced');
+        }
+
+        function updateEpochRange(epochRange) {
+            document.getElementById('epoch-range').textContent = epochRange;
+        }
+
+ 
+        function updateRankNumbers() {
+            const rows = document.querySelectorAll('#leaderboard-table tbody tr');
+            rows.forEach((row, index) => {
+                const rankCell = row.querySelector('td:first-child');
+                if (rankCell) {
+                    rankCell.textContent = index + 1;
+                }
+            });
+        }
+        function sortData() {
+            const sortKey = Object.keys(allValidators[0])[currentSortColumn];
+            allValidators.sort((a, b) => {
+                let aVal = a[sortKey];
+                let bVal = b[sortKey];
+
+                // Handle numeric sorting
+                if (typeof aVal === 'number' && typeof bVal === 'number') {
+                    return currentSortOrder ? bVal - aVal : aVal - bVal;
+                }
+
+                // Handle string sorting
+                aVal = (aVal || '').toString().toLowerCase();
+                bVal = (bVal || '').toString().toLowerCase();
+
+                if (aVal < bVal) return currentSortOrder ? 1 : -1;
+                if (aVal > bVal) return currentSortOrder ? -1 : 1;
+                return 0;
+            });
+        }
+
+        function updateDisplay() {
+            console.log(`Updating display (Script Version: ${SCRIPT_VERSION})`);
+            const viewSelect = document.getElementById('view-select');
+            const recordsInput = document.getElementById('records-input');
+            
+            const view = viewSelect.value;
+            const records = parseInt(recordsInput.value);
+
+            sortData(); // Sort the entire dataset
+
+            let displayData;
+            if (view === 'bottom') {
+                displayData = allValidators.slice(-records);
+            } else {
+                displayData = allValidators.slice(0, records);
+            }
+
+            populateTable(displayData);
+            updateClusterStats(allValidators);
+            updateRankNumbers();
+        }
+
+        function initializeTableSorter() {
+            if (window.$ && $.fn.tablesorter) {
+                $("#leaderboard-table").tablesorter({
+                    headers: {
+                        0: { sorter: false }, // Disable sorting for the rank column
+                        1: { sorter: false }  // Disable sorting for the icon column
+                    },
+                    sortList: [[currentSortColumn, currentSortOrder]],
+                    textExtraction: function(node) {
+                        const text = $(node).text().trim();
+                        return text === 'N/A' ? -Infinity : text;
+                    }
+                });
+
+                // Custom click handler for headers
+                $("#leaderboard-table thead th").click(function() {
+                    const clickedColumn = $(this).index();
+                    if (clickedColumn > 1) { // Ignore clicks on rank and icon columns
+                        if (clickedColumn === currentSortColumn) {
+                            currentSortOrder = 1 - currentSortOrder; // Toggle sort order
+                        } else {
+                            currentSortColumn = clickedColumn;
+                            currentSortOrder = 1; // Default to descending for new column
+                        }
+                        updateDisplay();
+                    }
+                });
+            } else {
+                console.warn("jQuery or tablesorter not loaded, sorting initialization skipped");
+            }
+        }
+
+        function fetchData() {
+            fetch('/xshin_weighted_average_validator_rewards')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error("Server returned an error:", data.error);
+                        document.querySelector('#leaderboard-table tbody').innerHTML = '<tr><td colspan="48">Error: ' + data.error + '</td></tr>';
+                    } else {
+                        console.log('Raw data received:', data);
+                        allValidators = data.filter(item => item.average_activated_stake > 0);
+                        console.log('Filtered data:', allValidators);
+                        updateDisplay();
+                        updateEpochRange(data[0].epoch_range);
+                        initializeTableSorter();
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching data:", error);
+                    document.querySelector('#leaderboard-table tbody').innerHTML = '<tr><td colspan="48">Error loading data. Please try again later.</td></tr>';
+                });
+        }
+
+        window.addEventListener('load', () => {
+            console.log(`Initializing leaderboard (Script Version: ${SCRIPT_VERSION})`);
+            fetchData();
+        });
+
+        document.getElementById('update-btn').addEventListener('click', fetchData);
+    </script>
+
+</body>
+</html>

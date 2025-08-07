@@ -5,7 +5,7 @@
 # --- Configuration ---
 interface="enp9s0f0np0"
 interval=2 # seconds
-rx_hard_limit_mbps=500 # MB/s
+rx_hard_limit_mbps=15 # MB/s
 
 # --- NEW: Capture & Cooldown Configuration ---
 CAPTURE_DURATION_SECONDS=30 # Capture for this many seconds when a spike is detected.

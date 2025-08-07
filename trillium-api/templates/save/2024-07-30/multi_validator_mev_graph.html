@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>
+        Solana MEV Rewards
+        Powered by Trillium
+    </title>
+    <link rel="icon" href="https://trillium.so/pages/favicon.ico" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        a {
+            color: #f4ac07;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #f4b833;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        p {
+            line-height: 1.6;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+    
+        /* Header Styles */
+        header {
+            background-color: #f4ac07;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        header h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            margin: 0;
+            text-align: center;
+        }
+        header h1 br {
+            display: none;
+        }
+        header .logo-container {
+            position: absolute;
+            left: 2rem;
+            display: flex;
+            align-items: center;
+        }
+        header .logo-container.right {
+            left: auto;
+            right: 2rem;
+        }
+        header .logo-container img {
+            height: 1.6em;
+            width: auto;
+            margin: 0 0.5rem;
+        }
+        header small {
+            color: #fff;
+            font-size: 0.8rem;
+        }
+    
+        /* Footer Styles */
+        footer {
+            background-color: #f4ac07;
+            color: #fff;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        footer p {
+            margin: 0;
+            line-height: 1.6;
+        }
+        footer img {
+            height: 1.6em;
+            width: auto;
+            margin: 0 1rem;
+        }
+    
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        .legend-table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .legend-table th, .legend-table td {
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .legend-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .legend-table td.validator-avg-mev,
+        .legend-table td.validator-blocks,
+        .legend-table td.total-blocks,
+        .legend-table td.epoch-avg-rewards,
+        .legend-table td.epoch-avg-mev {
+            text-align: right;
+        }
+
+        /* Floating "Compare" button styles */
+        #compare-btn-container {
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        #compare-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #f4ac07;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #compare-btn:hover {
+            background-color: #f4b833;
+        }
+
+        #selection-counter {
+            font-size: 14px;
+            margin-left: 10px;
+            color: #666;
+        }
+        #jump-to-selection {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            background-color: #fff;
+            color: #f4ac07;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #jump-to-selection:hover {
+            background-color: #f7c15e;
+        }
+
+        .available-pubkeys-table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .available-pubkeys-table th, .available-pubkeys-table td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .available-pubkeys-table th {
+            background-color: #f4ac07;
+            color: white;
+        }
+        .available-pubkeys-table tr:nth-child(even) {
+            background-color: rgba(244, 172, 7, 0.1);
+        }
+
+        .homepage-link {
+            color: #fff;
+            text-decoration: underline;
+            margin-left: 10px;
+            transition: font-weight 0.3s;
+        }
+
+        .homepage-link:hover {
+            font-weight: bold;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <a href="https://trillium.so/" target="_blank">
+                <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo">
+            </a>
+            <a href="https://trillium.so/" class="homepage-link" target="_blank">trillium.so</a>
+        </div>
+        <h1>
+            Solana MEV Rewards
+            <p>
+                <br>
+                Powered by Trillium
+            </p>
+        </h1>
+        <div class="logo-container right">
+            <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo">
+        </div>
+    </header>
+
+    <button id="jump-to-selection">Jump To Compare Section</button>
+
+    <canvas id="validator-chart"></canvas>
+    <table class="legend-table">
+        <thead>
+            <tr>
+                <th>Epoch</th>
+                <th>Icon</th>
+                <th>Name/URL</th>
+                <th>Pubkey</th>
+                <th>Vote Account Pubkey</th>
+                <th>Validator MEV per Block (SOL)</th>
+                <th>Version</th>
+                <th>Epoch Credits</th>
+                <th>Activated Stake (SOL)</th>
+                <th>Epoch Avg Rewards per Block (SOL)</th>
+                <th>Epoch Avg MEV per Block (SOL)</th>
+                <th>Validator Blocks</th>
+                <th>Total Blocks in Epoch</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div id="compare-btn-container">
+        <button id="compare-btn">Compare</button>
+        <span id="selection-counter"></span>
+    </div>
+    <table class="available-pubkeys-table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Pubkey</th>
+                <th>Vote Account Pubkey</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <footer>
+        <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo">
+        <p>Trillium is passionate about Solana</p>
+        <p>Your stake helps fuel the Solana ecosystem growth</p>
+        <p>Join the Trillium revolution today!</p>
+        <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo">
+    </footer>
+
+    <script>
+        $(document).ready(function() {
+            var currentPubkeys = [];
+            var allPubkeys = [];
+            var chart;
+            var allData = [];
+            var epochs = [];
+            var epochAverageRewards = [];
+            var epochAverageMEV = [];
+            var labels = [];
+            var epochRows = {};
+    
+            // Fetch pubkeys and names from the Flask backend
+            $.getJSON('/api/pubkeys', function(data) {
+                allPubkeys = data;
+                var availablePubkeysTable = $('.available-pubkeys-table tbody');
+                data.forEach(function(item) {
+                    var row = $('<tr>');
+                    row.append($('<td>').html(`<input type="checkbox" name="pubkey-checkbox" value="${item.pubkey}">`));
+                    row.append($('<td>').text(item.name || item.pubkey));
+                    row.append($('<td>').text(item.pubkey));
+                    row.append($('<td>').text(item.vote_account_pubkey)); 
+                    availablePubkeysTable.append(row);
+                });
+                updateSelectionCounter();
+            });
+    
+            // Fetch epoch data from the Flask backend
+            function fetchEpochData(epochNumber) {
+                return new Promise((resolve, reject) => {
+                    $.getJSON(`https://api.trillium.so/epoch_data/${epochNumber}`, function(data) {
+                        console.log('Debug: Received epoch data:', data);
+
+                        // Update the epochAverageRewards and epochAverageMEV arrays with the fetched data
+                        const epochIndex = epochs.indexOf(epochNumber);
+                        if (epochIndex !== -1) {
+                            epochAverageRewards[epochIndex] = data.avg_rewards_per_block !== null ? parseFloat(data.avg_rewards_per_block) : null;
+                            epochAverageMEV[epochIndex] = data.avg_mev_per_block !== null ? parseFloat(data.avg_mev_per_block) : null;
+                        }
+
+                        console.log('Debug: Updated epochAverageRewards:', epochAverageRewards);
+                        console.log('Debug: Updated epochAverageMEV:', epochAverageMEV);
+
+                        // Update the legend table with the fetched data
+                        const epochData = allData.filter(item => item.epoch === epochNumber);
+
+                        // Sort the epoch data based on the order of the datasets
+                        const sortedEpochData = [];
+                        if (chart && chart.data && chart.data.datasets) {
+                            chart.data.datasets.forEach(dataset => {
+                                if (dataset.type === 'bar') {  // Only consider bar datasets (validators)
+                                    const pubkey = dataset.label.split('(')[1]?.split(')')[0];
+                                    const validatorData = epochData.find(item => item.identity_pubkey === pubkey);
+                                    if (validatorData) {
+                                        sortedEpochData.push(validatorData);
+                                    }
+                                }
+                            });
+                        } else {
+                            sortedEpochData.push(...epochData);
+                        }
+
+                        // Create rows for this epoch
+                        const rows = sortedEpochData.map(function(item) {
+                            const row = $('<tr>');
+                            row.append($('<td>').text(`Epoch ${epochNumber}`));
+                            row.append($('<td>').html(`<img src="https://trillium.so/images/${item.logo}" alt="${item.name}" width="24" height="24">`));
+                            row.append($('<td>').html(`<a href="${item.website}" target="_blank">${item.name}</a>`));
+                            row.append($('<td>').text(item.identity_pubkey));
+                            row.append($('<td>').text(item.vote_account_pubkey));
+                            row.append($('<td class="validator-avg-mev">').text(parseFloat(item.avg_mev_per_block).toFixed(7)));
+                            row.append($('<td>').text(item.version));
+                            row.append($('<td>').text(item.epoch_credits));
+                            row.append($('<td>').text(parseInt(item.activated_stake).toLocaleString('en-US')));
+                            row.append($('<td class="epoch-avg-rewards">').text(data.avg_rewards_per_block || 'N/A'));
+                            row.append($('<td class="epoch-avg-mev">').text(data.avg_mev_per_block || 'N/A'));
+                            row.append($('<td class="validator-blocks">').text(parseInt(item.blocks_produced).toLocaleString('en-US')));
+                            row.append($('<td class="total-blocks">').text(data.total_blocks_produced.toLocaleString('en-US', { maximumFractionDigits: 0 })));
+                            return row;
+                        });
+
+                        // Store the rows for this epoch
+                        epochRows[epochNumber] = rows;
+
+                        // If this is the last epoch being processed, update the table
+                        if (Object.keys(epochRows).length === epochs.length) {
+                            updateLegendTable();
+                        }
+
+                        resolve();
+                    })
+                    .fail(function(jqXHR, textStatus, errorThrown) {
+                        console.log('Debug: Error fetching epoch data:', textStatus, errorThrown);
+                        console.log('Debug: Response:', jqXHR.responseText);
+                        reject(errorThrown);
+                    });
+                });
+            }
+
+            function updateLegendTable() {
+                const tableBody = $('.legend-table tbody');
+                tableBody.empty();
+
+                // Add rows to the table in reverse epoch order
+                epochs.slice().reverse().forEach(epoch => {
+                    if (epochRows[epoch]) {
+                        epochRows[epoch].forEach(row => {
+                            tableBody.append(row);
+                        });
+                    }
+                });
+            }
+
+            // Fetch data from the Flask backend
+            function fetchData(pubkeys) {
+                console.log('Debug: Fetching data for pubkeys:', pubkeys);
+                const urlString = `/api/validators_data?pubkeys=${pubkeys.join(',')}`;
+                console.log('Debug: URL String:', urlString);
+
+                $.getJSON(urlString, function(data) {
+                    console.log('Debug: Received data:', data);
+                    allData = data; // Store all the data in the allData variable
+
+                    // Check if data is empty
+                    if (data.length === 0) {
+                        console.log('Debug: No data received from the backend.');
+                        return;
+                    }
+
+                    // Get a unique set of epochs from the data and sort them in ascending order
+                    epochs = Array.from(new Set(data.map(item => item.epoch))).sort((a, b) => a - b);
+                    
+                    // Limit the epochs to the last 15
+                    epochs = epochs.slice(-15);
+                    
+                    labels = epochs.map(epoch => `Epoch ${epoch}`);
+
+                    // Initialize epochAverageRewards and epochAverageMEV arrays with nulls
+                    epochAverageRewards = Array(epochs.length).fill(null);
+                    epochAverageMEV = Array(epochs.length).fill(null);
+
+                    const datasets = [];
+                    const pubkeysData = {};
+
+                    data.forEach(function(item) {
+                        const pubkey = item.identity_pubkey;
+                        if (!pubkeysData[pubkey]) {
+                            pubkeysData[pubkey] = {
+                                pubkey: pubkey,
+                                name: item.name,
+                                avgMEV: Array(epochs.length).fill(null),
+                                icon_url: `https://trillium.so/images/${item.logo}`,
+                                website: item.website,
+                                vote_account_pubkey: item.vote_account_pubkey
+                            };
+                        }
+                        const epochIndex = epochs.indexOf(item.epoch);
+                        pubkeysData[pubkey].avgMEV[epochIndex] = item.avg_mev_per_block;
+                    });
+
+                    for (const pubkey in pubkeysData) {
+                        const dataset = {
+                            type: 'bar',
+                            label: pubkeysData[pubkey].name
+                                ? `${pubkeysData[pubkey].name.slice(0, 20)}${pubkeysData[pubkey].name.length > 20 ? '...' : ''}`
+                                : `${pubkeysData[pubkey].pubkey.slice(0, 20)}...`,
+                            data: pubkeysData[pubkey].avgMEV.map(value => value !== null ? parseFloat(value) : null),
+                            backgroundColor: generateRandomColor(),
+                            borderColor: 'rgba(0, 0, 0, 1)',
+                            borderRadius: 5,
+                            borderWidth: 1
+                        };
+                        datasets.push(dataset);
+                    }
+
+                    // Clear existing legend table rows
+                    $('.legend-table tbody').empty();
+
+                    // Fetch epoch data for each epoch
+                    const epochDataPromises = epochs.map(epoch => fetchEpochData(epoch));
+
+                    // Wait for all epoch data promises to resolve
+                    Promise.all(epochDataPromises)
+                        .then(() => {
+                            updateChart(labels, datasets, currentPubkeys, epochAverageRewards, epochAverageMEV);
+                            updateLegendTable(); 
+                        })
+                        .catch(error => {
+                            console.log('Debug: Error fetching epoch data:', error);
+                        });
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    console.log('Debug: Error fetching data:', textStatus, errorThrown);
+                    console.log('Debug: Response:', jqXHR.responseText);
+                });
+            }
+
+            function updateChart(labels, datasets, pubkeys, epochAverageRewards, epochAverageMEV) {
+                if (chart) {
+                    chart.destroy(); // Destroy the previous chart instance
+                }
+
+                // Replace NaN and null values with undefined in epochAverageRewards and epochAverageMEV arrays
+                const filteredEpochAverageRewards = epochAverageRewards.map(value => (isNaN(value) || value === null) ? undefined : value);
+                const filteredEpochAverageMEV = epochAverageMEV.map(value => (isNaN(value) || value === null) ? undefined : value);
+
+                console.log('Debug: Filtered Epoch Average Rewards:', filteredEpochAverageRewards);
+                console.log('Debug: Filtered Epoch Average MEV:', filteredEpochAverageMEV);
+
+                var ctx = document.getElementById('validator-chart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: datasets.concat([
+                            {
+                                type: 'line',
+                                label: 'Epoch Avg Rewards per Block (SOL)',
+                                data: filteredEpochAverageRewards,
+                                borderColor: 'rgba(153, 102, 255, 1)',
+                                borderWidth: 2,
+                                fill: false,
+                                cubicInterpolationMode: 'monotone',
+                                tension: 0.4,
+                                order: 0
+                            },
+                            {
+                                type: 'line',
+                                label: 'Epoch Avg MEV per Block (SOL)',
+                                data: filteredEpochAverageMEV,
+                                borderColor: 'rgba(255, 159, 64, 1)',
+                                borderWidth: 2,
+                                fill: false,
+                                cubicInterpolationMode: 'monotone',
+                                tension: 0.4,
+                                order: 0
+                            }
+                        ])
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                ticks: {
+                                    callback: function(value, index, values) {
+                                        var label = this.getLabelForValue(value);
+                                        if (label.length > 20) {
+                                            return label.substr(0, 20) + '...';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: false
+                            },
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+
+                console.log('Debug: Chart Configuration:', chart.config);
+                
+                // Scroll to the top of the page
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 'slow');
+            }
+
+            function generateRandomColor() {
+                return 'rgba(' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ', 0.8)';
+            }
+
+            function updateSelectionCounter() {
+                const selectedPubkeys = $('input[name="pubkey-checkbox"]:checked').map(function() {
+                    return $(this).val();
+                }).get();
+                $('#selection-counter').text(`(${selectedPubkeys.length} selected)`);
+            }
+
+            // Check if pubkeys are provided in the URL
+            var urlParams = new URLSearchParams(window.location.search);
+            var urlPubkeys = urlParams.getAll('pubkeys');
+
+            if (urlPubkeys.length > 0) {
+                console.log('Debug: Pubkeys provided in URL:', urlPubkeys);
+                currentPubkeys = urlPubkeys;
+                fetchData(currentPubkeys);
+            } else {
+                // Use the pubkeys passed from the Flask app
+                var pubkeys = '{{ pubkeys }}';
+                if (pubkeys) {
+                    currentPubkeys = pubkeys.split(',');
+                    fetchData(currentPubkeys);
+                } else {
+                    console.log('Debug: No pubkeys provided');
+                }
+            }
+
+            // Handle "Compare" button click
+            $('#compare-btn').on('click', function() {
+                const selectedPubkeys = $('input[name="pubkey-checkbox"]:checked').map(function() {
+                    return $(this).val();
+                }).get();
+                console.log('Debug: Selected pubkeys for comparison:', selectedPubkeys);
+                if (selectedPubkeys.length > 0) {
+                    fetchData(selectedPubkeys);
+                    // Update the URL with the selected pubkeys
+                    const newUrl = new URL(window.location.href);
+                    newUrl.searchParams.set('pubkeys', selectedPubkeys.join(','));
+                    window.history.replaceState({}, '', newUrl.toString());
+
+                    setTimeout(refreshPage, 100);
+
+                    // Update the selection counter
+                    $('#selection-counter').text(`(${selectedPubkeys.length} selected)`);
+                } else {
+                    // Reset the selection counter
+                    $('#selection-counter').text('');
+                }
+            });
+
+            // Update selection counter when checkboxes are clicked
+            $('.available-pubkeys-table').on('click', 'input[type="checkbox"]', function() {
+                updateSelectionCounter();
+            });
+
+            // Jump to "Compare Selection" section
+            $('#jump-to-selection').on('click', function() {
+                $('html, body').animate({
+                    scrollTop: $('.available-pubkeys-table').offset().top
+                }, 'slow');
+            });
+            });
+    
+            function refreshPage() {
+        location.reload();
+    }    
+    </script>
+
+</body>
+</html>

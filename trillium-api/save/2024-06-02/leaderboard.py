@@ -1,0 +1,275 @@
+from flask import Flask, render_template, request, jsonify, send_file
+import json
+import os
+
+app = Flask(__name__)
+
+JSON_DIR = 'static/json'
+
+@app.route('/')
+def home():
+    return leaderboard_graph()
+
+@app.route('/overall_epoch_averages')
+def overall_epoch_averages():
+    json_files = [f for f in os.listdir(JSON_DIR) if f.startswith('validator_rewards_epoch_') and f.endswith('.json')]
+    latest_epoch_file = max(json_files, key=lambda f: int(f.split('_')[-1].split('.')[0]))
+    json_path = os.path.join(JSON_DIR, latest_epoch_file)
+
+    with open(json_path) as file:
+        data = json.load(file)
+
+    return jsonify(data)
+    
+@app.route('/leaderboard_graph')
+def leaderboard_graph():
+    json_files = [f for f in os.listdir(JSON_DIR) if f.startswith('validator_rewards_epoch_') and f.endswith('.json')]
+    epochs = sorted(set([int(f.split('_')[-1].split('.')[0]) for f in json_files]), reverse=True)
+    return render_template('leaderboard_graph.html', epochs=epochs)
+
+@app.route('/leaderboard_table')
+def leaderboard_table():
+    json_files = [f for f in os.listdir(JSON_DIR) if f.startswith('validator_rewards_epoch_') and f.endswith('.json')]
+    epochs = sorted(set([int(f.split('_')[-1].split('.')[0]) for f in json_files]), reverse=True)
+    return render_template('leaderboard_table.html', epochs=epochs)
+
+@app.route('/sig_prio_rewards')
+def sig_prio_rewards():
+    return render_template('sig_prio_rewards.html')
+
+@app.route('/validator_graph/<pubkey>')
+def validator_graph(pubkey):
+    print("Debug (validator_graph): Request headers:")
+    hdr_count = 1
+    for header, value in request.headers:
+        print(f"Debug (validator_graph) Header {hdr_count} Header: {header} Value: {value}")
+
+    print("Debug (validator_graph): Client IP:", request.remote_addr)
+    print("Debug (validator_graph): Request URL:", request.url)
+    print("Debug (validator_graph): Request method:", request.method)
+    print("Debug (validator_graph): Pubkey:", pubkey)
+    if not pubkey:
+        default_pubkey = 'Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3'
+        pubkey = default_pubkey
+    return render_template('validator_graph.html', pubkey=pubkey)
+
+@app.route('/multi_validator_graph')
+def multi_validator_graph():
+    pubkeys = request.args.getlist('pubkeys')
+    if not pubkeys:
+        default_pubkeys = [
+            'A4hyMd3FyvUJSRafDUSwtLLaQcxRP4r1BRC9w2AJ1to2',
+            'CMPSSdrTnRQBiBGTyFpdCc3VMNuLWYWaSkE8Zh5z6gbd',
+            'CXPeim1wQMkcTvEHx9QdhgKREYYJD8bnaCCqPRwJ1to1',
+            'Cogent51kHgGLHr7zpkpRjGYFXM57LgjHjDdqXd4ypdA',
+            'DB7DNWMVQASMFxcjkwdr4w4eg3NmfjWTk2rqFMMbrPLA',
+            'Diman2GphWLwECE3swjrAEAJniezpYLxK1edUydiDZau',
+            'EdGevanA2MZsDpxDXK6b36FH7RCcTuDZZRcc6MEyE9hy',
+            'HEL1USMZKAL2odpNBj2oCjffnFGaYwmbGmyewGv1e2TU',
+            'LA1NEzryoih6CQW3gwQqJQffK2mKgnXcjSQZSRpM3wc',
+            'SLNDCSGTEsA6KHpgR32MBt9UAurZnVSJGUtW2tRpdU2',
+            'Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3',
+            'n1njCoNWEUEJ7QFdqGyP7xM5knLxDb5YLu2hi3hGmHR',
+        ]
+        pubkeys = default_pubkeys
+    pubkeys_str = ','.join(pubkeys)
+    return render_template('multi_validator_graph.html', pubkeys=pubkeys_str)
+
+@app.route('/api/data')
+def get_data():
+    pubkey = request.args.get('pubkey')
+    epoch = request.args.get('epoch')
+
+    if epoch:
+        json_file = f'validator_rewards_epoch_{epoch}.json'
+    else:
+        json_files = [f for f in os.listdir(JSON_DIR) if f.startswith('validator_rewards_epoch_') and f.endswith('.json')]
+        latest_epoch = max([int(f.split('_')[-1].split('.')[0]) for f in json_files])
+        json_file = f'validator_rewards_epoch_{latest_epoch}.json'
+
+    json_path = os.path.join(JSON_DIR, json_file)
+
+    with open(json_path) as file:
+        data = json.load(file)
+
+    if pubkey:
+        # Return all data when a pubkey is provided
+        data = [item for item in data if item['pubkey'] == pubkey]
+    else:
+        data = sorted(data, key=lambda x: float(x['avg_fee_rewards']) if x['avg_fee_rewards'] is not None else float('-inf'), reverse=True)
+
+    print(f"Debug (get_data): Returning data for epoch {epoch} and pubkey {pubkey}")
+    print(f"Debug (get_data): Number of records: {len(data)}")
+
+    return jsonify(data)
+
+@app.route('/api/pubkeys')
+def get_pubkeys():
+    json_files = [f for f in os.listdir(JSON_DIR) if f.startswith('validator_rewards_epoch_') and f.endswith('.json')]
+    latest_epoch = max([int(f.split('_')[-1].split('.')[0]) for f in json_files])
+    json_file = f'validator_rewards_epoch_{latest_epoch}.json'
+    json_path = os.path.join(JSON_DIR, json_file)
+
+    with open(json_path) as file:
+        data = json.load(file)
+
+    pubkeys = [
+        {
+            'pubkey': item['pubkey'],
+            'name': item['name'] if item['name'] else item['pubkey'],
+            'vote_account_pubkey': item['vote_account_pubkey']
+        }
+        for item in data
+    ]
+
+    # Sort the pubkeys list by name
+    pubkeys.sort(key=lambda x: x['name'])
+
+    print(f"Debug (get_pubkeys): Returning {len(pubkeys)} pubkeys")
+    return jsonify(pubkeys)
+
+@app.route('/api/validator_data')
+def get_validator_data():
+    pubkey = request.args.get('pubkey')
+    print(f"Debug (get_validator_data): Received pubkey: {pubkey}")
+
+    if pubkey:
+        historical_data = []
+        json_files = sorted([f for f in os.listdir(JSON_DIR) if f.startswith('validator_rewards_epoch_') and f.endswith('.json')], reverse=True)
+        latest_epochs = [int(f.split('_')[-1].split('.')[0]) for f in json_files[:20]]
+
+        print(f"Debug (get_validator_data) Latest epochs: {latest_epochs}")
+
+        for epoch_num in latest_epochs:
+            json_file = f'validator_rewards_epoch_{epoch_num}.json'
+            json_path = os.path.join(JSON_DIR, json_file)
+
+            print(f"Debug (get_validator_data): Processing file: {json_file}")
+
+            with open(json_path) as file:
+                data = json.load(file)
+                validator_data = next((item for item in data if item['pubkey'] == pubkey), None)
+                if validator_data:
+                    historical_data.append({
+                        'epoch': epoch_num,
+                        'avg_fee_rewards': validator_data['avg_fee_rewards'],
+                        'epoch_average_rewards': validator_data['epoch_average_rewards'],
+                        'epoch_credits': validator_data['epoch_credits'],
+                        'epoch_credits_average': validator_data.get('epoch_credits_average', ''),
+                        'version': validator_data.get('version', ''),
+                        'epoch_credits': validator_data.get('epoch_credits', ''),
+                        'activated_stake': validator_data.get('activated_stake', ''),
+                        'skip_rate': validator_data.get('skip_rate', ''),
+                        'icon_url': validator_data.get('icon_url', ''),
+                        'name': validator_data['name'],
+                        'website': validator_data.get('website', ''),
+                        'pubkey': validator_data['pubkey'],
+                        'vote_account_pubkey': validator_data['vote_account_pubkey'],
+                        'validator_block_count': validator_data['validator_block_count'],
+                        'epoch_block_count': validator_data['epoch_block_count']
+                     })
+                else:
+                    print(f"Debug (get_validator_data) No data found for pubkey {pubkey} in epoch {epoch_num}")
+
+        historical_data.sort(key=lambda x: x['epoch'], reverse=True)
+        print(f"Debug (get_validator_data): Returning historical data for pubkey {pubkey}")
+        print(f"Debug (get_validator_data): Number of historical records: {len(historical_data)}")
+        return jsonify(historical_data)
+
+    print("Debug  (get_validator_data): No pubkey provided")
+    return jsonify([])
+
+@app.route('/api/validators_data')
+def get_validators_data():
+    pubkeys_str = request.args.get('pubkeys')
+    if pubkeys_str:
+        pubkeys = pubkeys_str.split(',')
+    else:
+        pubkeys = []
+    print(f"Debug (get_validators_data): Received pubkeys: {pubkeys}")
+
+    if pubkeys:
+        historical_data = []
+        json_files = sorted([f for f in os.listdir(JSON_DIR) if f.startswith('validator_rewards_epoch_') and f.endswith('.json')], reverse=True)
+        latest_epochs = [int(f.split('_')[-1].split('.')[0]) for f in json_files[:20]]
+
+        print(f"Debug (get_validators_data): Latest epochs: {latest_epochs}")
+
+        for epoch_num in latest_epochs:
+            epoch_data = []
+            json_file = f'validator_rewards_epoch_{epoch_num}.json'
+            json_path = os.path.join(JSON_DIR, json_file)
+
+            print(f"Debug (get_validators_data): Processing file: {json_file}")
+
+            with open(json_path) as file:
+                data = json.load(file)
+                for pubkey in pubkeys:
+                    validator_data = next((item for item in data if item['pubkey'] == pubkey), None)
+                    if validator_data:
+                        epoch_data.append({
+                            'epoch': epoch_num,
+                            'avg_fee_rewards': validator_data['avg_fee_rewards'],
+                            'epoch_average_rewards': validator_data['epoch_average_rewards'],
+                            'epoch_credits': validator_data['epoch_credits'],
+                            'epoch_credits_average': validator_data.get('epoch_credits_average', ''),
+                            'version': validator_data.get('version', ''),
+                            'epoch_credits': validator_data.get('epoch_credits', ''),
+                            'activated_stake': validator_data.get('activated_stake', ''),
+                            'skip_rate': validator_data.get('skip_rate', ''),
+                            'icon_url': validator_data.get('icon_url', ''),
+                            'name': validator_data['name'],
+                            'website': validator_data.get('website', ''),
+                            'pubkey': validator_data['pubkey'],
+                            'vote_account_pubkey': validator_data['vote_account_pubkey'],
+                            'validator_block_count': validator_data['validator_block_count'],
+                            'epoch_block_count': validator_data['epoch_block_count']
+                        })
+                    else:
+                        print(f"Debug (get_validators_data): No data found for pubkey {pubkey} in epoch {epoch_num}")
+
+            historical_data.extend(epoch_data)
+
+        print(f"Debug (get_validators_data): Returning historical data for pubkeys {pubkeys}")
+        print(f"Debug (get_validators_data): Number of historical records: {len(historical_data)}")
+        return jsonify(historical_data)
+
+    print("Debug (get_validators_data): No pubkeys provided")
+    return jsonify([])
+
+@app.route('/multi_validator_credits_graph')
+def multi_validator_credits_graph():
+    pubkeys_str = request.args.get('pubkeys')
+    if pubkeys_str:
+        pubkeys = pubkeys_str.split(',')
+    else:
+        pubkeys = []
+    print(f"Debug (multi_validator_credits_graph): Received pubkeys: {pubkeys}")
+    
+    if pubkeys:
+        return render_template('multi_validator_credits_graph.html', pubkeys=pubkeys_str)
+    else:
+        default_pubkeys = [
+            'CAojE3viHrDjTdm3PLVMaAFnxbq4eyjHx2W6QdzBaruN',
+            '7y5VhV4fkz6r4zUmH2UiwPjLwXzPL1PcV28or5NWkWRL',
+            '5ZjxMYBbnKd4VFxLjAChSWMTeQ96147HnxZvQJxUseHV',
+            'CVvaeDPR2o7P1eawG5c9TPFLzSXAewwPovPmREaEL4Cm',
+            'DB7DNWMVQASMFxcjkwdr4w4eg3NmfjWTk2rqFMMbrPLA',
+            'Fire6ZGPLaqBBGWXC8PgweVjREVXRhwzgRNkdGs1wfQM',
+            'Atom7LRkdXj6MBoWJPgjaetrCMrgB9nnkQBYXTWE8Z3S',
+            'Frog1Fks1AVN8ywFH3HTFeYojq6LQqoEPzgQFx2Kz5Ch',
+            'Diman2GphWLwECE3swjrAEAJniezpYLxK1edUydiDZau',
+            'C1ocKDYMCm2ooWptMMnpd5VEB2Nx4UMJgRuYofysyzcA',
+            'Cogent51kHgGLHr7zpkpRjGYFXM57LgjHjDdqXd4ypdA',
+            'KBoNKoxPjdEmR4TrV9wH9wi96x9vSAs9NET94h91SGJ',
+            'PULSARKCJTG5xMoJTxaKHtVzr9H4Kv84haZnnewArAG',
+            'EReBoRDj5Lv9y1FGPXxFCt1KAgZeKqa8zJNZvkoA4Uoa',
+            'D4r6Rcua2L7nHHhdaiZe2k2bTfPg2WQqcNYpG6bugvCG',
+            'Ninja1spj6n9t5hVYgF3PdnYz2PLnkt7rvaw3firmjs',
+            'Tri1F8B6YtjkBztGCwBNSLEZib1EAqMUEUM7dTT7ZG3',
+        ]
+        pubkeys_str = ','.join(default_pubkeys)
+        return render_template('multi_validator_credits_graph.html', pubkeys=pubkeys_str)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5001, debug=True)

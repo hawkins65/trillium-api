@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaderboard Table</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .table-container {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        table {
+            border-collapse: collapse;
+            min-width: 100%;
+            table-layout: auto;
+        }
+        th, td {
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        th.name-column, td.name-column {
+            white-space: normal;
+            word-wrap: break-word;
+            min-width: 150px;
+        }
+        th.pubkey-column, td.pubkey-column,
+        th.vote-account-pubkey-column, td.vote-account-pubkey-column {
+            min-width: 300px;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+        tbody {
+            display: block;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+        thead, tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <label for="pubkey-select">Select Pubkey/Name:</label>
+        <input type="text" id="pubkey-select" list="pubkey-options">
+        <datalist id="pubkey-options"></datalist>
+    </div>
+    <div>
+        <label for="epoch-select">Select Epoch:</label>
+        <select id="epoch-select">
+            {% for epoch in epochs %}
+            <option value="{{ epoch }}">{{ epoch }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <h2 id="table-title"></h2>
+    <h3 id="table-subtitle"></h3>
+    <div class="table-container">
+        <table id="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Icon</th>
+                    <th class="name-column">Name</th>
+                    <th>Website</th>
+                    <th class="pubkey-column">Pubkey</th>
+                    <th class="vote-account-pubkey-column">Vote Account Pubkey</th>
+                    <th>Epoch</th>
+                    <th>Avg Fee Rewards</th>
+                    <th>Credits</th>
+                    <th>Epoch Credits</th>
+                    <th>Activated Stake</th>
+                    <th>Average Skip Rate</th>
+                    <th>Commission</th>
+                    <th>Version</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <canvas id="pubkey-chart"></canvas>
+
+    <script>
+        $(document).ready(function() {
+            var currentEpoch = {{ epochs[0] }};
+            var currentPubkey = '';
+            var currentName = '';
+
+            // Fetch pubkeys and names from the Flask backend
+            $.getJSON('/api/pubkeys', function(data) {
+                var pubkeyOptions = $('#pubkey-options');
+                data.forEach(function(item) {
+                    var option = $('<option>').attr('value', item.pubkey).text(item.name || item.pubkey);
+                    pubkeyOptions.append(option);
+                });
+            });
+
+            // Fetch data from the Flask backend
+            function fetchData(pubkey, epoch) {
+                $.getJSON('/api/data', { pubkey: pubkey, epoch: epoch }, function(data) {
+                    var tableBody = $('#leaderboard-table tbody');
+                    tableBody.empty();
+
+                    data.forEach(function(item, index) {
+                        var row = $('<tr>');
+                        row.append($('<td>').text(index + 1));
+                        row.append($('<td>').html(item.icon_url ? '<img src="' + item.icon_url + '" alt="Icon" width="32" height="32">' : ''));
+                        row.append($('<td>').text(item.name).addClass('name-column'));
+                        row.append($('<td>').html(item.website ? '<a href="' + item.website + '">' + item.website + '</a>' : ''));
+                        row.append($('<td>').text(item.pubkey).addClass('pubkey-column'));
+                        row.append($('<td>').text(item.vote_account_pubkey).addClass('vote-account-pubkey-column'));
+                        row.append($('<td>').text(item.epoch));
+                        row.append($('<td>').text(item.avg_fee_rewards.toLocaleString()));
+                        row.append($('<td>').text(item.credits.toLocaleString()));
+                        row.append($('<td>').text(item.epoch_credits.toLocaleString()));
+                        row.append($('<td>').text(item.activated_stake.toLocaleString()));
+                        row.append($('<td>').text((item.average_skip_rate * 100).toFixed(2) + '%'));
+                        row.append($('<td>').text(item.commission + '%'));
+                        row.append($('<td>').text(item.version));
+                        tableBody.append(row);
+                    });
+
+                    // Update table title and subtitle
+                    var tableTitle = $('#table-title');
+                    var tableSubtitle = $('#table-subtitle');
+                    if (pubkey) {
+                        tableTitle.text('Validator ' + currentName + ' (' + currentPubkey + ')');
+                        tableSubtitle.text('');
+                    } else {
+                        tableTitle.text('Leaderboard for Epoch ' + currentEpoch);
+                        tableSubtitle.text('All Validators');
+                    }
+                });
+            }
+
+            // Fetch historical data for a single pubkey
+            function fetchHistoricalData(pubkey, epoch) {
+                $.getJSON('/api/historical_data', { pubkey: pubkey, epoch: epoch }, function(data) {
+                    var labels = data.map(function(item) {
+                        return 'Epoch ' + item.epoch;
+                    });
+                    var avgFeeRewards = data.map(function(item) {
+                        return item.avg_fee_rewards;
+                    });
+
+                    var ctx = document.getElementById('pubkey-chart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Average Fee Rewards (Lamports)',
+                                data: avgFeeRewards,
+                                backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1,
+                                fill: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    display: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Epoch'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Average Fee Rewards (Lamports)'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Historical Average Fee Rewards for ' + currentName + ' (' + currentPubkey + ')',
+                                    font: {
+                                        size: 18,
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Initial fetch
+            fetchData(currentPubkey, currentEpoch);
+
+            // Handle pubkey/name and epoch selection
+            $('#pubkey-select, #epoch-select').on('change', function() {
+                currentPubkey = $('#pubkey-select').val();
+                currentEpoch = $('#epoch-select').val();
+
+                // Fetch data based on the selected pubkey and epoch
+                fetchData(currentPubkey, currentEpoch);
+
+                // Update currentName based on the selected pubkey
+                var selectedOption = $('#pubkey-options option[value="' + currentPubkey + '"]');
+                currentName = selectedOption.text();
+
+                // Fetch historical data for the selected pubkey
+                if (currentPubkey) {
+                    fetchHistoricalData(currentPubkey, currentEpoch);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

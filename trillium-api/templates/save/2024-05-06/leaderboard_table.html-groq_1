@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Leaderboard Table</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    table {
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <h1>Leaderboard Table</h1>
+  <form>
+    <label for="epoch">Select Epoch:</label>
+    <select id="epoch" onchange="updateTable()">
+      {% for epoch in epochs %}
+        <option value="{{ epoch }}">{{ epoch }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  <table id="leaderboard-table">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Pubkey</th>
+        <th>Name</th>
+        <th>Icon URL</th>
+        <th>Website</th>
+        <th>Vote Account Pubkey</th>
+        <th>Validator Block Count</th>
+        <th>Epoch Block Count</th>
+        <th>Avg Fee Rewards (SOL)</th>
+        <th>Epoch Average Rewards (SOL)</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+    </tbody>
+  </table>
+  <button id="compare-button" onclick="compareSelectedRows()">Compare Selected Rows</button>
+  <div id="chart-container">
+    <canvas id="chart" width="400" height="200"></canvas>
+  </div>
+
+  <script>
+    let selectedEpoch = {{ epochs[0] }};
+    let selectedRows = [];
+
+    function updateTable() {
+      selectedEpoch = document.getElementById("epoch").value;
+      fetch('/api/data?epoch=' + selectedEpoch)
+        .then(response => response.json())
+        .then(data => {
+          const tableBody = document.getElementById("table-body");
+          tableBody.innerHTML = "";
+          data.forEach((item, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${index + 1}</td>
+              <td>${item.pubkey}</td>
+              <td>${item.name}</td>
+              <td>${item.icon_url}</td>
+              <td>${item.website}</td>
+              <td>${item.vote_account_pubkey}</td>
+              <td>${item.validator_block_count}</td>
+              <td>${item.epoch_block_count}</td>
+              <td>${(item.avg_fee_rewards / 1e9).toFixed(2)}</td>
+              <td>${(item.epoch_average_rewards / 1e9).toFixed(2)}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+        });
+    }
+
+    function compareSelectedRows() {
+      const chartCanvas = document.getElementById("chart");
+      const ctx = chartCanvas.getContext("2d");
+      ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+
+      const labels = selectedRows.map(item => item.pubkey);
+      const data = selectedRows.map(item => item.avg_fee_rewards / 1e9);
+      const epochAverage = data.reduce((a, b) => a + b, 0) / data.length;
+
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Avg Fee Rewards",
+            data: data,
+            backgroundColor: "rgba(255, 99, 132, 0.2)",
+            borderColor: "rgba(255, 99, 132, 1)",
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      const lineChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Epoch Average Rewards",
+            data: Array(labels.length).fill(epochAverage),
+            borderColor: "rgba(54, 162, 235, 1)",
+            borderWidth: 2
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", updateTable);
+
+    document.getElementById("leaderboard-table").addEventListener("click", event => {
+      if (event.target.tagName === "TR") {
+        const pubkey = event.target.cells[1].textContent;
+        if (selectedRows.find(item => item.pubkey === pubkey)) {
+          selectedRows = selectedRows.filter(item => item.pubkey !== pubkey);
+        } else {
+          fetch('/api/data?pubkey=' + pubkey + '&epoch=' + selectedEpoch)
+            .then(response => response.json())
+            .then(data => {
+              selectedRows.push(data[0]);
+            });
+        }
+      }
+    });
+  </script>
+</body>
+</html>

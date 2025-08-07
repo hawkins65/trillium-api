@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana Leaderboard Average Validator Rewards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo-container img {
+            max-width: 200px;
+        }
+        h1 {
+            text-align: center;
+            color: #4a4a4a;
+        }
+        .controls-container {
+            margin-bottom: 20px;
+        }
+        .cluster-stats {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <a href="https://trillium.so/" target="_blank">
+            <img src="https://trillium.so/pages/trillium-logo.gif" alt="Trillium Logo">
+        </a>
+        <a href="https://trillium.so/" class="homepage-link" target="_blank">trillium.so</a>
+    </div>
+
+    <h1>Solana Leaderboard Average Validator Rewards</h1>
+    <p>Powered by Trillium</p>
+
+    <div class="controls-container">
+        <label for="viewType">View:</label>
+        <select id="viewType">
+            <option value="top">Top Validators</option>
+            <option value="bottom">Bottom Validators</option>
+        </select>
+
+        <label for="recordCount">Records to Show:</label>
+        <input type="number" id="recordCount" min="10" max="100" value="50">
+
+        <button id="updateButton">Update</button>
+    </div>
+
+    <div class="cluster-stats">
+        <h3>Cluster Statistics</h3>
+        <p>Overall Epoch Average Rewards (SOL): <span id="overall-epoch-avg-rewards"></span></p>
+        <p>Total Blocks in Epoch Range: <span id="total-blocks-in-epoch-range"></span></p>
+    </div>
+
+    <div class="table-container">
+        <table id="leaderboardTable">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Icon</th>
+                    <th>Name</th>
+                    <th>Identity Pubkey</th>
+                    <th>Vote Account Pubkey</th>
+                    <th>Avg Activated Stake</th>
+                    <th>Avg Epoch Credits</th>
+                    <th>Avg MEV Earned</th>
+                    <th>Avg MEV to Validator</th>
+                    <th>Avg Rewards</th>
+                    <th>Avg Votes Cast</th>
+                    <th>Avg CU per Block</th>
+                    <th>Avg MEV per Block</th>
+                    <th>Avg Rewards per Block</th>
+                    <th>Avg Skip Rate</th>
+                    <th>Avg Stake per Leader Slot</th>
+                    <th>Avg Tx per Block</th>
+                    <th>Avg User Tx per Block</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="18">Loading data...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let allValidators = [];
+
+            // Fetch initial data on page load
+            fetchData();
+
+            // Event listener for update button
+            $('#updateButton').click(updateDisplay);
+
+            // Event listener for pressing Enter in the recordCount input box
+            $('#recordCount').keypress(function(event) {
+                if (event.which === 13) { // Enter key code is 13
+                    updateDisplay();
+                }
+            });
+
+            function fetchData() {
+                $.ajax({
+                    url: '/xshin_weighted_average_validator_rewards',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.error) {
+                            console.error("Server returned an error:", data.error);
+                            $('#leaderboardTable tbody').html('<tr><td colspan="18">Error: ' + data.error + '</td></tr>');
+                        } else {
+                            allValidators = data;
+                            updateDisplay();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error fetching data:", error);
+                        console.error("Status:", status);
+                        console.error("Response:", xhr.responseText);
+                        $('#leaderboardTable tbody').html('<tr><td colspan="18">Error loading data. Please try again later.</td></tr>');
+                    }
+                });
+            }
+
+            function updateDisplay() {
+                var viewType = $('#viewType').val();
+                var recordCount = parseInt($('#recordCount').val());
+
+                // Filter out records with null or zero avg_rewards_per_block
+                let filteredValidators = allValidators.filter(validator => 
+                    validator.avg_rewards_per_block !== null && validator.avg_rewards_per_block !== 0
+                );
+
+                // Sort the filtered data based on avg_rewards_per_block
+                let sortedValidators = filteredValidators.sort((a, b) => {
+                    let aRewards = a.avg_rewards_per_block;
+                    let bRewards = b.avg_rewards_per_block;
+
+                    if (viewType === 'top') {
+                        return bRewards - aRewards; // Descending order for top validators
+                    } else {
+                        return aRewards - bRewards; // Ascending order for bottom validators
+                    }
+                });
+
+                // Select the requested number of records
+                let displayValidators = sortedValidators.slice(0, recordCount);
+
+                displayLeaderboard(displayValidators);
+                updateClusterStats(filteredValidators);
+            }
+
+            function displayLeaderboard(validators) {
+                var tbody = $('#leaderboardTable tbody');
+                tbody.empty();
+
+                if (validators.length === 0) {
+                    tbody.html('<tr><td colspan="18">No data available</td></tr>');
+                    return;
+                }
+
+                var fragment = document.createDocumentFragment();
+
+                validators.forEach(function(validator, index) {
+
+                    var row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td><img src="https://trillium.so/images/${validator.logo}" alt="Validator Icon" width="30" height="30"></td>
+                        <td>${validator.name !== null ? validator.name : 'null'}</td>
+                        <td>${validator.identity_pubkey !== null ? validator.identity_pubkey : 'null'}</td>
+                        <td>${validator.vote_account_pubkey !== null ? validator.vote_account_pubkey : 'null'}</td>
+                        <td>${validator.average_activated_stake !== null ? validator.average_activated_stake.toFixed(0) : 'null'}</td>
+                        <td>${validator.average_epoch_credits !== null ? validator.average_epoch_credits.toFixed(0) : 'null'}</td>
+                        <td>${validator.average_mev_earned !== null ? validator.average_mev_earned.toFixed(4) : 'null'}</td>
+                        <td>${validator.average_mev_to_validator !== null ? validator.average_mev_to_validator.toFixed(4) : 'null'}</td>
+                        <td>${validator.average_rewards !== null ? validator.average_rewards.toFixed(4) : 'null'}</td>
+                        <td>${validator.average_votes_cast !== null ? validator.average_votes_cast.toFixed(0) : 'null'}</td>
+                        <td>${validator.avg_cu_per_block !== null ? validator.avg_cu_per_block.toFixed(0) : 'null'}</td>
+                        <td>${validator.avg_mev_per_block !== null ? validator.avg_mev_per_block.toFixed(6) : 'null'}</td>
+                        <td>${validator.avg_rewards_per_block !== null ? validator.avg_rewards_per_block.toFixed(6) : 'null'}</td>
+                        <td>${validator.avg_skip_rate !== null ? validator.avg_skip_rate.toFixed(2) + '%' : 'null'}</td>
+                        <td>${validator.avg_stake_per_leader_slot !== null ? validator.avg_stake_per_leader_slot.toFixed(0) : 'null'}</td>
+                        <td>${validator.avg_tx_per_block !== null ? validator.avg_tx_per_block.toFixed(2) : 'null'}</td>
+                        <td>${validator.avg_user_tx_per_block !== null ? validator.avg_user_tx_per_block.toFixed(2) : 'null'}</td>
+                    `;
+                    fragment.appendChild(row);
+                });
+
+                tbody.append(fragment);
+            }
+
+            function updateClusterStats(validators) {
+                let totalRewards = validators.reduce((sum, v) => sum + v.average_rewards, 0);
+                let totalBlocks = validators.reduce((sum, v) => sum + v.average_blocks_produced, 0);
+                
+                $('#overall-epoch-avg-rewards').text((totalRewards / validators.length).toFixed(4));
+                $('#total-blocks-in-epoch-range').text(totalBlocks);
+            }
+        });
+    </script>
+</body>
+</html>

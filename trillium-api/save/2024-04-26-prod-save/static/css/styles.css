@@ -1,0 +1,91 @@
+:root {
+    --primary-color: #e29121;
+    --secondary-color: #f5b563;
+    --accent-color: #8c5e14;
+    --light-color: #f9f1e7;
+    --dark-color: #4d3200;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--light-color);
+    color: var(--dark-color);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+
+#leaderboard {
+    margin-bottom: 30px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--accent-color);
+}
+
+th {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+}
+
+tr:nth-child(even) {
+    background-color: var(--secondary-color);
+}
+
+tr:hover {
+    background-color: var(--accent-color);
+    color: var(--light-color);
+}
+
+.filters {
+    margin-bottom: 20px;
+}
+
+.filters form {
+    display: flex;
+    flex-direction: column;
+}
+
+.filters div {
+    margin-bottom: 10px;
+}
+
+.filters label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.filters input[type="text"],
+.filters input[type="number"],
+.filters input[type="datetime-local"] {
+    width: 200px;
+    padding: 5px;
+    margin-right: 10px;
+    border: 1px solid var(--accent-color);
+    border-radius: 4px;
+}
+
+.filters button {
+    padding: 5px 10px;
+    background-color: var(--primary-color);
+    color: var(--light-color);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.filters button:hover {
+    background-color: var(--accent-color);
+}

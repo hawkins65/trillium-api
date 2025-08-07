@@ -1,27 +1,27 @@
 --------------------------------------------------------------------------------
-Network: mainnet | 2025-08-07 16:00:03
+Network: mainnet | 2025-08-07 19:30:03
 Epoch 829
 	Total Active Stake: 405,373,060 SOL
 		Active Jito Stake: 396,998,344 SOL (97.9%)
-		Active Jito Validators: 947 (84.6%)
+		Active Jito Validators: 947 (84.9%)
 		Active Non-Jito Stake: 8,374,716 SOL (2.1%)
-	Active Validators: 1072
-	(Inactive Validators: 47)
-	Total Validators: 1119
+	Active Validators: 1070
+	(Inactive Validators: 45)
+	Total Validators: 1115
 
 Stake by Version (in SOL), Percentages, and Validator Count:
 
-2.2.0 subtotal: 20,487,358 SOL (5.05%) - 33 validators (2.9%)
+2.2.0 subtotal: 21,645,813 SOL (5.34%) - 34 validators (3.0%)
    0.701.20300: 13,781,028 SOL (3.40%) - 10 validators (0.9%)
    0.702.20300: 3,690,830 SOL (0.91%) - 17 validators (1.5%)
-   0.703.20300: 3,015,500 SOL (0.74%) - 6 validators (0.5%)
+   0.703.20300: 4,173,955 SOL (1.03%) - 7 validators (0.6%)
 
 2.2.14 subtotal: 680 SOL (0.00%) - 1 validators (0.1%)
    2.2.14: 680 SOL (0.00%) - 1 validators (0.1%)
 
-2.2.16 subtotal: 25,840,663 SOL (6.37%) - 143 validators (12.8%)
+2.2.16 subtotal: 24,682,208 SOL (6.09%) - 142 validators (12.7%)
    0.605.20216: 6,379 SOL (0.00%) - 2 validators (0.2%)
-   0.606.20216: 21,087,011 SOL (5.20%) - 102 validators (9.1%)
+   0.606.20216: 19,928,556 SOL (4.92%) - 101 validators (9.1%)
    2.2.16: 4,747,273 SOL (1.17%) - 39 validators (3.5%)
 
 2.2.17 subtotal: 280,709 SOL (0.07%) - 5 validators (0.4%)
@@ -48,11 +48,11 @@ Stake by Version (in SOL), Percentages, and Validator Count:
 2.3.4 subtotal: 24,666 SOL (0.01%) - 1 validators (0.1%)
    2.3.4: 24,666 SOL (0.01%) - 1 validators (0.1%)
 
-2.3.5 subtotal: 68,687,600 SOL (16.94%) - 72 validators (6.4%)
-   2.3.5: 68,687,600 SOL (16.94%) - 72 validators (6.4%)
+2.3.5 subtotal: 68,687,600 SOL (16.94%) - 72 validators (6.5%)
+   2.3.5: 68,687,600 SOL (16.94%) - 72 validators (6.5%)
 
-2.3.6 subtotal: 269,671,420 SOL (66.52%) - 778 validators (69.5%)
-   2.3.6: 269,671,420 SOL (66.52%) - 778 validators (69.5%)
+2.3.6 subtotal: 269,671,421 SOL (66.52%) - 775 validators (69.5%)
+   2.3.6: 269,671,421 SOL (66.52%) - 775 validators (69.5%)
 
 2.3.7 subtotal: 204,066 SOL (0.05%) - 4 validators (0.4%)
    2.3.7: 204,066 SOL (0.05%) - 4 validators (0.4%)
@@ -63,38 +63,35 @@ Stake by Version (in SOL), Percentages, and Validator Count:
 42.42.42 subtotal: 1 SOL (0.00%) - 1 validators (0.1%)
    42.42.42: 1 SOL (0.00%) - 1 validators (0.1%)
 
-unknown subtotal: 557,770 SOL (0.14%) - 44 validators (3.9%)
-   unknown: 557,770 SOL (0.14%) - 44 validators (3.9%)
+unknown subtotal: 557,770 SOL (0.14%) - 43 validators (3.9%)
+   unknown: 557,770 SOL (0.14%) - 43 validators (3.9%)
 
 --------------------------------------------------------------------------------
 
-Network: testnet | 2025-08-07 16:00:03
+Network: testnet | 2025-08-07 19:30:03
 Epoch 823
 	Total Active Stake: 291,682,227 SOL
-	Active Validators: 2327
-	(Inactive Validators: 815)
+	Active Validators: 2324
+	(Inactive Validators: 818)
 	Total Validators: 3142
 
 Stake by Version (in SOL), Percentages, and Validator Count:
 
-1.0.0 subtotal: 1 SOL (0.00%) - 1 validators (0.0%)
-   1.0.0: 1 SOL (0.00%) - 1 validators (0.0%)
-
-2.2.0 subtotal: 19,294,803 SOL (6.62%) - 62 validators (2.0%)
+2.2.0 subtotal: 19,378,111 SOL (6.64%) - 66 validators (2.1%)
    0.101.20300: 3,989,003 SOL (1.37%) - 3 validators (0.1%)
    0.701.20300: 5,671,480 SOL (1.94%) - 22 validators (0.7%)
    0.702.20300: 3,104,866 SOL (1.06%) - 23 validators (0.7%)
-   0.703.20300: 6,529,454 SOL (2.24%) - 14 validators (0.4%)
+   0.703.20300: 6,612,762 SOL (2.27%) - 18 validators (0.6%)
 
 2.2.14 subtotal: 23 SOL (0.00%) - 2 validators (0.1%)
    2.2.14: 23 SOL (0.00%) - 2 validators (0.1%)
 
-2.2.16 subtotal: 78,298,526 SOL (26.84%) - 1409 validators (44.8%)
+2.2.16 subtotal: 78,058,359 SOL (26.76%) - 1401 validators (44.6%)
    0.505.20216: 7,049 SOL (0.00%) - 1 validators (0.0%)
-   0.603.20216: 66,456,570 SOL (22.78%) - 1242 validators (39.5%)
+   0.603.20216: 66,299,712 SOL (22.73%) - 1238 validators (39.4%)
    0.604.20216: 78,632 SOL (0.03%) - 2 validators (0.1%)
    0.605.20216: 1,055,789 SOL (0.36%) - 27 validators (0.9%)
-   0.606.20216: 10,598,028 SOL (3.63%) - 133 validators (4.2%)
+   0.606.20216: 10,514,719 SOL (3.60%) - 129 validators (4.1%)
    2.2.16: 102,458 SOL (0.04%) - 4 validators (0.1%)
 
 2.2.17 subtotal: 4,927 SOL (0.00%) - 1 validators (0.0%)
@@ -118,17 +115,17 @@ Stake by Version (in SOL), Percentages, and Validator Count:
 2.3.5 subtotal: 53,559,005 SOL (18.36%) - 20 validators (0.6%)
    2.3.5: 53,559,005 SOL (18.36%) - 20 validators (0.6%)
 
-2.3.6 subtotal: 66,423,159 SOL (22.77%) - 500 validators (15.9%)
-   2.3.6: 66,423,159 SOL (22.77%) - 500 validators (15.9%)
+2.3.6 subtotal: 66,520,691 SOL (22.81%) - 502 validators (16.0%)
+   2.3.6: 66,520,691 SOL (22.81%) - 502 validators (16.0%)
 
 3.0.0 subtotal: 41,955,835 SOL (14.38%) - 69 validators (2.2%)
    3.0.0: 41,955,835 SOL (14.38%) - 69 validators (2.2%)
 
-42.42.42 subtotal: 301,966 SOL (0.10%) - 4 validators (0.1%)
-   42.42.42: 301,966 SOL (0.10%) - 4 validators (0.1%)
+42.42.42 subtotal: 301,968 SOL (0.10%) - 5 validators (0.2%)
+   42.42.42: 301,968 SOL (0.10%) - 5 validators (0.2%)
 
-unknown subtotal: 6,113,541 SOL (2.10%) - 773 validators (24.6%)
-   unknown: 6,113,541 SOL (2.10%) - 773 validators (24.6%)
+unknown subtotal: 6,172,866 SOL (2.12%) - 775 validators (24.7%)
+   unknown: 6,172,866 SOL (2.12%) - 775 validators (24.7%)
 
 --------------------------------------------------------------------------------
 

@@ -101,3 +101,7 @@ data/configs/92_slot_duration_server_list.json
 *.dump
 *.sql
 !scripts/sql/*.sql
+
+# Nested git repository
+trillium_dashboard/
+trillium-dashboard/

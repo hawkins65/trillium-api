@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaderboard Table</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .table-container {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: fixed;
+        }
+        th, td {
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        th.name-column, td.name-column {
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        th.pubkey-column, td.pubkey-column,
+        th.vote-account-pubkey-column, td.vote-account-pubkey-column {
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        td.avg-fee-rewards,
+        td.epoch-average-rewards {
+            text-align: right;
+        }
+        tbody {
+            display: table-row-group;
+        }
+        thead {
+            display: table-header-group;
+        }
+        tr {
+            display: table-row;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        #compare-btn {
+            margin-left: 10px;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        #compare-chart {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <label for="epoch-select">Select Epoch:</label>
+        <select id="epoch-select">
+            {% for epoch in epochs %}
+            <option value="{{ epoch }}">{{ epoch }}</option>
+            {% endfor %}
+        </select>
+        <button id="compare-btn">Compare Selected Validators</button>
+    </div>
+    <h2 id="table-title"></h2>
+    <div class="table-container">
+        <table id="leaderboard-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;"><input type="checkbox" id="select-all"></th>
+                    <th style="width: 50px;">Rank</th>
+                    <th style="width: 50px;">Icon</th>
+                    <th style="width: 150px;" class="name-column">Name</th>
+                    <th style="width: 80px;">Website</th>
+                    <th style="width: 250px;" class="pubkey-column">Pubkey</th>
+                    <th style="width: 250px;" class="vote-account-pubkey-column">Vote Account Pubkey</th>
+                    <th style="width: 120px;"><div>Validator Average Rewards (SOL)</div></th>
+                    <th style="width: 120px;"><div>Overall Epoch Average Rewards (SOL)</div></th>
+                    <th style="width: 100px;">Validator Blocks</th>
+                    <th style="width: 120px;">Total Blocks in Epoch</th>
+                    <th style="width: 60px;">Epoch</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <canvas id="compare-chart"></canvas>
+
+    <script>
+        $(document).ready(function() {
+            var currentEpoch = {{ epochs[0] }};
+            var selectedPubkeys = [];
+
+            // Fetch data from the Flask backend
+            function fetchData(epoch) {
+                $.getJSON('/api/data', { epoch: epoch }, function(data) {
+                    var tableBody = $('#leaderboard-table tbody');
+                    tableBody.empty();
+
+                    data.forEach(function(item, index) {
+                        var row = $('<tr>');
+                        row.append($('<td>').html('<input type="checkbox" class="pubkey-checkbox" data-pubkey="' + item.pubkey + '">'));
+                        row.append($('<td>').text(index + 1));
+                        row.append($('<td>').html(item.icon_url ? '<img src="' + item.icon_url + '" alt="Icon" width="32" height="32">' : ''));
+                        row.append($('<td>').text(item.name).addClass('name-column'));
+                        row.append($('<td>').html(item.website ? '<a href="' + item.website + '">Website</a>' : ''));
+                        row.append($('<td>').text(item.pubkey).addClass('pubkey-column'));
+                        row.append($('<td>').text(item.vote_account_pubkey).addClass('vote-account-pubkey-column'));
+                        row.append($('<td>').text((item.avg_fee_rewards / 1e9).toFixed(5)).addClass('avg-fee-rewards'));
+                        row.append($('<td>').text((item.epoch_average_rewards / 1e9).toFixed(5)).addClass('epoch-average-rewards'));
+                        row.append($('<td>').text(item.validator_block_count.toLocaleString()));
+                        row.append($('<td>').text(item.epoch_block_count.toLocaleString()).addClass('total-blocks'));
+                        row.append($('<td>').text(item.epoch));
+                        tableBody.append(row);
+                    });
+
+                    // Update table title
+                    var tableTitle = $('#table-title');
+                    tableTitle.text(`Average Rewards for Epoch ${currentEpoch}`);
+                });
+            }
+
+            // Initial fetch
+            fetchData(currentEpoch);
+
+            // Handle epoch selection
+            $('#epoch-select').on('change', function() {
+                currentEpoch = $('#epoch-select').val();
+                fetchData(currentEpoch);
+            });
+
+            // Handle checkbox selection
+            $('#select-all').on('change', function() {
+                var checkboxes = $('.pubkey-checkbox');
+                checkboxes.prop('checked', $(this).prop('checked'));
+                updateSelectedPubkeys();
+            });
+
+            $('#leaderboard-table').on('change', '.pubkey-checkbox', function() {
+                updateSelectedPubkeys();
+            });
+
+            function updateSelectedPubkeys() {
+                selectedPubkeys = [];
+                $('.pubkey-checkbox:checked').each(function() {
+                    selectedPubkeys.push($(this).data('pubkey'));
+                });
+                $('#select-all').prop('checked', selectedPubkeys.length === $('.pubkey-checkbox').length);
+                console.log('Selected Pubkeys:', selectedPubkeys);
+            }
+
+            // Handle compare button click
+            $('#compare-btn').on('click', function() {
+                console.log('Compare button clicked');
+                if (selectedPubkeys.length > 0) {
+                    compareValidators(selectedPubkeys);
+                }
+            });
+
+            function compareValidators(pubkeys) {
+                console.log('Comparing validators with pubkeys:', pubkeys);
+                var compareData = [];
+                var validatorNames = [];
+
+                pubkeys.forEach(function(pubkey) {
+                    $.getJSON('/api/validator_data', { pubkey: pubkey }, function(data) {
+                        console.log('API response for pubkey', pubkey, ':', data);
+                        var avgFeeRewards = data.map(function(item) {
+                            return item.avg_fee_rewards / 1e9; // Convert lamports to SOL
+                        }).reverse();
+                        var epochAverageRewards = data.map(function(item) {
+                            return item.epoch_average_rewards / 1e9; // Convert lamports to SOL
+                        }).reverse();
+                        compareData.push(avgFeeRewards.concat(epochAverageRewards));
+                        validatorNames.push(data[0].name || pubkey);
+
+                        if (compareData.length === pubkeys.length) {
+                            console.log('Compare Data:', compareData);
+                            console.log('Validator Names:', validatorNames);
+                            if (compareData.length > 0) {
+                                createCompareChart(validatorNames, compareData);
+                            } else {
+                                $('#compare-chart').text('No data available for the selected validators.');
+                            }
+                        }
+                    }).fail(function() {
+                        console.log('Error fetching data for pubkey', pubkey);
+                        $('#compare-chart').text('Error fetching data for the selected validators.');
+                    });
+                });
+            }
+            
+function createCompareChart(validatorNames, compareData) {
+    console.log('Creating compare chart with data:', validatorNames, compareData);
+    console.log('Compare Data:', compareData);
+    console.log('Validator Names:', validatorNames);
+
+    setTimeout(function() {
+        var ctx = document.getElementById('compare-chart').getContext('2d');
+
+        // Set fixed dimensions for the canvas
+        var canvasWidth = 800;
+        var canvasHeight = 400;
+        $('#compare-chart').attr('width', canvasWidth);
+        $('#compare-chart').attr('height', canvasHeight);
+
+        // Destroy the existing chart instance
+        if (window.compareChart) {
+            window.compareChart.destroy();
+        }
+
+        window.compareChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Array.from({ length: compareData[0].length }, (_, i) => i + 1),
+                
+                datasets: compareData.map(function(data, index) {
+    console.log('Dataset:', data, validatorNames[index]);
+    const color = `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`;
+    return {
+        label: validatorNames[index],
+        data: data,
+        backgroundColor: color,
+        borderColor: color,
+        borderWidth: 1
+    };
+})
+
+
+            },
+            options: {
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Epoch'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Rewards (SOL)'
+                        }
+                    }
+                }
+            }
+        });
+    }, 0);
+}
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+[Unit]
+Description=Leaderboard Script Service
+After=network.target
+
+[Service]
+ExecStart=/home/smilax/leaderboard/leaderboard.sh
+WorkingDirectory=/home/smilax/leaderboard
+Restart=always
+RestartSec=10
+User=smilax
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+[Install]
+WantedBy=multi-user.target

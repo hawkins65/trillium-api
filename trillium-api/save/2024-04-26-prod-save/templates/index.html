@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Solana Rewards Leaderboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <h1>Solana Rewards Leaderboard</h1>
+    <div id="leaderboard">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Pubkey</th>
+                    <th>Average Rewards (SOL)</th>
+                    <th>Total Rewards (SOL)</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body"></tbody>
+        </table>
+    </div>
+    <div class="filters">
+        <form id="filter-form">
+            <div id="pubkey-filter">
+                <label for="pubkey1">Select Pubkeys (up to 5):</label>
+                <input type="text" id="pubkey1" name="pubkey1" placeholder="Search pubkey" list="pubkey-list">
+                <input type="text" id="pubkey2" name="pubkey2" placeholder="Search pubkey" list="pubkey-list">
+                <input type="text" id="pubkey3" name="pubkey3" placeholder="Search pubkey" list="pubkey-list">
+                <input type="text" id="pubkey4" name="pubkey4" placeholder="Search pubkey" list="pubkey-list">
+                <input type="text" id="pubkey5" name="pubkey5" placeholder="Search pubkey" list="pubkey-list">
+                <datalist id="pubkey-list"></datalist>
+                <button type="submit" name="filter-type" value="pubkey">Apply Pubkey Filter</button>
+            </div>
+
+            <div id="time-filter">
+                <label for="start-time">Select Start Time:</label>
+                <input type="datetime-local" id="start-time" name="start-time" step="1">
+                <button type="submit" name="filter-type" value="time">Apply Time Filter</button>
+            </div>
+
+            <div id="slot-filter">
+                <label for="start-slot">Select Slot Range (Max 10):</label>
+                <input type="number" id="start-slot" name="start-slot" placeholder="Start Slot">
+                <input type="number" id="end-slot" name="end-slot" placeholder="End Slot">
+                <button type="submit" name="filter-type" value="slot">Apply Slot Filter</button>
+            </div>
+
+            <div id="epoch-filter">
+                <label for="epoch1">Select Epochs (Max 3 apart):</label>
+                <input type="number" id="epoch1" name="epoch1" placeholder="Epoch 1">
+                <input type="number" id="epoch2" name="epoch2" placeholder="Epoch 2">
+                <button type="submit" name="filter-type" value="epoch">Apply Epoch Filter</button>
+            </div>
+        </form>
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

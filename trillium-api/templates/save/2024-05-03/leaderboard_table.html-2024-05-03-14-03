@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaderboard Table</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .table-container {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        table {
+            border-collapse: collapse;
+            min-width: 100%;
+            table-layout: auto;
+        }
+        th, td {
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        th.name-column, td.name-column {
+            white-space: normal;
+            word-wrap: break-word;
+            min-width: 150px;
+        }
+        th.pubkey-column, td.pubkey-column,
+        th.vote-account-pubkey-column, td.vote-account-pubkey-column {
+            min-width: 300px;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+        td.avg-fee-rewards {
+            text-align: right;
+        }
+        tbody {
+            display: block;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+        thead, tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <label for="epoch-select">Select Epoch:</label>
+        <select id="epoch-select">
+            {% for epoch in epochs %}
+            <option value="{{ epoch }}">{{ epoch }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <h2 id="table-title"></h2>
+    <h3 id="table-subtitle"></h3>
+    <div class="table-container">
+        <table id="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Icon</th>
+                    <th class="name-column">Name</th>
+                    <th>Website</th>
+                    <th class="pubkey-column">Pubkey</th>
+                    <th class="vote-account-pubkey-column">Vote Account Pubkey</th>
+                    <th>Epoch</th>
+                    <th>Avg Fee Rewards</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            var currentEpoch = {{ epochs[0] }};
+
+            // Fetch data from the Flask backend
+            function fetchData(epoch) {
+                $.getJSON('/api/data', { epoch: epoch }, function(data) {
+                    var tableBody = $('#leaderboard-table tbody');
+                    tableBody.empty();
+
+                    data.forEach(function(item, index) {
+                        var row = $('<tr>');
+                        row.append($('<td>').text(index + 1));
+                        row.append($('<td>').html(item.icon_url ? '<img src="' + item.icon_url + '" alt="Icon" width="32" height="32">' : ''));
+                        row.append($('<td>').text(item.name).addClass('name-column'));
+                        row.append($('<td>').html(item.website ? '<a href="' + item.website + '">Website</a>' : ''));
+                        row.append($('<td>').text(item.pubkey).addClass('pubkey-column'));
+                        row.append($('<td>').text(item.vote_account_pubkey).addClass('vote-account-pubkey-column'));
+                        row.append($('<td>').text(item.epoch));
+                        row.append($('<td>').text(item.avg_fee_rewards.toLocaleString()).addClass('avg-fee-rewards'));
+                        tableBody.append(row);
+                    });
+
+                    // Update table title and subtitle
+                    var tableTitle = $('#table-title');
+                    var tableSubtitle = $('#table-subtitle');
+                    tableTitle.text('Leaderboard for Epoch ' + currentEpoch);
+                    tableSubtitle.text('All Validators');
+                });
+            }
+
+            // Initial fetch
+            fetchData(currentEpoch);
+
+            // Handle epoch selection
+            $('#epoch-select').on('change', function() {
+                currentEpoch = $('#epoch-select').val();
+                fetchData(currentEpoch);
+            });
+        });
+    </script>
+</body>
+</html>
