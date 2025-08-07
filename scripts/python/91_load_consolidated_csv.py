@@ -34,7 +34,11 @@ start_time_1 = time.time()
 from db_config import db_params
 
 # Construct the base directory dynamically
-base_directory = f"./epoch{epoch_number}/"  # Using f-strings
+# Use the TRILLIUM_DATA_EPOCHS environment variable or fall back to the standard path
+base_directory = os.path.join(
+    os.environ.get('TRILLIUM_DATA_EPOCHS', '/home/smilax/trillium_api/data/epochs'),
+    f"epoch{epoch_number}"
+)
 
 # Create a connection to the PostgreSQL database
 conn = psycopg2.connect(**db_params)
@@ -467,78 +471,124 @@ if not error_found:
                 print(f"Epoch {epoch_number}: Error dropping temporary table: {drop_e}")
             # No need to rollback here if drop fails, main transaction is already handled.
 else:
-    print(f"Errors found during temp_validator_data parent_slot chain check. Epoch vote data loading skipped for epoch {epoch_number}.")
+    logger.error(f"❌ Errors found during temp_validator_data parent_slot chain check. Epoch vote data loading skipped for epoch {epoch_number}.")
 
-print("Processing run0 JSON files for validator_xshin table")
+logger.info("🔄 Processing run0 JSON files for validator_xshin table")
 
 run0_directory = os.path.join(base_directory, "run0")
+if not os.path.exists(run0_directory):
+    logger.warning(f"⚠️ run0 directory not found: {run0_directory}")
+else:
+    logger.info(f"📁 Processing run0 directory: {run0_directory}")
+
 json_files = ["good.json", "poor.json"]
 all_data = []
+processed_files = []
 
 for json_file in json_files:
     file_path = os.path.join(run0_directory, json_file)
     
     if not os.path.exists(file_path):
-        print(f"Warning: {json_file} not found in {run0_directory}")
+        logger.warning(f"⚠️ {json_file} not found in {run0_directory}")
         continue
 
     try:
         with open(file_path, 'r') as file:
             data = json.load(file)
+        processed_files.append(json_file)
+        logger.info(f"✅ Loaded {json_file} - {len(data.get('voters', []))} validators")
     except json.JSONDecodeError as e:
-        print(f"Error decoding JSON in {file_path}: {e}")
+        logger.error(f"❌ Error decoding JSON in {file_path}: {e}")
+        continue
+    except Exception as e:
+        logger.error(f"❌ Unexpected error loading {file_path}: {e}")
         continue
 
     # Get the epochs from data_epochs
     epochs = data.get('data_epochs', [])
     if len(epochs) < 2:
-        print(f"Skipping {json_file}: invalid or missing data_epochs")
+        logger.warning(f"⚠️ Skipping {json_file}: invalid or missing data_epochs (got: {epochs})")
         continue
 
     # Check if either epoch matches the target epoch_number
-    if not any(epoch == epoch_number for epoch in epochs):
-        print(f"Skipping {json_file}: neither epoch {epochs[0]} nor {epochs[1]} matches target epoch {epoch_number}")
+    epoch_number_int = int(epoch_number)
+    if not any(epoch == epoch_number_int for epoch in epochs):
+        logger.warning(f"⚠️ Skipping {json_file}: neither epoch {epochs[0]} nor {epochs[1]} matches target epoch {epoch_number_int}")
         continue
 
-    # Use epoch_number for data association
-    epoch = epoch_number
+    logger.info(f"📊 Processing {json_file} with epochs {epochs} for target epoch {epoch_number_int}")
 
     # Process voter data if at least one epoch is within range
+    category = json_file.replace('.json', '')  # 'good' or 'poor'
+    voters_processed = 0
+    none_values_count = 0
 
     for voter in data['voters']:
+        # Handle None values by converting to NULL-compatible values
+        average_vl = voter.get('average_vl')
+        average_llv = voter.get('average_llv')
+        average_cv = voter.get('average_cv')
+        
+        # Count None values for logging
+        if average_vl is None or average_llv is None or average_cv is None:
+            none_values_count += 1
+        
         all_data.append((
-            epoch,
+            epoch_number_int,
             voter['vote_pubkey'],
             voter['identity_pubkey'],
             voter['stake'],
-            voter['average_vl'],
-            voter['average_llv'],
-            voter['average_cv'],
-            voter['vo'],
+            average_vl,  # Can be None, will become NULL in PostgreSQL
+            average_llv,
+            average_cv,
+            voter.get('vo', False),
             voter['is_foundation_staked']
         ))
+        voters_processed += 1
 
-# Insert all data at once with upsert
-try:
-    cursor.executemany("""
-        INSERT INTO validator_xshin (
-            epoch, vote_account_pubkey, identity_pubkey, stake, 
-            average_vl, average_llv, average_cv, vo, is_foundation_staked
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (epoch, identity_pubkey) DO UPDATE SET
-            vote_account_pubkey = EXCLUDED.vote_account_pubkey,
-            stake = EXCLUDED.stake,
-            average_vl = EXCLUDED.average_vl,
-            average_llv = EXCLUDED.average_llv,
-            average_cv = EXCLUDED.average_cv,
-            vo = EXCLUDED.vo,
-            is_foundation_staked = EXCLUDED.is_foundation_staked
-    """, all_data)
-    conn.commit()
-    print(f"Successfully processed run0 JSON files and upserted {len(all_data)} rows into validator_xshin table")
-except psycopg2.Error as e:
-    print(f"Error inserting data into the database: {e}")
-    conn.rollback()
+    logger.info(f"📈 Processed {voters_processed} {category} validators ({none_values_count} with None performance values)")
+
+# Insert all data at once with upsert if we have data
+if all_data:
+    try:
+        logger.info(f"💾 Inserting {len(all_data)} validator records into validator_xshin table...")
+        cursor.executemany("""
+            INSERT INTO validator_xshin (
+                epoch, vote_account_pubkey, identity_pubkey, stake, 
+                average_vl, average_llv, average_cv, vo, is_foundation_staked
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (epoch, identity_pubkey) DO UPDATE SET
+                vote_account_pubkey = EXCLUDED.vote_account_pubkey,
+                stake = EXCLUDED.stake,
+                average_vl = EXCLUDED.average_vl,
+                average_llv = EXCLUDED.average_llv,
+                average_cv = EXCLUDED.average_cv,
+                vo = EXCLUDED.vo,
+                is_foundation_staked = EXCLUDED.is_foundation_staked
+        """, all_data)
+        conn.commit()
+        
+        # Provide summary statistics
+        good_count = sum(1 for d in all_data if 'good' in str(processed_files))
+        poor_count = len(all_data) - good_count
+        logger.info(f"✅ Successfully processed run0 JSON files:")
+        logger.info(f"   📊 Files processed: {', '.join(processed_files)}")
+        logger.info(f"   📈 Total validators: {len(all_data)}")
+        logger.info(f"   💾 Upserted into validator_xshin table for epoch {epoch_number}")
+        
+    except psycopg2.Error as e:
+        logger.error(f"❌ Error inserting run0 data into database: {e}")
+        conn.rollback()
+        raise
+    except Exception as e:
+        logger.error(f"❌ Unexpected error during run0 database operations: {e}")
+        conn.rollback()
+        raise
+else:
+    if os.path.exists(run0_directory):
+        logger.warning(f"⚠️ No run0 data processed for epoch {epoch_number}")
+    else:
+        logger.info(f"ℹ️ No run0 directory found - skipping validator performance data")
 
 # Close the database connection
 cursor.close()

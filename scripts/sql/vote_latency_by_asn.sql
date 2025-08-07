@@ -53,5 +53,5 @@ FROM (
     SELECT * FROM report_header
     UNION ALL
     SELECT * FROM main_data
-    ORDER BY sort_order, CASE WHEN sort_order = 1 THEN "Avg Vote Latency"::numeric ELSE 0 END DESC
-) combined_results;
+) combined_results
+ORDER BY sort_order, CASE WHEN sort_order = 1 THEN "Avg Vote Latency"::numeric ELSE 0 END DESC;

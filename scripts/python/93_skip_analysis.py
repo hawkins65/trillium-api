@@ -1,8 +1,10 @@
 import psycopg2
 import sys
 import json
+import os
 from db_config import db_params
 import importlib.util
+from output_paths import get_json_path
 
 # Setup unified logging
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -19,10 +21,7 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import os
 
-# Logging setup
-# Logging config moved to unified configurations - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
+# Logging setup handled by unified configuration above
 
 def get_db_connection_string(db_params: Dict[str, str]) -> str:
     return f"postgresql://{db_params['user']}@{db_params['host']}:{db_params['port']}/{db_params['database']}?sslmode={db_params['sslmode']}"
@@ -295,8 +294,10 @@ def main():
     }
 
     filename = f'skip_analysis_epoch_{epoch}.json'
-    with open(filename, 'w') as f:
+    output_path = get_json_path(filename)
+    with open(output_path, 'w') as f:
         json.dump({"summary": epoch_summary, "validators": results}, f, cls=DecimalEncoder, indent=2)
+    logger.info(f"Saved skip analysis to {output_path}")
     print(f"\nResults saved to {filename}")
 
     cur.close()

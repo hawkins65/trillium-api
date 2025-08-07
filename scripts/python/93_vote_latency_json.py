@@ -3,6 +3,7 @@ import psycopg2
 import sys
 from db_config import db_params
 from decimal import Decimal
+from output_paths import get_json_path
 
 def fetch_latest_epoch():
     conn = psycopg2.connect(**db_params)
@@ -63,15 +64,17 @@ def fetch_data(epoch):
 def save_to_json(data, epoch):
     # Save to vote_latency.json (generic file)
     generic_filename = "vote_latency.json"
-    with open(generic_filename, "w") as f:
+    generic_path = get_json_path(generic_filename)
+    with open(generic_path, "w") as f:
         json.dump(data, f, indent=4)
-    print(f"JSON file created: {generic_filename}")
+    print(f"JSON file created: {generic_path}")
 
     # Save to specific filename with epoch
     specific_filename = f"vote_latency_{epoch}.json"
-    with open(specific_filename, "w") as f:
+    specific_path = get_json_path(specific_filename)
+    with open(specific_path, "w") as f:
         json.dump(data, f, indent=4)
-    print(f"JSON file created: {specific_filename}")
+    print(f"JSON file created: {specific_path}")
 
 def main():
     # If epoch is provided as argument, use it; otherwise get latest

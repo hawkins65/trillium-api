@@ -1,15 +1,27 @@
 # Trillium API Installation Guide
 
+**Production-Ready Installation for Solana Validator Data Processing Pipeline**
+
+This guide provides complete setup instructions for the Trillium API system, including database configuration, monitoring setup, and automated backup systems.
+
+> 🚀 **Quick Start**: For experienced users, see [Quick Setup Summary](#quick-setup-summary) below.
+
 ## Prerequisites
 
 ### System Requirements
 
-- Ubuntu/Debian Linux (recommended)
-- Minimum 16GB RAM
-- 500GB+ available disk space for epoch data
-- PostgreSQL 12+ 
-- Python 3.8+
-- Node.js 16+
+- **OS**: Ubuntu 20.04+ or Debian 11+ (recommended)
+- **RAM**: Minimum 16GB, 32GB+ recommended for production
+- **Storage**: 500GB+ SSD for epoch data and backups
+- **Network**: Stable internet connection with <500ms latency to major APIs
+- **PostgreSQL**: 12+ (v16 server with v17 client recommended)
+- **Python**: 3.8+ (3.12 recommended)
+- **Node.js**: 16+ (18+ recommended)
+
+### Performance Recommendations
+- **CPU**: 8+ cores for concurrent processing
+- **Storage I/O**: NVMe SSD recommended for database performance
+- **Network Bandwidth**: 100Mbps+ for API data collection
 
 ### Required System Packages
 
@@ -600,30 +612,91 @@ After successful installation:
 4. Monitor logs during first execution
 5. Set up reverse proxy for web API endpoints (if applicable)
 
-## Backup and Recovery
+## Quick Setup Summary
 
-### Database Backup
+For experienced users, here's the condensed setup process:
 
 ```bash
-# Create backup
-pg_dump -h localhost -U trillium_user solana_data > backup_$(date +%Y%m%d).sql
+# 1. System packages
+sudo apt update && sudo apt install -y postgresql-client python3-pip nodejs npm curl jq tmux zstd bc
 
-# Restore backup
-psql -h localhost -U trillium_user solana_data < backup_20241201.sql
+# 2. Database setup (use AI assistant for PostgreSQL installation)
+# Create database 'sol_blocks' and user 'smilax'
+echo "localhost:5432:sol_blocks:smilax:your_password" > ~/.pgpass
+chmod 0600 ~/.pgpass
+
+# 3. Project setup
+cd ~/trillium_api
+python3 -m venv venv && source venv/bin/activate
+pip install -r config/requirements.txt
+npm install --prefix scripts/nodejs
+
+# 4. Configuration deployment
+cd data/configs && for t in *.template; do cp "$t" "${t%.template}"; done
+
+# 5. External binaries
+# Install Jito validator-history and Solana CLI per official docs
+
+# 6. Enable monitoring (optional)
+crontab -e  # Add provided crontab entries
+
+# 7. Test installation
+python3 -c "import psycopg2; print('Database OK')"
+./scripts/bash/999_common_log.sh && echo "Logging OK"
 ```
 
-### Configuration Backup
+## Backup and Recovery
+
+### Automated Backup System (Production)
+The system includes automated daily backups via cron jobs:
 
 ```bash
-# Backup configuration
-tar -czf config_backup_$(date +%Y%m%d).tar.gz config/ scripts/bash/999_discord_notify.sh
+# Database backups (daily at 12:30 AM)
+/home/smilax/trillium_api/scripts/bash/999_backup_psql_all_tables.sh
+
+# Code backups (daily at 12:30 AM)  
+/home/smilax/trillium_api/scripts/bash/999_backup_apiserver.sh
+```
+
+**Backup Locations:**
+- Database: `/home/smilax/trillium_api/data/backups/postgresql/`
+- Codebase: `/home/smilax/trillium_api/data/backups/apiserver/`
+- Retention: 7 days (automatically cleaned)
+
+### Manual Backup/Recovery
+
+```bash
+# Manual database backup
+pg_dump -h localhost -U smilax sol_blocks > backup_$(date +%Y%m%d).sql
+
+# Restore backup
+psql -h localhost -U smilax sol_blocks < backup_20250806.sql
+
+# Configuration backup
+tar -czf config_backup_$(date +%Y%m%d).tar.gz data/configs/
 ```
 
 ## Security Considerations
 
-- Use strong database passwords
-- Restrict database access to localhost only
-- Keep API keys secure and rotate regularly
-- Monitor log files for sensitive information
-- Regular security updates for system packages
-- Consider using SSL/TLS for database connections in production
+### Production Security Checklist
+- ✅ **Database Authentication**: Use `.pgpass` file (chmod 0600)
+- ✅ **Configuration Security**: Sensitive data in config files, not code
+- ✅ **Network Security**: Firewall rules for localhost-only database access
+- ✅ **API Key Management**: Keys in config files with proper permissions
+- ✅ **Log Security**: Logs stored with secure permissions
+- ✅ **Backup Encryption**: Consider encrypting backup files
+
+### Network Security
+```bash
+# Firewall configuration
+sudo ufw allow from 127.0.0.1 to any port 5432  # PostgreSQL localhost only
+sudo ufw allow out 443  # HTTPS for external APIs
+sudo ufw allow out 80   # HTTP for API calls
+```
+
+### Regular Maintenance
+- **System Updates**: Weekly security updates
+- **Password Rotation**: Quarterly database password changes  
+- **API Key Rotation**: Monitor API usage and rotate keys
+- **Log Monitoring**: Regular log review for security events
+- **Backup Verification**: Monthly backup restoration tests

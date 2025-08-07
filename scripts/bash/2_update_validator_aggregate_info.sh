@@ -49,8 +49,11 @@ else
     log "INFO" "📊 Using epoch number from user input: $epoch_number"
 fi
 
-# Create a persistent response file with the format 2_response_file.<epoch_number>
-response_file="2_response_file.$epoch_number"
+# Create a persistent response file in the logs directory with the format 2_response_file.<epoch_number>
+# Use environment variable if set, otherwise use default
+LOG_DIR="${TRILLIUM_LEADERBOARD_LOGS:-${TRILLIUM_DATA}/logs}"
+mkdir -p "$LOG_DIR"
+response_file="$LOG_DIR/2_response_file.$epoch_number"
 
 # Check for the --skip-previous flag passed as the second parameter
 skip_previous=false
@@ -66,7 +69,7 @@ if [ "$skip_previous" = false ]; then
     log "INFO" "📈 Configuring for full processing mode"
     
     # Load the vote latency table for this epoch
-    execute_with_logging "python3 ../python/92_vx-call.py $epoch_number" "vote latency table loading" "📊"
+    execute_with_logging "python3 $TRILLIUM_SCRIPTS_PYTHON/92_vx-call.py $epoch_number" "vote latency table loading" "📊"
 
     # Write responses to the temporary file for full processing
     {
@@ -112,12 +115,12 @@ fi
 
 # Pipe the responses to the Python script to update validator aggregate info
 log "INFO" "🔄 Starting validator aggregate info update"
-if cat "$response_file" | python3 ../python/92_update_validator_aggregate_info.py; then
+if cat "$response_file" | python3 $TRILLIUM_SCRIPTS_PYTHON/92_update_validator_aggregate_info.py; then
     log "INFO" "✅ Successfully completed validator aggregate info update"
 else
     exit_code=$?
     log "ERROR" "❌ Failed to update validator aggregate info (exit code: $exit_code)"
-    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Validator aggregate info update" "cat \"$response_file\" | python3 ../python/92_update_validator_aggregate_info.py" "$exit_code" "$epoch_number"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Validator aggregate info update" "cat \"$response_file\" | python3 $TRILLIUM_SCRIPTS_PYTHON/92_update_validator_aggregate_info.py" "$exit_code" "$epoch_number"
     exit $exit_code
 fi
 
@@ -140,23 +143,23 @@ else
 fi
 
 # Execute remaining steps with logging and error handling
-execute_with_logging "bash 92_vote_latency_update_ead.sh $epoch_number" "vote latency epoch aggregate update" "⏱️"
+execute_with_logging "bash $TRILLIUM_SCRIPTS_BASH/92_vote_latency_update_ead.sh $epoch_number" "vote latency epoch aggregate update" "⏱️"
 
-execute_with_logging "python3 ../python/92_block_time_calculation.py $epoch_number" "average slot time calculation" "⏰"
+execute_with_logging "python3 $TRILLIUM_SCRIPTS_PYTHON/92_block_time_calculation.py $epoch_number" "average slot time calculation" "⏰"
 
-execute_with_logging "python3 ../python/92_update_vs_inflation_reward.py $epoch_number" "validator inflation rewards update" "💰"
+execute_with_logging "python3 $TRILLIUM_SCRIPTS_PYTHON/92_update_vs_inflation_reward.py $epoch_number" "validator inflation rewards update" "💰"
 
-execute_with_logging "python3 ../python/92_update_ead_inflation_reward.py $epoch_number" "epoch aggregate inflation rewards update" "💵"
+execute_with_logging "python3 $TRILLIUM_SCRIPTS_PYTHON/92_update_ead_inflation_reward.py $epoch_number" "epoch aggregate inflation rewards update" "💵"
 
-execute_with_logging "python3 ../python/92_calculate_apy.py $epoch_number" "APY calculations" "📈"
+execute_with_logging "python3 $TRILLIUM_SCRIPTS_PYTHON/92_calculate_apy.py $epoch_number" "APY calculations" "📈"
 
-execute_with_logging "python3 ../python/92_ip_api.py $epoch_number" "geographic IP information gathering" "🌍"
+execute_with_logging "python3 $TRILLIUM_SCRIPTS_PYTHON/92_ip_api.py $epoch_number" "geographic IP information gathering" "🌍"
 
-execute_with_logging "bash 92_run_sql_updates.sh" "SQL post-processing updates" "🗄️"
+execute_with_logging "bash $TRILLIUM_SCRIPTS_BASH/92_run_sql_updates.sh" "SQL post-processing updates" "🗄️"
 
-execute_with_logging "bash 92_slot_duration.sh $epoch_number" "slot duration analysis" "⏱️"
+execute_with_logging "bash $TRILLIUM_SCRIPTS_BASH/92_slot_duration.sh $epoch_number" "slot duration analysis" "⏱️"
 
-execute_with_logging "python3 ../python/92_solana_block_laggards.py $epoch_number" "slot duration laggards analysis" "⏱️"
+execute_with_logging "python3 $TRILLIUM_SCRIPTS_PYTHON/92_solana_block_laggards.py $epoch_number" "slot duration laggards analysis" "⏱️"
 
 log "INFO" "🎉 Validator aggregate info update process completed successfully for epoch $epoch_number"
 

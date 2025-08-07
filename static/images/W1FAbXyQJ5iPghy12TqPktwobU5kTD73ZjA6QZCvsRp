@@ -1,0 +1,667 @@
+<!DOCTYPE HTML>
+<html xml:lang="en" lang="en" dir="ltr" class="device-nonmobile palette-blanco unsafe-blur-on recaptcha recaptcha--3" data-palette="blanco" prefix="og: http://ogp.me/ns#">
+<head>
+        <meta charset="utf-8">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Free image hosting and sharing service, upload images, pictures, photo host. Join now for reliable &amp; user-friendly free image hosting.">
+    <title>Sign in - HotIMG.com</title>
+    <meta name="generator" content="Chevereto 4">
+<link rel="stylesheet" href="/content/legacy/themes/Peafowl/lib/peafowl.min.css?76e991ef18f00ccead0908dad1e8ca36">
+<link rel="stylesheet" href="/content/legacy/themes/Peafowl/style.min.css?76e991ef18f00ccead0908dad1e8ca36">
+
+<link rel="stylesheet" href="/content/legacy/themes/Peafowl/lib/font-awesome-6/css/all.min.css?76e991ef18f00ccead0908dad1e8ca36">
+<script data-cfasync="false">document.documentElement.className+=" js";var devices=["phone","phablet","tablet","laptop","desktop","largescreen"],window_to_device=function(){for(var e=[480,768,992,1200,1880,2180],t=[],n="",d=document.documentElement.clientWidth||document.getElementsByTagName("body")[0].clientWidth||window.innerWidth,c=0;c<devices.length;++c)d>=e[c]&&t.push(devices[c]);for(0==t.length&&t.push(devices[0]),n=t[t.length-1],c=0;c<devices.length;++c)document.documentElement.className=document.documentElement.className.replace(devices[c],""),c==devices.length-1&&(document.documentElement.className+=" "+n),document.documentElement.className=document.documentElement.className.replace(/\s+/g," ");if("laptop"==n||"desktop"==n){var o=document.getElementById("pop-box-mask");null!==o&&o.parentNode.removeChild(o)}};window_to_device(),window.onresize=window_to_device;function jQueryLoaded(){!function(n,d){n.each(readyQ,function(d,e){n(e)}),n.each(bindReadyQ,function(e,i){n(d).bind("ready",i)})}(jQuery,document)}!function(n,d,e){function i(d,e){"ready"==d?n.bindReadyQ.push(e):n.readyQ.push(d)}n.readyQ=[],n.bindReadyQ=[];var u={ready:i,bind:i};n.$=n.jQuery=function(n){return n===d||void 0===n?u:void i(n)}}(window,document);
+            </script>
+
+    <link rel="shortcut icon" href="https://hotimg.com/content/images/system/favicon_1707905222300_547183.png">
+    <link rel="icon" type="image/png" href="https://hotimg.com/content/images/system/favicon_1707905222300_547183.png" sizes="192x192">
+    <link rel="apple-touch-icon" href="https://hotimg.com/content/images/system/favicon_1707905222300_547183.png" sizes="180x180">
+        <meta property="og:type" content="website" />
+<meta property="og:url" content="/login" />
+<meta property="og:title" content="Upload Image -- Free Image Hosting" />
+<meta property="og:image" content="/content/images/system/default/home_cover.jpg" />
+<meta property="og:site_name" content="HotIMG.com" />
+<meta property="og:description" content="Free image hosting and sharing service, upload images, pictures, photo host. Join now for reliable &amp; user-friendly free image hosting." />
+<meta name="twitter:card" content="summary">
+<meta name="twitter:description" content="Free image hosting and sharing service, upload images, pictures, photo host. Join now for reliable &amp; user-friendly free image hosting.">
+<meta name="twitter:title" content="Sign in">
+<meta name="twitter:site" content="@hotimgcom">
+                <style>
+                    html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.content {
+  min-height: calc(100% - 60px); /* Adjust 60px to the height of your footer */
+  /* Your content styling */
+}
+
+.sticky-footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: #ffffff; /* Light grey background */
+  text-align: center;
+  height: 60px; /* Set the height of your footer */
+  line-height: 60px; /* Center the content vertically */
+  border: none; /* Remove borders */
+}
+
+.sticky-footer table {
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse; /* Removes any space between borders */
+  border: none; /* Removes table borders */
+  background-color: white; /* Sets the table background color to white */
+}
+
+.sticky-footer td, .sticky-footer th {
+  border: none; /* Remove cell borders */
+  padding: 0; /* Adjust padding as needed */
+}
+
+
+.sticky-footer a {
+  color: black; /* Sets the text color to black */
+  text-decoration: none; /* Optional: removes the underline from links. Remove this line if you prefer the underline for clarity */
+}
+
+/* Ensure links within the footer have a black color even after being visited */
+.sticky-footer a:visited {
+  color: black;
+}                </style>
+                            <script>
+                    </script><script async data-id="101450808" src="//static.getclicky.com/js"></script><script>                </script>
+            <style>
+.palette-dark:root{
+    --alertAccent: hsl(48, 89%, 50%);
+    --alertBackground: hsl(52, 100%, 90%);
+    --alertText: hsl(278, 22%, 10%);
+    --bodyBackground: hsl(245, 9%, 18%);
+    --bodyEmpty: hsl(245, 10%, 22%);
+    --bodySeparator: var(--bodyEmpty);
+    --bodyText: hsl(245, 5%, 80%);
+    --bodyTextSubtle: hsl(245, 5%, 45%);
+    --buttonDefaultBackground: var(--bodyEmpty);
+    --buttonDefaultHoverBackground: hsl(245, 5%, 10%);
+    --buttonDefaultHoverText: var(--colorAccent);
+    --buttonDefaultText: var(--bodyText);
+    --inputBackground:  hsl(245, 10%, 10%);
+    --inputPlaceholderText: hsl(245, 5%, 50%);
+    --inputText: var(--bodyText);
+    --menuBackground: hsla(245, 10%, 8%, 80%);
+    --menuItemHoverBackground: var(--colorAccent);
+    --menuItemHoverText: hsl(245, 5%, 100%);
+    --menuItemText: var(--bodyText);
+    --menuSeparator: var(--bodyBackground);
+    --menuText: var(--bodyText);
+    --modalBackground: var(--bodyBackground);
+    --modalText: var(--bodyText);
+    --topBarBackground: hsl(245, 9%, 18%);
+    --topBarText: var(--bodyText);
+    --viewerBackground: hsl(245, 5%, 12%);
+}
+.palette-lush:root{
+    --alertAccent: hsl(48, 89%, 50%);
+    --alertBackground: hsl(52, 100%, 90%);
+    --alertText: hsl(278, 22%, 10%);
+    --bodyBackground: hsl(150, 25%, 94%);
+    --bodyEmpty: hsl(150, 25%, 85%);
+    --bodySeparator: var(--bodyEmpty);
+    --bodyText: hsl(150, 25%, 16%);
+    --bodyTextDisabled: hsl(150, 25%, 50%);
+    --bodyTextSubtle: hsl(189, 6%, 45%);
+    --buttonAccentBackground: hsl(150, 25%, 70%);
+    --buttonAccentHoverBackground: hsl(150, 25%, 60%);
+    --buttonAccentHoverText: var(--buttonAccentText);
+    --buttonAccentText: hsl(150, 25%, 20%);
+    --buttonDefaultBackground: var(--bodyBackground);
+    --buttonDefaultBorder: hsl(150, 25%, 80%);
+    --buttonDefaultHoverBackground: hsl(150, 25%, 85%);
+    --buttonDefaultHoverBorder: hsl(150, 25%, 80%);
+    --buttonDefaultHoverText: hsl(150, 25%, 20%);
+    --buttonDefaultText: hsl(150, 25%, 20%);
+    --colorAccent: hsl(150, 40%, 50%);
+    --colorAccentStrong: hsl(150, 25%, 40%);
+    --inputBackground:  hsl(0, 0%, 100%);
+    --inputPlaceholderText: hsl(150, 25%, 40%, 0.2);
+    --inputText: var(--bodyText);
+    --linkText: var(--colorAccent);
+    --menuBackground: hsla(150, 25%, 90%, 80%);
+    --menuItemHoverBackground: var(--colorAccent);
+    --menuItemHoverText: #FFF;
+    --menuItemText: var(--bodyText);
+    --menuSeparator: hsl(150, 25%, 72%);
+    --menuText: var(--bodyText);
+    --modalBackground: var(--bodyBackground);
+    --modalText: var(--bodyText);
+    --topBarBackground: var(--bodyBackground);
+    --topBarText: var(--bodyText);
+    --listItemText: var(--bodyBackground);
+}
+.palette-graffiti:root {
+    --alertAccent: hsl(48, 89%, 50%);
+    --alertBackground: hsl(52, 100%, 90%);
+    --alertText: var(--bodyText);
+    --bodyBackground: hsl(279, 77%, 95%);
+    --bodyEmpty: hsl(278, 80%, 91%);
+    --bodySeparator: hsl(278, 80%, 94%);
+    --bodyText: hsl(278, 22%, 10%);
+    --bodyTextDisabled: hsl(278, 80%, 90%);
+    --buttonAccentBackground: var(--colorAccent);
+    --buttonAccentHoverBackground: var(--colorAccentStrong);
+    --buttonAccentHoverText: var(--buttonAccentText);
+    --buttonDefaultBackground: var(--bodyBackground);
+    --buttonDefaultBorder: hsl(278, 80%, 90%);
+    --buttonDefaultHoverBackground: var(--bodyEmpty);
+    --buttonDefaultHoverBorder: hsl(278, 80%, 90%);
+    --buttonDefaultHoverText: var(--colorAccentStrong);
+    --buttonDefaultText: var(--colorAccent);
+    --colorAccent: hsl(278, 33%, 44%);
+    --colorAccentStrong: hsl(278, 33%, 40%);
+    --inputBackground:  hsl(0, 0%, 100%);
+    --inputText: hsl(278, 22%, 10%);
+    --linkText: var(--colorAccent);
+    --menuBackground: hsla(278, 80%, 90%, 80%);
+    --menuItemHoverBackground: var(--colorAccent);
+    --menuItemHoverText: #FFF;
+    --menuItemText: var(--inputText);
+    --menuSeparator: hsl(278, 80%, 79%);
+    --menuText: var(--inputText);
+    --modalBackground: var(--bodyBackground);
+    --modalText: var(--inputText);
+    --topBarBackground: var(--bodyBackground);
+    --topBarText: var(--bodyText);
+    --listItemText: var(--bodyBackground);
+}
+.palette-abstract:root{
+    --alertAccent: hsl(48, 89%, 50%);
+    --alertBackground: hsl(52, 100%, 90%);
+    --alertText: hsl(278, 22%, 10%);
+    --bodyBackground: hsl(15, 73%, 97%);
+    --bodyEmpty: hsl(15, 100%, 92%);
+    --bodySeparator: var(--bodyEmpty);
+    --bodyText: hsl(15, 25%, 16%);
+    --bodyTextDisabled: hsl(15, 100%, 90%);
+    --bodyTextSubtle: hsl(189, 6%, 45%);
+    --buttonAccentBackground: var(--colorAccent);
+    --buttonAccentHoverBackground: var(--colorAccentStrong);
+    --buttonAccentHoverText: var(--buttonAccentText);
+    --buttonAccentText:  hsl(0, 0%, 100%);
+    --buttonDefaultBackground: var(--bodyBackground);
+    --buttonDefaultBorder: hsl(15, 70%, 90%);
+    --buttonDefaultHoverBackground: hsl(15, 100%, 95%);
+    --buttonDefaultHoverBorder: hsl(15, 80%, 90%);
+    --buttonDefaultHoverText: var(--colorAccentStrong);
+    --buttonDefaultText:  var(--colorAccentStrong);
+    --colorAccent: hsl(15, 70%, 30%);
+    --colorAccentStrong: hsl(15, 70%, 40%);
+    --inputBackground: var(--buttonAccentText);
+    --inputPlaceholderText: hsl(15, 100%, 20%, 0.3);
+    --inputText: var(--bodyText);
+    --linkText: var(--colorAccent);
+    --menuBackground: hsla(15, 100%, 90%, 80%);
+    --menuItemHoverBackground: var(--colorAccent);
+    --menuItemHoverText: #FFF;
+    --menuItemText: var(--bodyText);
+    --menuSeparator: hsl(15, 71%, 74%);
+    --menuText: var(--bodyText);
+    --modalBackground: var(--bodyBackground);
+    --modalText: var(--bodyText);
+    --topBarBackground: var(--bodyBackground);
+    --topBarText: var(--bodyText);
+    --listItemText: var(--bodyBackground);
+}
+.palette-cheers:root{
+    --alertAccent: hsl(48, 89%, 50%);
+    --alertBackground: hsl(52, 100%, 90%);
+    --alertText: hsl(278, 22%, 10%);
+    --bodyBackground: hsl(42, 60%, 91%);
+    --bodyEmpty: hsl(42, 80%, 82%);
+    --bodySeparator: var(--bodyEmpty);
+    --bodyText: hsl(42, 25%, 16%);
+    --bodyTextDisabled: hsl(42, 100%, 50%);
+    --bodyTextSubtle: hsl(189, 6%, 45%);
+    --buttonAccentBackground: hsl(42, 100%, 70%);
+    --buttonAccentHoverBackground: hsl(42, 100%, 60%);
+    --buttonAccentHoverText: var(--buttonAccentText);
+    --buttonAccentText: hsl(42, 80%, 20%);
+    --buttonDefaultBackground: var(--bodyBackground);
+    --buttonDefaultBorder: hsl(42, 70%, 80%);
+    --buttonDefaultHoverBackground: hsl(42, 80%, 85%);
+    --buttonDefaultHoverBorder: hsl(42, 80%, 80%);
+    --buttonDefaultHoverText: hsl(42, 80%, 20%);
+    --buttonDefaultText: hsl(42, 80%, 20%);
+    --colorAccent: hsl(42, 100%, 50%);
+    --colorAccentStrong: hsl(42, 100%, 40%);
+    --inputBackground:  hsl(0, 0%, 100%);
+    --inputPlaceholderText: hsl(42, 100%, 40%, 0.2);
+    --inputText: var(--bodyText);
+    --linkText: var(--colorAccent);
+    --menuBackground: hsla(42, 90%, 90%, 80%);
+    --menuItemHoverBackground: var(--colorAccent);
+    --menuItemHoverText: #FFF;
+    --menuItemText: var(--bodyText);
+    --menuSeparator: hsl(42, 70%, 67%);
+    --menuText: var(--bodyText);
+    --modalBackground: var(--bodyBackground);
+    --modalText: var(--bodyText);
+    --topBarBackground: var(--bodyBackground); /* hsl(42, 100%, 70%) */
+    --topBarText: var(--bodyText);
+    --listItemText: var(--bodyBackground);
+}
+.palette-imgur:root {
+    --alertAccent: var(--colorAccent);
+    --alertBackground: #463979;
+    --alertText: var(--bodyText);
+    --backgroundDarkAlpha: rgb(0 0 0 / 80%);
+    --backgroundLightAlpha: rgba(26, 25, 62, .9);
+    --bodyBackground: rgb(39,41,45);
+    --bodyEmpty: var(--buttonDefaultBackground);
+    --bodySeparator: #585D6A;
+    --bodyText: #DADCDF;
+    --bodyTextDisabled: #b4b9c2;
+    --bodyTextSubtle: #999;
+    --buttonAccentHoverText: var(--buttonAccentText);
+    --buttonAccentText: #FFF;
+    --buttonDefaultBackground: #464b57;
+    --buttonDefaultHoverBackground: var(--colorAccent);
+    --buttonDefaultHoverText: var(--buttonAccentText);
+    --buttonDefaultText: #b4b9c2;
+    --colorAccent: #1bb76e;
+    --colorAccentStrong: #31be7c;
+    --inputBackground: #191919;
+    --inputPlaceholderText: #9298a0;
+    --inputText: #f2f2f2;
+    --linkText: var(--colorAccent);
+    --menuBackground: hsl(222deg 6% 35% / 80%);
+    --menuItemHoverBackground: hsla(0,0%,80%,.29);
+    --menuItemHoverText: var(--buttonAccentText);
+    --menuItemText: var(--buttonAccentText);
+    --menuSeparator: rgb(11 14 15 / 10%);
+    --menuText: var(--buttonAccentText);
+    --modalBackground: rgb(60 66 75 / 50%);
+    --modalText: var(--buttonAccentText);
+    --topBarBackground: linear-gradient(180deg, #171544 0%, rgba(39,41,45,1));
+    --topBarText: var(--bodyText);
+    --viewerBackground: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.1));
+}
+.palette-flickr:root {
+    --bodyBackground: #f2f5f6;
+    --colorAccent: #128fdc;
+    --colorAccentStrong: #1c9be9;
+    --linkText: #006dac;
+    --topBarBackground: rgb(0 0 0 / 90%);
+    --topBarText: #FFF;
+    --viewerBackground: #212124;
+}
+.palette-deviantart:root {
+    --alertAccent: var(--colorAccent);
+    --alertBackground: #9affde;
+    --bodyBackground: #06070d;
+    --bodyEmpty: var(--bodyBackground);
+    --bodyText: #f2f2f2;
+    --bodyTextSubtle: #5d5c6c;
+    --buttonAccentHoverBackground: var(--colorAccentStrong);
+    --buttonAccentHoverText: var(--buttonAccentText);
+    --buttonAccentText: #FFF;
+    --buttonDefaultBackground: var(--bodyBackground);
+    --buttonDefaultHoverBackground:var(--bodyBackground);
+    --buttonDefaultHoverText: var(--buttonDefaultText);
+    --buttonDefaultText: #f2f2f2;
+    --colorAccent: #00e59b;
+    --colorAccentStrong: #31be7c;
+    --inputBackground: #292f34;
+    --inputPlaceholderText: #838592;
+    --inputText: #838592;
+    --linkText: var(--colorAccent);
+    --menuBackground: var(--bodyBackground);
+    --menuItemHoverBackground: #282f34;
+    --menuItemHoverText: var(--colorAccent);
+    --menuItemText: #b1b1b9;
+    --menuText: var(--buttonAccentText);
+    --modalText: var(--buttonDefaultText);
+    --topBarBackground: #06070d;
+    --topBarText: #fff;
+    --viewerBackground: linear-gradient(180deg, rgba(26,28,35,1) 0%, rgba(11,13,18,1) 100%);
+}
+.palette-cmyk:root {
+    --alertAccent: var(--buttonAccentBackground);
+    --alertBackground: #fff5b3;
+    --alertText: var(--bodyText);
+    --bodyBackground: #000;
+    --bodyEmpty: #000e10;
+    --bodySeparator: #370f1d;
+    --bodyText: #00bcd4;
+    --bodyTextSubtle: var(--buttonAccentBackground);
+    --buttonAccentBackground: #ec407a;
+    --buttonAccentHoverBackground: var(--bodyText);
+    --buttonAccentHoverText: #fff;
+    --buttonAccentText: var(--buttonAccentHoverText);
+    --buttonDefaultBackground: var(--bodyBackground);
+    --buttonDefaultHoverBackground: var(--bodyBackground);
+    --buttonDefaultHoverText: #ffd54f;
+    --buttonDefaultText: var(--buttonAccentBackground);
+    --colorAccent: var( --buttonDefaultHoverText);
+    --inputBackground: #edcf6e;
+    --inputPlaceholderText: var(--bodyBackground);
+    --linkText: var(--buttonDefaultHoverText);
+    --menuBackground: rgb(0 0 0 / 70%);
+    --menuItemHoverBackground: var(--buttonAccentBackground);
+    --menuItemHoverText: var(--buttonAccentText);
+    --menuItemText: var(--buttonDefaultHoverText);
+    --menuSeparator: rgb(11 14 15 / 10%);
+    --menuText: var(--buttonAccentHoverText);
+    --modalBackground: var(--bodyBackground);
+    --modalText: var(--bodyText);
+    --topBarBackground: rgb(0 0 0 / 70%);
+    --topBarText: var(--bodyText);
+    --viewerBackground: linear-gradient(180deg, rgba(26,28,35,1) 0%, rgba(11,13,18,1) 100%);
+}
+</style>
+            <link rel="alternate" hreflang="x-default" href="/login">
+            <link rel="alternate" hreflang="ar" href="/login/?lang=ar">
+<link rel="alternate" hreflang="bg-bg" href="/login/?lang=bg-BG">
+<link rel="alternate" hreflang="bs-ba" href="/login/?lang=bs-BA">
+<link rel="alternate" hreflang="ca" href="/login/?lang=ca">
+<link rel="alternate" hreflang="cs" href="/login/?lang=cs">
+<link rel="alternate" hreflang="da" href="/login/?lang=da">
+<link rel="alternate" hreflang="de" href="/login/?lang=de">
+<link rel="alternate" hreflang="de-de" href="/login/?lang=de-DE">
+<link rel="alternate" hreflang="el" href="/login/?lang=el">
+<link rel="alternate" hreflang="en" href="/login/?lang=en">
+<link rel="alternate" hreflang="es" href="/login/?lang=es">
+<link rel="alternate" hreflang="et-ee" href="/login/?lang=et-EE">
+<link rel="alternate" hreflang="fa" href="/login/?lang=fa">
+<link rel="alternate" hreflang="fi" href="/login/?lang=fi">
+<link rel="alternate" hreflang="fr" href="/login/?lang=fr">
+<link rel="alternate" hreflang="he" href="/login/?lang=he">
+<link rel="alternate" hreflang="hr" href="/login/?lang=hr">
+<link rel="alternate" hreflang="hu" href="/login/?lang=hu">
+<link rel="alternate" hreflang="id" href="/login/?lang=id">
+<link rel="alternate" hreflang="it" href="/login/?lang=it">
+<link rel="alternate" hreflang="ja" href="/login/?lang=ja">
+<link rel="alternate" hreflang="ko" href="/login/?lang=ko">
+<link rel="alternate" hreflang="lt-lt" href="/login/?lang=lt-LT">
+<link rel="alternate" hreflang="nb" href="/login/?lang=nb">
+<link rel="alternate" hreflang="nl" href="/login/?lang=nl">
+<link rel="alternate" hreflang="pl" href="/login/?lang=pl">
+<link rel="alternate" hreflang="pt" href="/login/?lang=pt">
+<link rel="alternate" hreflang="pt-br" href="/login/?lang=pt-BR">
+<link rel="alternate" hreflang="ro" href="/login/?lang=ro">
+<link rel="alternate" hreflang="ru" href="/login/?lang=ru">
+<link rel="alternate" hreflang="sk" href="/login/?lang=sk">
+<link rel="alternate" hreflang="sr-rs" href="/login/?lang=sr-RS">
+<link rel="alternate" hreflang="sv" href="/login/?lang=sv">
+<link rel="alternate" hreflang="th" href="/login/?lang=th">
+<link rel="alternate" hreflang="tr" href="/login/?lang=tr">
+<link rel="alternate" hreflang="uk" href="/login/?lang=uk">
+<link rel="alternate" hreflang="vi" href="/login/?lang=vi">
+<link rel="alternate" hreflang="zh-cn" href="/login/?lang=zh-CN">
+<link rel="alternate" hreflang="zh-tw" href="/login/?lang=zh-TW">
+</head>
+<body id="login" class="full--wh">
+		<div class="display-flex height-min-full">
+		<style>
+    .background-cover {
+        background-image: url(/content/images/system/default/home_cover.jpg);
+    }
+</style>
+<div class="background-cover"></div>
+		<div class="flex-center">
+			<div class="content-box card-box col-8-max text-align-center">
+				<div class="fancy-box">
+					<h1 class="fancy-box-heading"><i class="fas fa-sign-in-alt"></i> Sign in with your account</h1>
+										<div class="content-section">Don't have an account? <a href=/signup><i class="fas fa-user-plus margin-right-5"></i>Sign up</a> now.</div>
+										<form class="content-section" method="post" autocomplete="off" data-action="validate">
+						<fieldset class="fancy-fieldset">
+							<div>
+								<input autofocus autocomplete="nickname" name="login-subject" tabindex="1" autocorrect="off" autocapitalize="off" type="text" placeholder="Username or Email address" class="input" required>
+							</div>
+							<div class="input-with-button">
+								<input autocomplete="current-password" name="password" tabindex="2" type="password" placeholder="Password" class="input" required>
+								<button type="submit" tabindex="3" class="cursor-pointer icon--input-submit fas fa-arrow-alt-circle-right"></button>
+							</div>
+						</fieldset>
+						<div class="input-label-below text-align-right margin-top-5">
+							<a href="/account/password-forgot"><i class="fas fa-key margin-right-5"></i>Forgot password?</a>
+						</div>
+											</form>
+					    <div class="margin-top-30 margin-bottom-30">
+        <div class="or-separator"></div>
+    </div>
+    <div class="content-section">Sign in with another account</div>
+    <div class="content-section social-icons">
+<a class="login-provider-button login-provider-button--google" href="/connect/google"><span class="icon fab fa-google"> </span><span class="text">Sign in with Google</span></a>    </div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="top-left">
+    <div class="top-button pop-btn">
+        <div class="top-button-icon fas fa-bars"><span class="btn-text display-none">HotIMG.com</span></div>
+        <div class="pop-box menu-box">
+                            <a role="button" href="/">
+                    <span class="icon fas fa-home"></span>
+                    <span class="text">Home</span>
+                </a>
+                            <a role="button" href="/page/tos">
+                    <span class="icon fas fa-landmark"></span>
+                    <span class="text">Terms of Service</span>
+                </a>
+                            <a role="button" href="/page/privacy">
+                    <span class="icon fas fa-lock"></span>
+                    <span class="text">Privacy Policy</span>
+                </a>
+                            <a role="button" href="/page/contact">
+                    <span class="icon fas fa-at"></span>
+                    <span class="text">Contact</span>
+                </a>
+                            <a role="button" href="/plugin">
+                    <span class="icon fas fa-code"></span>
+                    <span class="text">Plugin</span>
+                </a>
+                            <a role="button" href="/login">
+                    <span class="icon fas fa-sign-in-alt"></span>
+                    <span class="text">Sign in</span>
+                </a>
+                            <a role="button" href="/signup">
+                    <span class="icon fas fa-user-plus"></span>
+                    <span class="text">Sign up</span>
+                </a>
+                    </div>
+    </div>
+</div>
+
+<script>
+	$(document).ready(function() {
+		if(typeof CHV == "undefined") {
+			CHV = {obj: {}, fn: {}, str:{}};
+		} else {
+			if(typeof CHV.obj.embed_share_tpl == "undefined") {
+				CHV.obj.embed_share_tpl = {};
+			}
+			if(typeof CHV.obj.embed_upload_tpl == "undefined") {
+				CHV.obj.embed_upload_tpl = {};
+			}
+		}
+		CHV.obj.embed_share_tpl = {"links":{"label":"Links","options":{"viewer-links":{"label":"Viewer links","template":"%URL_VIEWER%","size":"viewer"},"direct-links":{"label":"Direct links","template":"%URL%","size":"full"}}},"html-codes":{"label":"HTML Codes","options":{"html-embed":{"label":"HTML image","template":"<img src=\"%URL%\" alt=\"%FILENAME%\" border=\"0\">","size":"full"},"html-embed-full":{"label":"HTML full linked","template":"<a href=\"%URL_VIEWER%\"><img src=\"%URL%\" alt=\"%FILENAME%\" border=\"0\"><\/a>","size":"full"},"html-embed-medium":{"label":"HTML medium linked","template":"<a href=\"%URL_VIEWER%\"><img src=\"%MEDIUM_URL%\" alt=\"%MEDIUM_FILENAME%\" border=\"0\"><\/a>","size":"medium"},"html-embed-thumbnail":{"label":"HTML thumbnail linked","template":"<a href=\"%URL_VIEWER%\"><img src=\"%THUMB_URL%\" alt=\"%THUMB_FILENAME%\" border=\"0\"><\/a>","size":"thumb"}}},"bbcodes":{"label":"BBCodes","options":{"bbcode-embed":{"label":"BBCode full","template":"[img]%URL%[\/img]","size":"full"},"bbcode-embed-full":{"label":"BBCode full linked","template":"[url=%URL_VIEWER%][img]%URL%[\/img][\/url]","size":"full"},"bbcode-embed-medium":{"label":"BBCode medium linked","template":"[url=%URL_VIEWER%][img]%MEDIUM_URL%[\/img][\/url]","size":"medium"},"bbcode-embed-thumbnail":{"label":"BBCode thumbnail linked","template":"[url=%URL_VIEWER%][img]%THUMB_URL%[\/img][\/url]","size":"thumb"}}},"markdown":{"label":"Markdown","options":{"markdown-embed":{"label":"Markdown full","template":"![%FILENAME%](%URL%)","size":"full"},"markdown-embed-full":{"label":"Markdown full linked","template":"[![%FILENAME%](%URL%)](%URL_VIEWER%)","size":"full"},"markdown-embed-medium":{"label":"Markdown medium linked","template":"[![%MEDIUM_FILENAME%](%MEDIUM_URL%)](%URL_VIEWER%)","size":"medium"},"markdown-embed-thumbnail":{"label":"Markdown thumbnail linked","template":"[![%THUMB_FILENAME%](%THUMB_URL%)](%URL_VIEWER%)","size":"thumb"}}}};
+		CHV.obj.embed_upload_tpl = {"links":{"label":"Links","options":{"viewer-links":{"label":"Viewer links","template":"%URL_VIEWER%","size":"viewer"},"direct-links":{"label":"Direct links","template":"%URL%","size":"full"},"delete-links":{"label":"Delete links","template":"%DELETE_URL%","size":"full"}}},"html-codes":{"label":"HTML Codes","options":{"html-embed":{"label":"HTML image","template":"<img src=\"%URL%\" alt=\"%FILENAME%\" border=\"0\">","size":"full"},"html-embed-full":{"label":"HTML full linked","template":"<a href=\"%URL_VIEWER%\"><img src=\"%URL%\" alt=\"%FILENAME%\" border=\"0\"><\/a>","size":"full"},"html-embed-medium":{"label":"HTML medium linked","template":"<a href=\"%URL_VIEWER%\"><img src=\"%MEDIUM_URL%\" alt=\"%MEDIUM_FILENAME%\" border=\"0\"><\/a>","size":"medium"},"html-embed-thumbnail":{"label":"HTML thumbnail linked","template":"<a href=\"%URL_VIEWER%\"><img src=\"%THUMB_URL%\" alt=\"%THUMB_FILENAME%\" border=\"0\"><\/a>","size":"thumb"}}},"bbcodes":{"label":"BBCodes","options":{"bbcode-embed":{"label":"BBCode full","template":"[img]%URL%[\/img]","size":"full"},"bbcode-embed-full":{"label":"BBCode full linked","template":"[url=%URL_VIEWER%][img]%URL%[\/img][\/url]","size":"full"},"bbcode-embed-medium":{"label":"BBCode medium linked","template":"[url=%URL_VIEWER%][img]%MEDIUM_URL%[\/img][\/url]","size":"medium"},"bbcode-embed-thumbnail":{"label":"BBCode thumbnail linked","template":"[url=%URL_VIEWER%][img]%THUMB_URL%[\/img][\/url]","size":"thumb"}}},"markdown":{"label":"Markdown","options":{"markdown-embed":{"label":"Markdown full","template":"![%FILENAME%](%URL%)","size":"full"},"markdown-embed-full":{"label":"Markdown full linked","template":"[![%FILENAME%](%URL%)](%URL_VIEWER%)","size":"full"},"markdown-embed-medium":{"label":"Markdown medium linked","template":"[![%MEDIUM_FILENAME%](%MEDIUM_URL%)](%URL_VIEWER%)","size":"medium"},"markdown-embed-thumbnail":{"label":"Markdown thumbnail linked","template":"[![%THUMB_FILENAME%](%THUMB_URL%)](%URL_VIEWER%)","size":"thumb"}}}};
+	});
+</script>
+<div data-modal="form-embed-codes" class="hidden">
+	<span class="modal-box-title"><i class="fas fa-code"></i> Embed codes</span>
+    <div class="image-preview"></div>
+	<div class="input-label margin-bottom-0">
+		<div class="c8 margin-bottom-10">
+			<select name="form-embed-toggle" id="form-embed-toggle" class="text-input" data-combo="form-embed-toggle-combo">
+				<optgroup label="Links">
+	<option value="viewer-links" data-size="viewer">Viewer links</option>
+	<option value="direct-links" data-size="full">Direct links</option>
+</optgroup><optgroup label="HTML Codes">
+	<option value="html-embed" data-size="full">HTML image</option>
+	<option value="html-embed-full" data-size="full">HTML full linked</option>
+	<option value="html-embed-medium" data-size="medium">HTML medium linked</option>
+	<option value="html-embed-thumbnail" data-size="thumb">HTML thumbnail linked</option>
+</optgroup><optgroup label="BBCodes">
+	<option value="bbcode-embed" data-size="full">BBCode full</option>
+	<option value="bbcode-embed-full" data-size="full">BBCode full linked</option>
+	<option value="bbcode-embed-medium" data-size="medium">BBCode medium linked</option>
+	<option value="bbcode-embed-thumbnail" data-size="thumb">BBCode thumbnail linked</option>
+</optgroup><optgroup label="Markdown">
+	<option value="markdown-embed" data-size="full">Markdown full</option>
+	<option value="markdown-embed-full" data-size="full">Markdown full linked</option>
+	<option value="markdown-embed-medium" data-size="medium">Markdown medium linked</option>
+	<option value="markdown-embed-thumbnail" data-size="thumb">Markdown thumbnail linked</option>
+</optgroup>			</select>
+		</div>
+		<div id="form-embed-toggle-combo">
+			<div data-combo-value="viewer-links" class="switch-combo">
+							<textarea id="modal-embed-code-0" class="r3 resize-vertical" name="viewer-links" data-size="viewer" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-0"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="direct-links" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-1" class="r3 resize-vertical" name="direct-links" data-size="full" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-1"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="html-embed" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-2" class="r3 resize-vertical" name="html-embed" data-size="full" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-2"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="html-embed-full" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-3" class="r3 resize-vertical" name="html-embed-full" data-size="full" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-3"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="html-embed-medium" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-4" class="r3 resize-vertical" name="html-embed-medium" data-size="medium" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-4"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="html-embed-thumbnail" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-5" class="r3 resize-vertical" name="html-embed-thumbnail" data-size="thumb" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-5"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="bbcode-embed" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-6" class="r3 resize-vertical" name="bbcode-embed" data-size="full" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-6"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="bbcode-embed-full" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-7" class="r3 resize-vertical" name="bbcode-embed-full" data-size="full" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-7"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="bbcode-embed-medium" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-8" class="r3 resize-vertical" name="bbcode-embed-medium" data-size="medium" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-8"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="bbcode-embed-thumbnail" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-9" class="r3 resize-vertical" name="bbcode-embed-thumbnail" data-size="thumb" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-9"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="markdown-embed" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-10" class="r3 resize-vertical" name="markdown-embed" data-size="full" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-10"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="markdown-embed-full" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-11" class="r3 resize-vertical" name="markdown-embed-full" data-size="full" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-11"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="markdown-embed-medium" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-12" class="r3 resize-vertical" name="markdown-embed-medium" data-size="medium" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-12"><i class="far fa-copy"></i> copy</button>
+						</div>
+<div data-combo-value="markdown-embed-thumbnail" class="switch-combo soft-hidden">
+							<textarea id="modal-embed-code-13" class="r3 resize-vertical" name="markdown-embed-thumbnail" data-size="thumb" data-focus="select-all"></textarea>
+							<button type="button" class="input-action" data-action="copy" data-action-target="#modal-embed-code-13"><i class="far fa-copy"></i> copy</button>
+						</div>
+		</div>
+	</div>
+</div>
+<div id="modal-share" class="hidden">
+	<span class="modal-box-title"><i class="fas fa-share-alt"></i> Share</span>
+    <div class="image-preview"></div>
+    <p class="highlight margin-bottom-20 font-size-small text-align-center padding-5" data-content="privacy-private">__privacy_notes__</p>
+	<ul class="panel-share-networks">
+			</ul>
+	<div class="input-label margin-bottom-0">
+        <label for="modal-share-url">Link</label>
+        <div class="position-relative">
+            <input type="text" name="modal-share-url" id="modal-share-url" class="text-input" value="__url__" data-focus="select-all" readonly>
+            <button type="button" class="input-action" data-action="copy" data-action-target="#modal-share-url" value=""><i class="far fa-copy"></i> copy</button>
+        </div>
+    </div>
+</div>
+<script defer data-cfasync="false" src="/content/legacy/themes/Peafowl/lib/js/scripts.min.js?76e991ef18f00ccead0908dad1e8ca36" id="jquery-js" onload="jQueryLoaded(this, event)"></script>
+<script defer data-cfasync="false" src="/content/legacy/themes/Peafowl/lib/peafowl.min.js?76e991ef18f00ccead0908dad1e8ca36" id="peafowl-js"></script>
+<script defer data-cfasync="false" src="/content/legacy/themes/Peafowl/lib/chevereto.min.js?76e991ef18f00ccead0908dad1e8ca36" id="chevereto-js"></script>
+<script data-cfasync="false">var CHEVERETO = {"id":"","edition":"Chevereto","version":"4.0.10","source":{"label":"chevereto.com","url":"https:\/\/chevereto.com\/panel\/downloads"},"api":{"download":"https:\/\/chevereto.com\/api\/download","get":{"info":"https:\/\/chevereto.com\/api\/get\/info\/4"}}}</script><script data-cfasync="false">
+	document.getElementById("chevereto-js").addEventListener("load", function() {
+		PF.obj.devices = window.devices;
+		PF.fn.window_to_device = window.window_to_device;
+		PF.obj.config.base_url = "/";
+		PF.obj.config.json_api = "/json";
+		PF.obj.config.listing.items_per_page = "24";
+		PF.obj.config.listing.device_to_columns = {"phone":"3","phablet":"3","tablet":"4","laptop":"5","desktop":"6","largescreen":"6"};
+		PF.obj.config.auth_token = "4883a97921477bf43db991008ed72c381d7fe2ed";
+		PF.obj.l10n = [];
+		if (typeof CHV == "undefined") {
+			CHV = {
+				obj: {},
+				fn: {},
+				str: {}
+			};
+		}
+		CHV.obj.vars = {
+			urls: {
+				home: PF.obj.config.base_url,
+				search: "/search",
+				login: "/login",
+			}
+		};
+		PF.obj.vars = $.extend({}, CHV.obj.vars);
+		CHV.obj.config = {
+			image: {
+				max_filesize: "2 MB",
+				right_click: false,
+				load_max_filesize: "3 MB",
+				max_width: "0",
+				max_height: "0",
+			},
+			upload: {
+				url: false,
+				redirect_single_upload: true,
+				threads: "4",
+                image_types: ["jpg","jpeg","png","bmp","gif","webp","jpeg"],
+                moderation: true,
+				maxQueue: null,
+			},
+			user: {
+				avatar_max_filesize: "1 MB",
+				background_max_filesize: "2 MB",
+			},
+			captcha: {
+				isNeeded: false,
+				version: '3',
+				enabled: true,
+				sitekey: "6Le4LAYrAAAAAJof7XEdgWJE3y2oPSRU4-FnZdH6",
+			},
+			listing: {
+				viewer: false,
+			},
+            palettesId: {"blanco":0,"dark":1,"flickr":2,"imgur":3,"deviantart":4,"lush":5,"graffiti":6,"abstract":7,"cheers":8,"cmyk":9}		};
+				CHV.obj.page_info = {"doctitle":"Sign in - HotIMG.com","pre_doctitle":"Sign in","pos_doctitle":" - HotIMG.com"};
+			});
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=GT-TQK5X5L2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'GT-TQK5X5L2');
+</script></body>
+</html>

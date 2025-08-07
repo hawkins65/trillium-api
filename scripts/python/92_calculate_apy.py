@@ -18,16 +18,7 @@ from math import isinf, isnan
 
 LAMPORTS_PER_SOL = 1_000_000_000
 
-# Set up logging
-script_name = os.path.basename(sys.argv[0]).replace('.py', '')
-log_dir = os.path.expanduser('~/log')
-log_file = os.path.join(log_dir, f"{script_name}.log")
-# Logging config moved to unified configurations - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler()
-    ]
-)
+# Logging already configured via unified logging system above
 
 def validate_result(result):
     for key, value in result.items():

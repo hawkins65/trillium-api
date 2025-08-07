@@ -1,8 +1,13 @@
 #!/bin/bash
 
-# Source common logging
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../bash/999_common_log.sh"
+# Source path initialization
+source "$(dirname "$0")/../bash/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
+# Source common logging (already sourced by init_paths but ensure it's available)
+source "$COMMON_LOG_SCRIPT"
 
 # Initialize logging
 init_logging

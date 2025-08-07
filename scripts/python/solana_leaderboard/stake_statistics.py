@@ -14,9 +14,14 @@ import importlib
 logging_config = importlib.import_module('999_logging_config')
 setup_logging = logging_config.setup_logging
 
+# Add current directory to path for imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
 # Import from current package
-from .utils import format_lamports_to_sol, format_number, ensure_directory, get_output_path
-from .visualizations import get_persistent_color_map, get_color_map
+from utils import format_lamports_to_sol, format_number, ensure_directory, get_output_path
+from visualizations import get_persistent_color_map, get_color_map
 
 # Initialize logger
 logger = setup_logging('stake_statistics')
@@ -207,7 +212,7 @@ def calculate_stake_statistics(epoch, max_epoch, engine):
                 margin=dict(t=150, b=250, l=50, r=50)
             )
 
-            from .utils import save_chart_html
+            from utils import save_chart_html
             filename = get_output_path(f'epoch{epoch}_stake_distribution_charts.html', 'html')
             save_chart_html(fig, "Solana Stake Distribution Charts", filename)
 
@@ -508,7 +513,7 @@ def calculate_stake_statistics_metro(epoch, max_epoch, engine):
                 margin=dict(t=150, b=250, l=50, r=50)
             )
 
-            from .utils import save_chart_html
+            from utils import save_chart_html
             logger.debug(f"Saving HTML chart to epoch{epoch}_stake_distribution_charts_metro.html")
             filename = get_output_path(f'epoch{epoch}_stake_distribution_charts_metro.html', 'html')
             save_chart_html(fig, "Solana Stake Distribution Charts (Metro)", filename)

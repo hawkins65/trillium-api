@@ -351,15 +351,14 @@ def main():
     provided_epoch = int(sys.argv[1]) if len(sys.argv) > 1 else None
     epoch = get_epoch(provided_epoch)
     
-    configure_logging(epoch)
-    logging.info(f"Processing epoch {epoch}")
+    logger.info(f"Processing epoch {epoch}")
 
     available_stake_epochs = get_available_stake_epochs()
-    logging.info(f"Available stake epochs: {sorted(available_stake_epochs)}")
+    logger.info(f"Available stake epochs: {sorted(available_stake_epochs)}")
 
     vote_account_data = get_vote_accounts_and_data(epoch)
     if not vote_account_data:
-        logging.error(f"No vote accounts found for epoch {epoch}")
+        logger.error(f"No vote accounts found for epoch {epoch}")
         sys.exit(1)
 
     validator_rewards, delegator_rewards = calculate_inflation_rewards(vote_account_data, epoch, available_stake_epochs)

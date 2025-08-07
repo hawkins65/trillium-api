@@ -1,6 +1,7 @@
 import sys
 import json
 import importlib.util
+import os
 
 # Setup unified logging
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -14,7 +15,6 @@ import psycopg2
 from psycopg2.extras import execute_batch
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-import os
 import time
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry

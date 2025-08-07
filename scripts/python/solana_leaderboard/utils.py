@@ -20,10 +20,11 @@ TRILLIUM_DATA_JSON = os.environ.get('TRILLIUM_DATA_JSON', os.path.join(TRILLIUM_
 TRILLIUM_DATA_EPOCHS = os.environ.get('TRILLIUM_DATA_EPOCHS', os.path.join(TRILLIUM_DATA, 'epochs'))
 
 # Output directories for leaderboard data
-LEADERBOARD_OUTPUT_BASE = os.path.join(TRILLIUM_DATA, 'leaderboard')
-LEADERBOARD_JSON_DIR = os.path.join(LEADERBOARD_OUTPUT_BASE, 'json')
-LEADERBOARD_CSV_DIR = os.path.join(LEADERBOARD_OUTPUT_BASE, 'csv')
-LEADERBOARD_HTML_DIR = os.path.join(LEADERBOARD_OUTPUT_BASE, 'html')
+# Use environment variables if set by the bash script, otherwise use defaults
+LEADERBOARD_OUTPUT_BASE = os.environ.get('TRILLIUM_LEADERBOARD_DIR', os.path.join(TRILLIUM_DATA, 'leaderboard'))
+LEADERBOARD_JSON_DIR = os.environ.get('TRILLIUM_LEADERBOARD_JSON', os.path.join(LEADERBOARD_OUTPUT_BASE, 'json'))
+LEADERBOARD_CSV_DIR = os.environ.get('TRILLIUM_LEADERBOARD_CSV', os.path.join(LEADERBOARD_OUTPUT_BASE, 'csv'))
+LEADERBOARD_HTML_DIR = os.environ.get('TRILLIUM_LEADERBOARD_HTML', os.path.join(LEADERBOARD_OUTPUT_BASE, 'html'))
 
 def get_output_directory(output_type='json'):
     """

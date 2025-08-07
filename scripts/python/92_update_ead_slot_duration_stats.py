@@ -1,3 +1,6 @@
+import os
+import sys
+import logging
 import psycopg2
 import json
 import importlib.util
@@ -9,8 +12,6 @@ spec = importlib.util.spec_from_file_location("logging_config", logging_config_p
 logging_config = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(logging_config)
 logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
-import sys
-import os
 from decimal import Decimal
 try:
     from db_config import db_params
@@ -29,7 +30,9 @@ try:
     log_dir = os.path.dirname(LOG_FILE)
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
-    # Logging config moved to unified configurations - %(levelname)s - %(message)s',
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
         handlers=[
             logging.FileHandler(LOG_FILE, mode='a'),  # Append mode
             logging.StreamHandler(sys.stdout)  # Console output

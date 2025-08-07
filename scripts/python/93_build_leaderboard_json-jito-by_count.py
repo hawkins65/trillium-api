@@ -2,7 +2,9 @@
 import base64
 import io
 import json
+import os
 import importlib.util
+from output_paths import get_json_path, get_csv_path, get_html_path
 
 # Setup unified logging
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -11,7 +13,6 @@ spec = importlib.util.spec_from_file_location("logging_config", logging_config_p
 logging_config = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(logging_config)
 logger = logging_config.setup_logging(os.path.basename(__file__).replace('.py', ''))
-import os
 import random
 import sys
 from collections import defaultdict
@@ -330,8 +331,9 @@ def calculate_validator_counts(epoch, rank_range):
 
         # Save with favicon and custom HTML title
         epoch_filename = f'epoch{epoch}_validator_counts_charts-jito{rank_suffix}'
+        html_path = get_html_path(f"{epoch_filename}.html")
         fig.write_html(
-            f"{epoch_filename}.html",
+            html_path,
             include_plotlyjs='cdn',
             config={'responsive': True},
             full_html=True,
@@ -384,8 +386,11 @@ def main(epoch=None):
         print(f"Processing epoch: {epoch} for rank range {rank_range}")
         try:
             country_df, continent_df = calculate_validator_counts(epoch, rank_range)
-            country_df.to_csv(f'epoch{epoch}_country_counts-jito{rank_range.replace("-", "_")}.csv', index=True)
-            continent_df.to_csv(f'epoch{epoch}_continent_counts-jito{rank_range.replace("-", "_")}.csv', index=True)
+            country_csv_path = get_csv_path(f'epoch{epoch}_country_counts-jito{rank_range.replace("-", "_")}.csv')
+            continent_csv_path = get_csv_path(f'epoch{epoch}_continent_counts-jito{rank_range.replace("-", "_")}.csv')
+            country_df.to_csv(country_csv_path, index=True)
+            continent_df.to_csv(continent_csv_path, index=True)
+            logger.info(f"Saved CSV files to {country_csv_path} and {continent_csv_path}")
         except Exception as e:
             logger.error(f"Failed to process epoch {epoch} for rank {rank_range}: {str(e)}")
     print("Processing complete.")

@@ -25,7 +25,7 @@ DB_NAME="sol_blocks"
 log "INFO" "🗄️ Database connection: $DB_USER@$DB_HOST:$DB_PORT/$DB_NAME"
 
 # Path to CSV directory
-CSV_DIR="/home/smilax/trillium_api/wss_slot_duration"
+CSV_DIR="/home/smilax/trillium_api/data/monitoring/wss_slot_duration"
 
 log "INFO" "📁 CSV directory: $CSV_DIR"
 
@@ -95,7 +95,7 @@ else
 fi
 
 # Run the slot duration SQL file
-SQL_FILE="92_slot_duration.sql"
+SQL_FILE="$TRILLIUM_SCRIPTS_SQL/92_slot_duration.sql"
 log "INFO" "🗄️ Running SQL file: $SQL_FILE"
 
 # Create a temporary SQL file with the CSV path substituted
@@ -131,7 +131,7 @@ fi
 log "INFO" "📊 Running validator stats calculation"
 
 # Call the validator stats SQL script
-SQL_STATS_FILE="92_validator_stats_duration.sql"
+SQL_STATS_FILE="$TRILLIUM_SCRIPTS_SQL/92_validator_stats_duration.sql"
 log "INFO" "🔄 Running SQL file: $SQL_STATS_FILE"
 PAGER="" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -v epoch="$EPOCH" -f "$SQL_STATS_FILE"
 

@@ -233,6 +233,18 @@ if tar -cf - -C "$BACKUP_DIR" "$DATE" | zstd > "$ARCHIVE_FILE"; then
     archive_size=$(du -h "$ARCHIVE_FILE" | cut -f1)
     log_info "✅ Archive created successfully - Size: $archive_size"
     log_info "📁 Archive file: $ARCHIVE_FILE"
+    
+    # Create destination directory if it doesn't exist
+    IDRIVE_BACKUP_DIR="/mnt/idrive/backups/psql/tables"
+    mkdir -p "$IDRIVE_BACKUP_DIR"
+    
+    # Copy the archive to the iDrive backup location
+    log_info "📤 Copying backup archive to iDrive..."
+    if cp "$ARCHIVE_FILE" "$IDRIVE_BACKUP_DIR/"; then
+        log_info "✅ Successfully copied backup archive to $IDRIVE_BACKUP_DIR/"
+    else
+        log_error "❌ Failed to copy backup archive to iDrive"
+    fi
 else
     log_error "❌ Failed to create archive"
 fi

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import argparse
 import sys
+import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import plotly.graph_objects as go
 import plotly.io as pio
+from output_paths import get_html_path
 
 # Database connection parameters
 DB_HOST = "localhost"
@@ -30,13 +32,13 @@ def get_epoch_number():
             database=DB_NAME
         )
         cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute("SELECT DISTINCT epoch FROM slot_duration ORDER BY epoch")
+        cursor.execute("SELECT DISTINCT epoch FROM validator_stats_slot_duration ORDER BY epoch")
         epochs = [row['epoch'] for row in cursor.fetchall()]
         cursor.close()
         conn.close()
 
         if not epochs:
-            print("No epochs found in the slot_duration table.")
+            print("No epochs found in the validator_stats_slot_duration table.")
             sys.exit(1)
 
         print("Available epochs:", ", ".join(map(str, epochs)))
@@ -67,22 +69,22 @@ def fetch_duration_data(epoch):
         query = """
         WITH stats AS (
             SELECT 
-                AVG(duration) AS mean_duration,
-                STDDEV_SAMP(duration) AS stddev_duration
-            FROM slot_duration
+                AVG(slot_duration_mean) AS mean_duration,
+                STDDEV_SAMP(slot_duration_mean) AS stddev_duration
+            FROM validator_stats_slot_duration
             WHERE epoch = %s
-                AND duration IS NOT NULL
-                AND duration > 0
+                AND slot_duration_mean IS NOT NULL
+                AND slot_duration_mean > 0
         ),
         bins AS (
             SELECT 
-                FLOOR(duration / 20000000.0) * 20 AS bin_start_ms,
-                COUNT(*) AS slot_count
-            FROM slot_duration
+                FLOOR(slot_duration_mean / 20000000.0) * 20 AS bin_start_ms,
+                COUNT(*) AS validator_count
+            FROM validator_stats_slot_duration
             WHERE epoch = %s
-                AND duration IS NOT NULL
-                AND duration > 0
-            GROUP BY FLOOR(duration / 20000000.0)
+                AND slot_duration_mean IS NOT NULL
+                AND slot_duration_mean > 0
+            GROUP BY FLOOR(slot_duration_mean / 20000000.0)
         ),
         thresholds AS (
             SELECT 
@@ -93,7 +95,7 @@ def fetch_duration_data(epoch):
         )
         SELECT 
             bins.bin_start_ms,
-            bins.slot_count,
+            bins.validator_count,
             thresholds.mean_duration_ms,
             thresholds.low_outlier_threshold_ms,
             thresholds.high_outlier_threshold_ms
@@ -120,17 +122,17 @@ def plot_histogram(data, epoch):
     """Generate and save an HTML histogram of slot durations with enhanced visuals."""
     # Extract data and convert to float, filter bins > 1000 ms
     bin_starts = [float(row['bin_start_ms']) for row in data if float(row['bin_start_ms']) <= 1000]
-    slot_counts = [float(row['slot_count']) for row in data if float(row['bin_start_ms']) <= 1000]
+    validator_counts = [float(row['validator_count']) for row in data if float(row['bin_start_ms']) <= 1000]
     mean_duration = float(data[0]['mean_duration_ms'])
     low_threshold = float(data[0]['low_outlier_threshold_ms'])
     high_threshold = float(data[0]['high_outlier_threshold_ms'])
     
     # Calculate outlier counts and percentages based on filtered data
-    total_slots = sum(slot_counts)
-    low_outlier_count = sum(count for bs, count in zip(bin_starts, slot_counts) if bs < low_threshold)
-    high_outlier_count = sum(count for bs, count in zip(bin_starts, slot_counts) if bs >= high_threshold)
-    low_outlier_percent = (low_outlier_count / total_slots * 100) if total_slots > 0 else 0
-    high_outlier_percent = (high_outlier_count / total_slots * 100) if total_slots > 0 else 0
+    total_validators = sum(validator_counts)
+    low_outlier_count = sum(count for bs, count in zip(bin_starts, validator_counts) if bs < low_threshold)
+    high_outlier_count = sum(count for bs, count in zip(bin_starts, validator_counts) if bs >= high_threshold)
+    low_outlier_percent = (low_outlier_count / total_validators * 100) if total_validators > 0 else 0
+    high_outlier_percent = (high_outlier_count / total_validators * 100) if total_validators > 0 else 0
     
     # Create figure with adjusted width
     fig = go.Figure()
@@ -138,12 +140,12 @@ def plot_histogram(data, epoch):
     # Add histogram bars with color coding
     fig.add_trace(go.Bar(
         x=bin_starts,
-        y=slot_counts,
+        y=validator_counts,
         width=18,
         marker_color=[ '#FF6666' if bs < low_threshold else '#66B2FF' if bs >= high_threshold else '#4CAF50' for bs in bin_starts],
         marker_line_color='black',
         marker_line_width=0.5,
-        name='Slot Durations',
+        name='Validator Performance',
         showlegend=False
     ))
     
@@ -171,20 +173,20 @@ def plot_histogram(data, epoch):
     )
     
     # Get max y value for positioning annotations
-    max_y = max(slot_counts) if slot_counts else 1000
+    max_y = max(validator_counts) if validator_counts else 1000
     
     # Customize layout
     fig.update_layout(
         title={
-            'text': f"Slot Duration Distribution for Epoch {epoch} (Solana Network)",
+            'text': f"Validator Performance Distribution for Epoch {epoch} (Solana Network)",
             'y': 0.95,
             'x': 0.5,
             'xanchor': 'center',
             'yanchor': 'top',
             'font': dict(size=20, color='black', family='sans-serif', weight='bold')
         },
-        xaxis_title="Slot Duration (ms)",
-        yaxis_title="Number of Slots",
+        xaxis_title="Average Slot Duration (ms)",
+        yaxis_title="Number of Validators",
         xaxis=dict(
             tickmode='linear',
             tick0=0,
@@ -230,7 +232,7 @@ def plot_histogram(data, epoch):
             dict(
                 x=low_threshold,
                 y=max_y * 0.8,
-                text=f"Super Fast<br>(< {low_threshold} ms)<br>{low_outlier_percent:.2f}%",
+                text=f"Fast Validators<br>(< {low_threshold} ms avg)<br>{low_outlier_percent:.2f}%",
                 showarrow=True,
                 arrowhead=2,
                 arrowcolor="red",
@@ -245,7 +247,7 @@ def plot_histogram(data, epoch):
             dict(
                 x=high_threshold,
                 y=max_y * 0.7,
-                text=f"Slower than Expected<br>(> {high_threshold} ms)<br>{high_outlier_percent:.2f}%",
+                text=f"Slow Validators<br>(> {high_threshold} ms avg)<br>{high_outlier_percent:.2f}%",
                 showarrow=True,
                 arrowhead=2,
                 arrowcolor="blue",
@@ -278,7 +280,8 @@ def plot_histogram(data, epoch):
     )
     
     # Save as HTML with favicon and custom title
-    output_file = f'slot_duration_histogram_epoch{epoch}.html'
+    filename = f'validator_performance_histogram_epoch{epoch}.html'
+    output_file = get_html_path(filename)
 
     # 1) Render the full HTML to a string (with clickable logo via post_script)
     html = pio.to_html(
@@ -314,6 +317,7 @@ def plot_histogram(data, epoch):
     # 3) Write the modified HTML back out
     with open(output_file, 'w') as f:
         f.write(html)
+    print(f"Histogram saved to: {output_file}")
 
     print(f"Histogram saved to {output_file}")
 

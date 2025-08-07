@@ -1,5 +1,6 @@
 import sys
 import os
+import logging
 import psycopg2
 import importlib.util
 

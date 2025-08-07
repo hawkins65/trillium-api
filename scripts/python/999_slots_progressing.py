@@ -86,11 +86,32 @@ def count_collected_slots(epoch_dir):
                                     slot = int(row['block_slot'])
                                     collected_slots.add(slot)
                     except Exception as e:
-                        logger.error(f"Error reading CSV file {file}: {str(e)}")
+                        # Suppress error for interrupted processing (invalid int conversion)
+                        if "invalid literal for int() with base 10:" in str(e):
+                            logger.debug(f"Ignoring CSV parsing error from interrupted processing in {file}: {str(e)}")
+                        else:
+                            logger.error(f"Error reading CSV file {file}: {str(e)}")
                 
                 run_dir_slots = len(collected_slots) - run_dir_slots_before
                 logger.info(f"{run_dir}: Found {run_dir_slots} slots")
                 
+                # Check for good.json and poor.json files specifically in run0
+                if run_dir == 'run0':
+                    good_json_path = os.path.join(run_dir, 'good.json')
+                    poor_json_path = os.path.join(run_dir, 'poor.json')
+                    
+                    good_exists = os.path.exists(good_json_path)
+                    poor_exists = os.path.exists(poor_json_path)
+                    
+                    if not good_exists and not poor_exists:
+                        logger.warning(f"ALERT: Both good.json and poor.json files are missing from {run_dir}")
+                    elif not good_exists:
+                        logger.warning(f"ALERT: good.json file is missing from {run_dir}")
+                    elif not poor_exists:
+                        logger.warning(f"ALERT: poor.json file is missing from {run_dir}")
+                    else:
+                        logger.info(f"Both good.json and poor.json files found in {run_dir}")
+                    
             except Exception as e:
                 logger.error(f"Error accessing run directory {run_dir}: {str(e)}")
     except Exception as e:
@@ -112,7 +133,10 @@ def main():
         sys.exit(1)
     count = count_collected_slots(epoch_dir)
     # Write slot count to JSON file
-    output_file = os.path.expanduser('~/api/999_slots_progressing.json')
+    # Ensure output directory exists
+    output_dir = os.path.expanduser('~/trillium_api/data/slot_progressing')
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = os.path.join(output_dir, '999_slots_progressing.json')
     try:
         with open(output_file, 'w') as f:
             json.dump({'slots_count': count, 'epoch': epoch_number}, f)

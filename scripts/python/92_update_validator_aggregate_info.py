@@ -4,6 +4,8 @@ import csv
 import filetype
 import ipaddress
 import json
+import logging
+import os
 import importlib.util
 
 # Setup unified logging
@@ -319,18 +321,21 @@ def fetch_and_store_icons(conn, cur):
 
     # Read existing 92_icon_url_errors.list to create a set of identity_pubkeys to skip
     skip_pubkeys = set()
+    error_list_path = "./data/configs/92_icon_url_errors.list"
+    os.makedirs("./data/configs", exist_ok=True)
     try:
-        with open("92_icon_url_errors.list", "r", newline="") as error_file:
+        with open(error_list_path, "r", newline="") as error_file:
             csv_reader = csv.reader(error_file)
             next(csv_reader)  # Skip header row
             for row in csv_reader:
                 if row:  # Check if row is not empty
-                    skip_pubkeys.add(row[0])  # Add identity_pubkey to skip set
+                    continue # jrh -- let's try them all every epoch
+                    #skip_pubkeys.add(row[0])  # Add identity_pubkey to skip set
     except FileNotFoundError:
-        logger.info("92_icon_url_errors.list not found. Creating a new file.")
+        logger.info(f"{error_list_path} not found. Creating a new file.")
 
     # Open 92_icon_url_errors.list in append mode
-    csv_file = open("92_icon_url_errors.list", "a", newline="")
+    csv_file = open(error_list_path, "a", newline="")
     csv_writer = csv.writer(csv_file)
 
     # Write header only if the file is empty
@@ -426,7 +431,7 @@ def fetch_and_store_icons(conn, cur):
                 # Sanitize logo filename
                 if not filename.endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif')):
                     filename = "no-image-available12.webp"
-                    logger.warning(f"Invalid image extension for {identity_pubkey}, using default logo")
+                    logger.info(f"Invalid image extension for {identity_pubkey}, using default logo")
 
                 cur.execute(
                     "UPDATE validator_info SET logo = %s WHERE identity_pubkey = %s",
@@ -446,7 +451,7 @@ def fetch_and_store_icons(conn, cur):
 
         except requests.exceptions.RequestException as e:
             error_message = f"Error: {e}"
-            logger.error(error_message)
+            logger.info(error_message)
             csv_writer.writerow([identity_pubkey, icon_url, error_message])
             cur.execute(
                 "UPDATE validator_info SET logo = %s WHERE identity_pubkey = %s",
@@ -553,7 +558,7 @@ def update_validator_stats_with_gossip(db_params, start_epoch, end_epoch, gossip
         conn.close()
 
 def fetch_validator_history(vote_pubkey):
-    cmd = [VALIDATOR_HISTORY_CLI, '--json-rpc-url', RPC_URL, 'history', vote_pubkey]
+    cmd = [VALIDATOR_HISTORY_CLI, '--json-rpc-url', RPC_URL, 'history', '--print-json', vote_pubkey]
     result = subprocess.run(cmd, capture_output=True, text=True)
     return vote_pubkey, result
 
@@ -630,13 +635,15 @@ def fetch_and_store_data(start_epoch, end_epoch, process_validator_icons, proces
     validator_info_data = []
     for account_data in validator_accounts:
         try:
-            # Extract the parsed info
-            parsed_info = account_data['account']['data']['parsed']['info']
+            # Extract the parsed data
+            parsed_data = account_data['account']['data']['parsed']
             
             # Skip if not a validatorInfo type
-            if parsed_info.get('type') != 'validatorInfo':
+            if parsed_data.get('type') != 'validatorInfo':
                 continue
                 
+            # Get the info section  
+            parsed_info = parsed_data['info']
             config_data = parsed_info.get('configData', {})
             keys = parsed_info.get('keys', [])
             
@@ -670,7 +677,7 @@ def fetch_and_store_data(start_epoch, end_epoch, process_validator_icons, proces
             validator_info_data.append(validator_record)
             
         except (KeyError, TypeError) as e:
-            logger.warning(f"Skipping malformed account data: {e}")
+            logger.info(f"Skipping malformed account data: {e}")
             continue
 
     logger.info(f"Processed {len(validator_info_data)} validator info records...")
@@ -747,14 +754,16 @@ def fetch_and_store_data(start_epoch, end_epoch, process_validator_icons, proces
                     print(f"Pubkey {pubkey} will NOT be processed (in skip list or not in vote_account_pubkeys).")
 
         # Load skip list
+        stakenet_error_list_path = "./data/configs/92_stakenet_vote_id_errors.list"
+        os.makedirs("./data/configs", exist_ok=True)
         try:
             # TODO: remove this file -- errors in one epoch cause future epochs to fail -- 2025-06-04 jrh
             with open('92_stakenet_vote_id_errors.list.do-not-use', 'r') as error_file:
                 skip_vote_pubkeys = set(line.strip() for line in error_file if line.strip())
             logger.info(f"Loaded {len(skip_vote_pubkeys)} vote_pubkeys to skip")
         except FileNotFoundError:
-            logger.info("92_stakenet_vote_id_errors.list not found. Creating a new file.")
-            open('92_stakenet_vote_id_errors.list', 'w').close()
+            logger.info(f"{stakenet_error_list_path} not found. Creating a new file.")
+            open(stakenet_error_list_path, 'w').close()
 
         # Parallel CLI calls
         logger.info("Fetching validator history in parallel")
@@ -765,40 +774,119 @@ def fetch_and_store_data(start_epoch, end_epoch, process_validator_icons, proces
         csv_buffers = {}
         for vote_pubkey, result in results:
             if result.stderr:
-                logger.error(f"Error for {vote_pubkey}: {result.stderr}")
-                with open('92_stakenet_vote_id_errors.list', 'a') as error_file:
+                logger.info(f"Error for {vote_pubkey}: {result.stderr}")
+                with open(stakenet_error_list_path, 'a') as error_file:
                     error_file.write(f"{vote_pubkey}\n")
                 continue
+                
+            # Parse JSON output
+            try:
+                json_data = json.loads(result.stdout)
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse JSON for {vote_pubkey}: {e}")
+                with open(stakenet_error_list_path, 'a') as error_file:
+                    error_file.write(f"{vote_pubkey}\n")
+                continue
+            
+            # Handle both old format (list) and new format (dict with 'epochs' key)
+            if isinstance(json_data, dict) and 'epochs' in json_data:
+                # New format: extract the epochs list
+                epochs_list = json_data['epochs']
+            elif isinstance(json_data, list):
+                # Old format: already a list
+                epochs_list = json_data
+            else:
+                logger.error(f"Unexpected JSON format for {vote_pubkey}: expected list or dict with 'epochs' key, got {type(json_data).__name__}")
+                logger.debug(f"JSON data: {json_data}")
+                with open(stakenet_error_list_path, 'a') as error_file:
+                    error_file.write(f"{vote_pubkey}\n")
+                continue
+            
             csv_buffer = StringIO()
             csv_buffer.write("vote_account_pubkey,epoch,commission,epoch_credits,mev_commission,mev_earned,stake,jito_rank,superminority,ip,client_type,client_version\n")
-            lines = result.stdout.strip().split('\n')
-            for line in lines:
-                if line.startswith('Epoch') and f"Epoch: {start_epoch}" in line:
-                    epoch_data = line.split('|')
-                    if len(epoch_data) == 1:
-                        logger.error(f"SKIPPING missing data for {vote_pubkey} {start_epoch}")
-                        continue
-                    commission = epoch_data[1].split(':')[1].strip()
-                    epoch_credits = epoch_data[2].split(':')[1].strip()
-                    mev_commission = epoch_data[3].split(':')[1].strip()
-                    # Convert MEV earned from SOL to lamports (1 SOL = 1,000,000,000 lamports)
-                    mev_earned_sol = epoch_data[4].split(':')[1].strip()
-                    try:
-                        mev_earned = str(int(float(mev_earned_sol) * 1_000_000_000))
-                    except ValueError:
-                        logger.error(f"Invalid MEV earned value for {vote_pubkey}: {mev_earned_sol}")
-                        mev_earned = '[NULL]'  # Fallback value
-                    activated_stake = epoch_data[5].split(':')[1].strip()
-                    jito_rank = epoch_data[6].split(':')[1].strip()
-                    superminority = epoch_data[7].split(':')[1].strip()
-                    ip = epoch_data[8].split(':')[1].strip()
-                    client_type = epoch_data[9].split(':')[1].strip()
-                    client_version = epoch_data[10].split(':')[1].strip()
+            
+            # Find data for the target epoch
+            epoch_found = False
+            for epoch_data in epochs_list:
+                # Ensure epoch_data is a dictionary
+                if not isinstance(epoch_data, dict):
+                    logger.warning(f"Skipping non-dict epoch_data for {vote_pubkey}: {type(epoch_data).__name__}")
+                    continue
+                
+                # Handle both old and new format
+                if 'validator_history' in epoch_data:
+                    # New format with nested validator_history
+                    epoch_num = epoch_data.get('epoch')
+                    validator_history = epoch_data.get('validator_history', {})
+                else:
+                    # Old format - flat structure
+                    epoch_num = epoch_data.get('epoch')
+                    validator_history = epoch_data
+                
+                if epoch_num == start_epoch:
+                    epoch_found = True
+                    
+                    # Extract values and handle None/null values
+                    commission = validator_history.get('commission') or '[NULL]'
+                    epoch_credits = validator_history.get('epoch_credits') or '[NULL]'
+                    mev_commission = validator_history.get('mev_commission') or '[NULL]'
+                    
+                    # Handle mev_earned - convert from SOL to lamports if it's a float
+                    mev_earned_raw = validator_history.get('mev_earned')
+                    if mev_earned_raw is not None:
+                        try:
+                            mev_earned = str(int(float(mev_earned_raw) * 1_000_000_000))
+                        except (ValueError, TypeError):
+                            mev_earned = '[NULL]'
+                    else:
+                        mev_earned = '[NULL]'
+                    
+                    # Handle activated_stake (new format uses activated_stake_lamports)
+                    activated_stake = validator_history.get('activated_stake') or validator_history.get('activated_stake_lamports') or '[NULL]'
+                    
+                    # Handle jito_rank (new format uses 'rank')
+                    jito_rank = validator_history.get('jito_rank') or validator_history.get('rank') or '[NULL]'
+                    
+                    # Handle superminority (new format uses is_superminority)
+                    if 'superminority' in validator_history:
+                        superminority = 1 if validator_history.get('superminority') else 0
+                    elif 'is_superminority' in validator_history:
+                        # New format stores it as a string "0" or "1"
+                        is_super = validator_history.get('is_superminority')
+                        if is_super is not None:
+                            superminority = int(is_super)
+                        else:
+                            superminority = 0
+                    else:
+                        superminority = 0
+                    
+                    ip = validator_history.get('ip') or '[NULL]'
+                    client_type = validator_history.get('client_type') or '[NULL]'
+                    
+                    # Handle client_version (new format uses 'version')
+                    client_version = validator_history.get('client_version') or validator_history.get('version') or '[NULL]'
+                    
+                    # Convert values to strings and handle None values properly
+                    commission = str(commission) if commission != '[NULL]' else '[NULL]'
+                    epoch_credits = str(epoch_credits) if epoch_credits != '[NULL]' else '[NULL]'
+                    mev_commission = str(mev_commission) if mev_commission != '[NULL]' else '[NULL]'
+                    activated_stake = str(activated_stake) if activated_stake != '[NULL]' else '[NULL]'
+                    jito_rank = str(jito_rank) if jito_rank != '[NULL]' else '[NULL]'
+                    client_type = str(client_type) if client_type != '[NULL]' else '[NULL]'
+                    ip = str(ip) if ip != '[NULL]' else '[NULL]'
+                    client_version = str(client_version) if client_version != '[NULL]' else '[NULL]'
+                    
                     # Print statement 2: Log activated_stake after parsing CLI output
                     if DEBUG:
                         if vote_pubkey in target_pubkeys:
-                            print(f"Pubkey {vote_pubkey}, Epoch {start_epoch}: activated_stake={activated_stake}, mev_earned_sol={mev_earned_sol}")
+                            print(f"Pubkey {vote_pubkey}, Epoch {start_epoch}: activated_stake={activated_stake}, mev_earned={mev_earned}")
+                    
                     csv_buffer.write(f"{vote_pubkey},{start_epoch},{commission},{epoch_credits},{mev_commission},{mev_earned},{activated_stake},{jito_rank},{superminority},{ip},{client_type},{client_version}\n")
+                    break
+            
+            if not epoch_found:
+                logger.info(f"No data found for {vote_pubkey} in epoch {start_epoch}")
+                
             csv_buffer.seek(0)
             csv_buffers[vote_pubkey] = csv_buffer
 
@@ -898,7 +986,7 @@ def fetch_and_store_data(start_epoch, end_epoch, process_validator_icons, proces
             UPDATE validator_stats vs
             SET
                 vote_account_pubkey = tvs.vote_account_pubkey,
-                activated_stake = CAST(NULLIF(NULLIF(tvs.activated_stake, '[NULL]'), '') AS BIGINT),
+                activated_stake = CAST(NULLIF(NULLIF(NULLIF(tvs.activated_stake, 'None'), '[NULL]'), '') AS BIGINT),
                 commission = CAST(NULLIF(NULLIF(tvs.commission, '[NULL]'), '') AS INTEGER),
                 epoch_credits = CAST(NULLIF(NULLIF(tvs.epoch_credits, '[NULL]'), '') AS BIGINT),
                 mev_commission = CAST(NULLIF(NULLIF(tvs.mev_commission, '[NULL]'), '') AS INTEGER),

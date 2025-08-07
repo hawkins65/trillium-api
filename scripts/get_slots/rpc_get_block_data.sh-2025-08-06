@@ -1,0 +1,215 @@
+#!/bin/bash
+
+# Source path initialization
+source "$(dirname "$0")/../bash/000_init_paths.sh" || {
+    echo "❌ Failed to source path initialization script" >&2
+    exit 1
+}
+
+# Logging is already initialized by 000_init_paths.sh
+
+# Save the original command-line arguments
+original_args="$@"
+script_name=$(basename "$0")
+
+log "INFO" "🚀 Starting RPC get block data script with parameters: $0 $original_args"
+sleep 5
+
+# Parse command line arguments
+if [[ "$#" -ne 1 ]]; then
+    log "ERROR" "❌ Invalid number of arguments provided"
+    echo "Usage: $0 <epoch-number>"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Invalid arguments" "Usage: $0 <epoch-number>" "" "" "Provided: $# arguments"
+    exit 1
+fi
+
+epoch_number="$1"
+log "INFO" "📊 Processing epoch number: $epoch_number"
+
+# Switch to the directory to save slot data
+target_dir="$(resolve_data_path "epoch$epoch_number" "epochs")"
+log "INFO" "📁 Switching to directory: $target_dir"
+
+if ! safe_cd "$target_dir" "epoch data directory"; then
+    log "ERROR" "❌ Failed to change directory to $target_dir"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Directory change failed" "cd \"$target_dir\"" "1" "$epoch_number"
+    exit 1
+fi
+
+log "INFO" "✅ Successfully changed to target directory"
+
+# Get shinobi vote latency and consensus voting data
+log "INFO" "🗳️ Getting Shinobi vote latency and consensus voting data"
+if bash "$(resolve_script_path 'get_shin_voting.sh' 'getslots')"; then
+    log "INFO" "✅ Successfully completed Shinobi voting data collection"
+else
+    exit_code=$?
+    log "ERROR" "❌ Failed to get Shinobi voting data (exit code: $exit_code)"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Shinobi voting data collection" "bash get_shin_voting.sh" "$exit_code" "$epoch_number"
+fi
+
+# Get epoch data in csv files
+log "INFO" "📈 Running epoch data CSV generation"
+python_script="$(resolve_script_path 'get_epoch_data_csv.py' 'getslots')"
+
+# Get epoch data in csv files
+python3 "$python_script" "$epoch_number"
+exit_status=$?
+
+log "DEBUG" "Python script completed with exit status: $exit_status"
+
+# Track whether we should continue to end-of-epoch processing or re-run
+should_continue_to_end_processing=false
+
+# Check if the Python script exited cleanly or slots didn't change
+if [ $exit_status -eq 99 ]; then
+    log "INFO" "✅ Epoch is complete (exit code 99). Proceeding to end-of-epoch processing."
+    should_continue_to_end_processing=true
+elif [ $exit_status -ne 0 ]; then
+    log "ERROR" "❌ Python script did not exit cleanly (exit code: $exit_status)"
+    
+    # Send Discord alert for Python script failure
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Epoch data CSV generation" "python3 get_epoch_data_csv.py \"$epoch_number\"" "$exit_status" "$epoch_number"
+    
+    # Send PagerDuty alert for Python script failure
+    if [[ -x "$(resolve_script_path '999_pagerduty.sh' 'bash')" ]]; then
+        log "INFO" "📟 Sending PagerDuty alert for Python script failure"
+        "$(resolve_script_path '999_pagerduty.sh' 'bash')" \
+            --severity error \
+            --source "$(hostname)" \
+            --details "{\"exit_status\": $exit_status, \"script\": \"$(basename "$0")\", \"timestamp\": \"$(date -u --iso-8601=seconds)\"}" \
+            "Python script failed with exit status $exit_status"
+    else
+        log "WARN" "⚠️ PagerDuty script not found at $(resolve_script_path '999_pagerduty.sh' 'bash')"
+    fi
+    
+    # ENHANCED: Always continue automatically for timeout/processing errors (exit code 1)
+    # Let the wrapper script handle retries rather than prompting user
+    if [ $exit_status -eq 1 ]; then
+        log "INFO" "🔄 Exit code 1 detected - allowing wrapper script to handle retry"
+        exit 1  # Exit with code 1 to trigger wrapper retry mechanism
+    else
+        # For other critical errors, exit with that error code
+        log "ERROR" "❌ Critical error (code $exit_status) - exiting"
+        exit $exit_status
+    fi
+else
+    log "INFO" "✅ Successfully completed epoch data CSV generation (exit code 0)"
+    # Exit code 0 means work was done but may need to re-run for remaining slots
+    should_continue_to_end_processing=false
+fi
+
+# Find the highest run directory
+log "INFO" "📂 Finding highest run directory number"
+max_run=0
+for dir in run*; do
+    if [[ -d $dir ]]; then
+        run_num=$(echo $dir | sed 's/run//')
+        if ((run_num > max_run)); then
+            max_run=$run_num
+        fi
+    fi
+done
+
+# Create the next run directory
+next_run=$((max_run + 1))
+next_run_dir="run$next_run"
+log "INFO" "📁 Creating next run directory: $next_run_dir"
+
+if mkdir "$next_run_dir"; then
+    log "INFO" "✅ Successfully created directory: $next_run_dir"
+else
+    exit_code=$?
+    log "ERROR" "❌ Failed to create directory: $next_run_dir (exit code: $exit_code)"
+    bash "$DISCORD_NOTIFY_SCRIPT" error "$script_name" "Directory creation" "mkdir \"$next_run_dir\"" "$exit_code" "$epoch_number"
+    exit $exit_code
+fi
+
+# Move the specified files to the new directory
+log "INFO" "📦 Moving CSV files and error logs to $next_run_dir"
+if mv *.csv solana_rpc_errors.log "$next_run_dir" 2>/dev/null; then
+    log "INFO" "✅ Successfully moved files to $next_run_dir"
+else
+    log "WARN" "⚠️ Some files may not have been moved (this may be normal if files don't exist)"
+fi
+
+# ENHANCED: Automatically determine re-run based on completion status
+log "INFO" "🔍 Checking if script should re-run automatically"
+
+# If epoch is complete (exit code 99), we should NOT re-run
+if [ "$should_continue_to_end_processing" = true ]; then
+    log "INFO" "🎉 Epoch processing completed - finishing script"
+    
+    log "INFO" "🎉 RPC get block data script execution completed for epoch $epoch_number"
+    
+    # Send success notification to Discord using centralized script
+    components_processed="   • Directory navigation to epoch folder
+   • Shinobi vote latency and consensus data
+   • Epoch data CSV generation (COMPLETE)
+   • Run directory management
+   • File organization and cleanup
+   • Epoch verified as complete (99.5%+ slots)"
+
+    bash "$DISCORD_NOTIFY_SCRIPT" success "$script_name" "$epoch_number" "RPC Get Block Data Completed Successfully" "$components_processed"
+else
+    # For exit code 0, check if we need to re-run for remaining slots
+    last_slots_file="last_slots_to_process.txt"
+    previous_slots_file="previous_slots_count.txt"
+    should_rerun=false
+    
+    if [ -f "$last_slots_file" ]; then
+        remaining_slots=$(cat "$last_slots_file" 2>/dev/null || echo "0")
+        
+        # Check if we're making progress by comparing with previous run
+        if [ -f "$previous_slots_file" ]; then
+            previous_slots=$(cat "$previous_slots_file" 2>/dev/null || echo "-1")
+            if [ "$remaining_slots" -eq "$previous_slots" ] && [ "$remaining_slots" -gt 0 ]; then
+                log "WARN" "⚠️ No progress made - same $remaining_slots slots remain unprocessed"
+                log "INFO" "📊 Assuming these slots cannot be processed - marking epoch as done"
+                log "INFO" "   Unprocessable slots: $remaining_slots"
+                
+                # Clear the slots count to prevent further re-runs
+                echo "0" > "$last_slots_file"
+                rm -f "$previous_slots_file"
+                
+                # Send notification about incomplete but stuck epoch
+                bash "$DISCORD_NOTIFY_SCRIPT" warning "$script_name" "Epoch processing stuck" "Cannot process remaining $remaining_slots slots - marking as done" "0" "$epoch_number"
+                
+                log "INFO" "🏁 Epoch processing completed with unprocessable slots"
+                exit 0
+            fi
+        fi
+        
+        # Save current count for next run comparison
+        echo "$remaining_slots" > "$previous_slots_file"
+        
+        if [ "$remaining_slots" -gt 0 ]; then
+            should_rerun=true
+            log "INFO" "📊 Found $remaining_slots remaining slots - will re-run"
+        else
+            log "INFO" "✅ No remaining slots ($remaining_slots) - processing complete for now"
+            rm -f "$previous_slots_file"  # Clean up tracking file when done
+        fi
+    else
+        log "WARN" "⚠️ Last slots file not found - assuming work remains, will re-run"
+        should_rerun=true
+    fi
+    
+    if [ "$should_rerun" = true ]; then
+        log "INFO" "🔄 Automatically re-running script for remaining work: $0 $original_args"
+        bash "$DISCORD_NOTIFY_SCRIPT" restart "$script_name" "$epoch_number" "$original_args"
+        # Use the full script path for re-execution
+        script_path="/home/smilax/trillium_api/scripts/get_slots/rpc_get_block_data.sh"
+        log "DEBUG" "About to exec: $script_path $original_args"
+        exec "$script_path" $original_args
+    else
+        log "INFO" "⚠️ No slots to process currently but epoch not complete"
+        log "INFO" "   This may indicate slots are still being generated"
+        log "INFO" "   Script will not auto-restart - manual re-run may be needed"
+        
+        # Send warning notification
+        bash "$DISCORD_NOTIFY_SCRIPT" warning "$script_name" "Incomplete epoch - no slots to process" "May need manual re-run later" "0" "$epoch_number"
+    fi
+fi
+
+# cleanup_logging is handled by the common logging script

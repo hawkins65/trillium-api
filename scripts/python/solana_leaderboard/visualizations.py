@@ -14,8 +14,13 @@ import importlib
 logging_config = importlib.import_module('999_logging_config')
 setup_logging = logging_config.setup_logging
 
+# Add current directory to path for imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
 # Import from current package
-from .utils import save_chart_html, ensure_directory, get_output_path
+from utils import save_chart_html, ensure_directory, get_output_path
 
 # Initialize logger
 logger = setup_logging('visualizations')

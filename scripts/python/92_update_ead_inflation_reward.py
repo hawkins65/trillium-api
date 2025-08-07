@@ -20,7 +20,9 @@ def configure_logging(epoch: int):
     script_name = os.path.basename(sys.argv[0]).replace('.py', '')
     log_dir = os.path.expanduser('~/log')
     log_file = os.path.join(log_dir, f"{script_name}.log")    
-    # Logging config moved to unified configurations - %(levelname)s - %(message)s",
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
         handlers=[
             logging.FileHandler(log_file),
             logging.StreamHandler()

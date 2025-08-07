@@ -21,7 +21,7 @@ import statistics
 
 # Constants
 SLOTS_PER_EPOCH = 432000
-CSV_DIR = "/home/smilax/trillium_api/wss_slot_duration"
+CSV_DIR = "/home/smilax/trillium_api/data/monitoring/wss_slot_duration"
 LOG_DIR = os.path.expanduser("~/log")
 DB_HOST = "localhost"
 DB_PORT = "5432"
@@ -31,21 +31,7 @@ STD_DEV_MULTIPLIER = 2.0  # Number of standard deviations for acceptable range
 
 def setup_logging(epoch):
     """Set up logging for the epoch processor"""
-    os.makedirs(LOG_DIR, exist_ok=True)
-    log_file = os.path.join(LOG_DIR, f"epoch{epoch}_slot_processor.log")
-    
-    # Configure logging
-    # Logging config moved to unified configurations - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler()
-        ]
-    )
-    
-    # Logger setup moved to unified configuration
     logger.info(f"Starting epoch {epoch} slot duration processing")
-    logger.info(f"Log file: {log_file}")
-    
     return logger
 
 def get_epoch_number():

@@ -45,6 +45,18 @@ if pg_dump -h localhost -U "$DB_USER" -d "$DB_NAME" --verbose --file="$BACKUP_FI
         log_info "✅ Backup compressed successfully"
         log_info "📏 Compressed file size: $compressed_size"
         
+        # Create destination directory if it doesn't exist
+        IDRIVE_BACKUP_DIR="/mnt/idrive/backups/postgresql"
+        mkdir -p "$IDRIVE_BACKUP_DIR"
+        
+        # Copy the compressed backup to the iDrive backup location
+        log_info "📤 Copying backup file to iDrive..."
+        if cp "$compressed_file" "$IDRIVE_BACKUP_DIR/"; then
+            log_info "✅ Successfully copied backup file to $IDRIVE_BACKUP_DIR/"
+        else
+            log_error "❌ Failed to copy backup file to iDrive"
+        fi
+        
         # Remove the original uncompressed file
         log_info "🧹 Removing uncompressed SQL file..."
         if rm "$BACKUP_FILE"; then
